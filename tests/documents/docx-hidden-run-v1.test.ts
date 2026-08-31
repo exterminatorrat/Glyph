@@ -1,5 +1,5 @@
 import { generateDocxHiddenRunV1 } from "@/documents/docx/docx-hidden-run-v1";
-import { strFromU8, unzipSync } from "fflate";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { DOMParser } from "@xmldom/xmldom";
 import { describe, expect, test } from "vitest";
 import {
@@ -32,6 +32,16 @@ const readEntry = (
   return entry;
 };
 
+const mutateEntry = (
+  bytes: Uint8Array,
+  name: string,
+  mutate: (xml: string) => string,
+): Uint8Array => {
+  const entries = unzipSync(bytes);
+  entries[name] = strToU8(mutate(strFromU8(readEntry(entries, name))));
+  return zipSync(entries);
+};
+
 const parseXml = (entry: Uint8Array) =>
   new DOMParser().parseFromString(strFromU8(entry), "application/xml");
 
@@ -45,6 +55,8 @@ const assertInertCommentsPlumbing = (bytes: Uint8Array): void => {
   if (!commentsRoot) {
     throw new Error("Missing comments XML root element");
   }
+  expect(commentsRoot.namespaceURI).toBe(WORDPROCESSINGML_NAMESPACE);
+  expect(commentsRoot.localName).toBe("comments");
 
   expect(
     commentsDocument.getElementsByTagNameNS(
@@ -212,6 +224,25 @@ describe("docx-hidden-run-v1", () => {
     expect(inspection.unexpectedEntries).toEqual([]);
     expect(inspection.unexpectedRelationships).toEqual([]);
     assertInertCommentsPlumbing(bytes);
+
+    const malformedXml = mutateEntry(bytes, "docProps/app.xml", (xml) =>
+      xml.replace("<Properties ", "<Properties malformed=value "),
+    );
+    expect(() => inspectCarrierDocx(malformedXml)).toThrow(
+      "Invalid XML entry docProps/app.xml",
+    );
+
+    const wrongCommentsRoot = mutateEntry(bytes, "word/comments.xml", (xml) =>
+      xml
+        .replace(
+          "<w:comments",
+          '<x:notComments xmlns:x="urn:glyph:wrong-comments-root"',
+        )
+        .replace("</w:comments>", "</x:notComments>"),
+    );
+    expect(inspectCarrierDocx(wrongCommentsRoot).unexpectedEntries).toContain(
+      "word/comments.xml: expected WordprocessingML comments root",
+    );
   });
 
   test("is structurally stable across two generated packages", async () => {

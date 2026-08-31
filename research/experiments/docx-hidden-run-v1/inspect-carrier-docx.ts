@@ -163,9 +163,7 @@ const parseXml = (entries: Unzipped, entryName: string): XmlDocument => {
   try {
     document = new DOMParser({
       onError: (level, message) => {
-        if (level !== "warning") {
-          parserErrors.push(`${level}: ${message}`);
-        }
+        parserErrors.push(`${level}: ${message}`);
       },
     }).parseFromString(strFromU8(entry), "application/xml");
   } catch (error) {
@@ -374,7 +372,11 @@ const inspectCommentsContent = (
 ): string[] => {
   const unexpectedComments: string[] = [];
   const commentsRoot = commentsDocument.documentElement;
-  if (commentsRoot) {
+  if (!commentsRoot || !isElement(commentsRoot, WORDPROCESSINGML_NAMESPACE, "comments")) {
+    unexpectedComments.push(
+      "word/comments.xml: expected WordprocessingML comments root",
+    );
+  } else {
     if (childElements(commentsRoot).length > 0) {
       unexpectedComments.push("word/comments.xml: unexpected element content");
     }
