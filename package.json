@@ -10,7 +10,9 @@
     "test": "vitest run",
     "build": "next build",
     "research:carrier:generate": "node scripts/generate-docx-carrier-spike.ts",
-    "research:carrier:inspect": "node scripts/inspect-docx-carrier-spike.ts"
+    "research:carrier:inspect": "node scripts/inspect-docx-carrier-spike.ts",
+    "research:carrier:bakeoff:generate": "node scripts/generate-docx-alternative-carrier.ts",
+    "research:carrier:bakeoff:inspect": "node scripts/inspect-docx-alternative-carrier.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {

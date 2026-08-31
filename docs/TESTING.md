@@ -42,6 +42,15 @@ These commands verify software behavior and integration. They do not validate ca
 
 These commands and tests prove package structure only. They do not prove editor behavior, clipboard survival, accessibility behavior, model compliance, end-to-end survival, prompt reuse, AI authorship, direct ingestion, intent, cheating, or misconduct.
 
+## Milestone 2B alternative carrier bakeoff commands
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm research:carrier:bakeoff:generate -- matching-color-body-v1` (repeat with the other two frozen IDs) | One frozen candidate source DOCX was generated locally and its path/hash were reported. |
+| `pnpm research:carrier:bakeoff:inspect -- research/artifacts/docx-alternative-carrier-bakeoff-v1/matching-color-body-v1.docx` (repeat with the other two source paths and, after Task 5, each of the three Google Docs round-trip paths) | One valid DOCX was read-only inspected for marker presence, OOXML location/format, visible paragraphs, and active-content/relationship safety. |
+
+These two commands prove package structure only. The validator command is added with the Task 5 record validator and must not be invoked before the non-blocked record exists. None of these commands proves editor behavior beyond the separately recorded Google Docs observation, clipboard survival, accessibility behavior, model compliance, end-to-end survival, prompt reuse, AI authorship, direct ingestion, intent, cheating, or misconduct.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.

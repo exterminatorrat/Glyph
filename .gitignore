@@ -17,3 +17,5 @@ pnpm-debug.log*
 
 research/artifacts/docx-hidden-run-v1/*.docx
 research/artifacts/docx-hidden-run-v1/*.txt
+research/artifacts/docx-alternative-carrier-bakeoff-v1/*.docx
+research/artifacts/docx-alternative-carrier-bakeoff-v1/*.txt

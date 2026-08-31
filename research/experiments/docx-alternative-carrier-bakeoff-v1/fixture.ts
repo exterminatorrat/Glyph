@@ -4,7 +4,7 @@ import {
   FIXED_MARKER_BETA,
   VISIBLE_PARAGRAPHS,
   VISIBLE_FIXTURE_ID,
-} from "../docx-hidden-run-v1/fixture";
+} from "../docx-hidden-run-v1/fixture.ts";
 
 export const EXPERIMENT_ID =
   "glyph-exp-a-docx-alternative-carrier-bakeoff-v1-001";
