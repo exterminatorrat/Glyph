@@ -3,13 +3,13 @@ import {
   FIXED_MARKER_ALPHA,
   FIXED_MARKER_BETA,
   VISIBLE_PARAGRAPHS,
+  VISIBLE_FIXTURE_ID,
 } from "../docx-hidden-run-v1/fixture";
 
 export const EXPERIMENT_ID =
   "glyph-exp-a-docx-alternative-carrier-bakeoff-v1-001";
 export const EXPERIMENT_SCHEMA_VERSION = 1;
 export const BAKEOFF_PROFILE = "docx-alternative-carrier-bakeoff-v1";
-export const VISIBLE_FIXTURE_ID = "synthetic-library-hours-v1";
 export const CANDIDATE_ORDER = [
   "matching-color-body-v1",
   "sub-legible-body-1pt-v1",
@@ -79,4 +79,5 @@ export {
   FIXED_MARKER_ALPHA,
   FIXED_MARKER_BETA,
   VISIBLE_PARAGRAPHS,
+  VISIBLE_FIXTURE_ID,
 };
