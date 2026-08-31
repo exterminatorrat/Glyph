@@ -13,7 +13,6 @@ const PACKAGE_RELATIONSHIPS_NAMESPACE =
   "http://schemas.openxmlformats.org/package/2006/relationships";
 const CONTENT_TYPES_NAMESPACE =
   "http://schemas.openxmlformats.org/package/2006/content-types";
-
 const REQUIRED_ENTRIES = [
   "[Content_Types].xml",
   "_rels/.rels",
@@ -70,6 +69,16 @@ export type TransformedDocxInspection = Readonly<{
     macroContentTypes: readonly string[];
   }>;
 }>;
+
+const TEXT_PART_ROOT_LOCATIONS: Readonly<
+  Record<string, Exclude<OOXMLTextLocation, "body" | "other">>
+> = {
+  hdr: "header",
+  ftr: "footer",
+  footnotes: "footnote",
+  endnotes: "endnote",
+  comments: "comments",
+};
 
 const localNameOf = (element: XmlElement): string =>
   element.localName ?? element.nodeName.split(":").pop() ?? element.nodeName;
@@ -130,14 +139,12 @@ const parseXml = (entries: Unzipped, entryName: string): XmlDocument => {
         parserErrors.push(`${level}: ${message}`);
       },
     }).parseFromString(strFromU8(entry), "application/xml");
-  } catch (error) {
-    throw new Error(`Invalid XML entry ${entryName}: ${String(error)}`);
+  } catch {
+    throw new Error(`Invalid XML entry ${entryName}`);
   }
 
   if (parserErrors.length > 0 || !document.documentElement) {
-    throw new Error(
-      `Invalid XML entry ${entryName}: ${parserErrors.join("; ") || "missing document element"}`,
-    );
+    throw new Error(`Invalid XML entry ${entryName}`);
   }
   return document;
 };
@@ -235,7 +242,7 @@ const relationshipSourcePart = (relationshipEntry: string): string => {
   if (relationshipEntry === "_rels/.rels") {
     return "";
   }
-  const match = relationshipEntry.match(/^(.*)\/\_rels\/([^/]+)\.rels$/);
+  const match = relationshipEntry.match(/^(.*)\/_rels\/([^/]+)\.rels$/);
   return match ? `${match[1]}/${match[2]}` : "";
 };
 
@@ -319,12 +326,9 @@ const collectRelationshipSafety = (
 
 const isActiveContentEntry = (entryName: string): boolean =>
   /^word\/(?:vbaProject\.bin|vbaData\.xml)$/i.test(entryName) ||
-  /(?:^|\/)activeX(?:\/|$)/i.test(entryName) ||
-  /(?:^|\/)embeddings(?:\/|$)/i.test(entryName) ||
-  /(?:^|\/)oleObject(?:\/|$)/i.test(entryName) ||
-  /(?:^|\/)webextensions(?:\/|$)/i.test(entryName) ||
-  /(?:^|\/)customUI(?:\/|$)/i.test(entryName) ||
-  /(?:^|\/)customXml(?:\/|$)/i.test(entryName);
+  /(?:^|\/)(?:activeX|embeddings|oleObject|webextensions|customUI|customXml)(?:\/|(?:\.[^/]*)?$)/i.test(
+    entryName,
+  );
 
 const collectMacroContentTypes = (document: XmlDocument): string[] =>
   descendantsByLocalName(document, "Default")
@@ -335,43 +339,50 @@ const collectMacroContentTypes = (document: XmlDocument): string[] =>
       /(?:macroEnabled|vbaProject|activeX|oleObject)/i.test(contentType),
     );
 
-const textPartLocation = (
+const standardTextPartLocation = (
   entryName: string,
+): OOXMLTextLocation | undefined => {
+  if (/^word\/header[^/]*\.xml$/i.test(entryName)) {
+    return "header";
+  }
+  if (/^word\/footer[^/]*\.xml$/i.test(entryName)) {
+    return "footer";
+  }
+  if (entryName.toLowerCase() === "word/footnotes.xml") {
+    return "footnote";
+  }
+  if (entryName.toLowerCase() === "word/endnotes.xml") {
+    return "endnote";
+  }
+  if (entryName.toLowerCase() === "word/comments.xml") {
+    return "comments";
+  }
+  return undefined;
+};
+
+const rootTextPartLocation = (
   document: XmlDocument,
-  headerPartNames: ReadonlySet<string>,
 ): OOXMLTextLocation | undefined => {
   const root = document.documentElement;
   if (!root || root.namespaceURI !== WORDPROCESSINGML_NAMESPACE) {
     return undefined;
   }
-  switch (localNameOf(root)) {
-    case "document":
-      return entryName === "word/document.xml" ? "body" : undefined;
-    case "hdr":
-      return headerPartNames.has(entryName) ? "header" : undefined;
-    default:
-      return undefined;
+  const rootName = localNameOf(root);
+  if (rootName === "document") {
+    return "body";
   }
+  return TEXT_PART_ROOT_LOCATIONS[rootName];
 };
 
-const paragraphElements = (
-  document: XmlDocument,
-  location: OOXMLTextLocation,
-): XmlElement[] => {
-  if (location === "body") {
-    const body = descendantsByLocalName(document, "body").find((element) =>
-      isElement(element, WORDPROCESSINGML_NAMESPACE, "body"),
-    );
-    return body
-      ? descendantsByLocalName(body, "p").filter((paragraph) =>
-          isElement(paragraph, WORDPROCESSINGML_NAMESPACE, "p"),
-        )
-      : [];
-  }
-  return descendantsByLocalName(document, "p").filter((paragraph) =>
+const hasWordprocessingParagraphs = (document: XmlDocument): boolean =>
+  descendantsByLocalName(document, "p").some((paragraph) =>
     isElement(paragraph, WORDPROCESSINGML_NAMESPACE, "p"),
   );
-};
+
+const paragraphElements = (document: XmlDocument): XmlElement[] =>
+  descendantsByLocalName(document, "p").filter((paragraph) =>
+    isElement(paragraph, WORDPROCESSINGML_NAMESPACE, "p"),
+  );
 
 const findMarkerOccurrences = (
   partName: string,
@@ -380,25 +391,43 @@ const findMarkerOccurrences = (
   runs: readonly RunInspection[],
   markers: Readonly<{ alpha: string; beta: string }>,
 ): TransformedMarkerOccurrence[] => {
-  const occurrences: TransformedMarkerOccurrence[] = [];
-  for (const [markerId, marker] of Object.entries(markers) as [
-    AlternativeCarrierMarkerId,
-    string,
-  ][]) {
-    runs.forEach((run, runIndex) => {
-      let markerStart = run.text.indexOf(marker);
-      while (markerStart >= 0) {
-        occurrences.push({
-          markerId,
-          partName,
-          location,
-          paragraphIndex,
-          runIndices: [runIndex],
-          runFormats: [run.format],
-        });
-        markerStart = run.text.indexOf(marker, markerStart + marker.length);
-      }
+  const runRanges: readonly (readonly [number, number])[] = (() => {
+    let offset = 0;
+    return runs.map((run) => {
+      const start = offset;
+      offset += run.text.length;
+      return [start, offset] as const;
     });
+  })();
+  const occurrences: TransformedMarkerOccurrence[] = [];
+  for (const markerId of ["alpha", "beta"] as const) {
+    const marker = markers[markerId];
+    if (marker.length === 0) {
+      continue;
+    }
+    const paragraphText = runs.map((run) => run.text).join("");
+    let markerStart = paragraphText.indexOf(marker);
+    while (markerStart >= 0) {
+      const markerEnd = markerStart + marker.length;
+      const runIndices = runRanges.reduce<number[]>(
+        (indices, [runStart, runEnd], runIndex) => {
+          if (runStart < markerEnd && runEnd > markerStart) {
+            indices.push(runIndex);
+          }
+          return indices;
+        },
+        [],
+      );
+      occurrences.push({
+        markerId,
+        partName,
+        location,
+        paragraphIndex,
+        runIndices,
+        runFormats: runIndices.map((runIndex) => runs[runIndex].format),
+      });
+      markerStart = paragraphText.indexOf(marker, markerStart + 1);
+    }
   }
   return occurrences;
 };
@@ -417,8 +446,8 @@ export function inspectTransformedDocx(
   let entries: Unzipped;
   try {
     entries = unzipSync(bytes);
-  } catch (error) {
-    throw new Error(`Invalid ZIP/DOCX package: ${String(error)}`);
+  } catch {
+    throw new Error("Invalid ZIP/DOCX package");
   }
 
   const fileEntries = Object.keys(entries)
@@ -431,16 +460,10 @@ export function inspectTransformedDocx(
   }
 
   const documents = new Map<string, XmlDocument>();
-  for (const entryName of [
-    "[Content_Types].xml",
-    "word/document.xml",
-  ]) {
+  for (const entryName of fileEntries.filter((name) =>
+    /\.(?:xml|rels)$/i.test(name),
+  )) {
     documents.set(entryName, parseXml(entries, entryName));
-  }
-  for (const entryName of fileEntries) {
-    if (entryName.endsWith(".rels")) {
-      documents.set(entryName, parseXml(entries, entryName));
-    }
   }
 
   const document = documents.get("word/document.xml");
@@ -453,7 +476,7 @@ export function inspectTransformedDocx(
     );
   }
 
-  const headerPartNames = new Set<string>();
+  const referencedPartNames = new Set<string>();
   const documentRelationships = documents.get(
     "word/_rels/document.xml.rels",
   );
@@ -464,37 +487,84 @@ export function inspectTransformedDocx(
           relationship.namespaceURI === PACKAGE_RELATIONSHIPS_NAMESPACE,
       )
       .forEach((relationship) => {
-        const type = relationship.getAttribute("Type") ?? "";
         const targetMode = relationship.getAttribute("TargetMode");
         const target = relationship.getAttribute("Target") ?? "";
         if (
-          targetMode?.toLowerCase() !== "external" &&
-          type.endsWith("/header")
+          targetMode?.toLowerCase() !== "external"
         ) {
           const targetEntry = resolveRelationshipTarget(
             "word/_rels/document.xml.rels",
             target,
           );
           if (fileEntries.includes(targetEntry)) {
-            headerPartNames.add(targetEntry);
-            documents.set(targetEntry, parseXml(entries, targetEntry));
+            referencedPartNames.add(targetEntry);
           }
         }
       });
   }
 
+  const textPartLocation = (
+    entryName: string,
+    partDocument: XmlDocument,
+  ): OOXMLTextLocation | undefined => {
+    const rootLocation = rootTextPartLocation(partDocument);
+    const standardLocation = standardTextPartLocation(entryName);
+
+    if (entryName === "word/document.xml" && rootLocation === "body") {
+      return "body";
+    }
+    if (
+      standardLocation !== undefined &&
+      rootLocation === standardLocation
+    ) {
+      return standardLocation;
+    }
+    if (referencedPartNames.has(entryName) && rootLocation !== undefined) {
+      return rootLocation === "body" ? "other" : rootLocation;
+    }
+
+    if (
+      partDocument.documentElement?.namespaceURI ===
+        WORDPROCESSINGML_NAMESPACE &&
+      hasWordprocessingParagraphs(partDocument)
+    ) {
+      return "other";
+    }
+    return undefined;
+  };
+
   const paragraphs: TransformedParagraphInspection[] = [];
   const markerOccurrences: TransformedMarkerOccurrence[] = [];
-  for (const [partName, partDocument] of documents) {
-    const location = textPartLocation(
-      partName,
-      partDocument,
-      headerPartNames,
-    );
-    if (!location) {
-      continue;
-    }
-    paragraphElements(partDocument, location).forEach((paragraph, paragraphIndex) => {
+  const textParts = fileEntries
+    .map((partName) => {
+      const partDocument = documents.get(partName);
+      if (!partDocument) {
+        return undefined;
+      }
+      const location = textPartLocation(partName, partDocument);
+      return location ? { partName, partDocument, location } : undefined;
+    })
+    .filter(
+      (
+        part,
+      ): part is {
+        partName: string;
+        partDocument: XmlDocument;
+        location: OOXMLTextLocation;
+      } => part !== undefined,
+    )
+    .sort((left, right) => {
+      if (left.location === "body") {
+        return right.location === "body" ? 0 : -1;
+      }
+      if (right.location === "body") {
+        return 1;
+      }
+      return left.partName.localeCompare(right.partName);
+    });
+
+  for (const { partName, partDocument, location } of textParts) {
+    paragraphElements(partDocument).forEach((paragraph, paragraphIndex) => {
       const runs = inspectRuns(paragraph);
       paragraphs.push({
         partName,

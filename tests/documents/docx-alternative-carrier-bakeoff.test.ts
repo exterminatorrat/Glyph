@@ -2,7 +2,7 @@ import {
   generateDocxAlternativeCarrier,
   type AlternativeCarrierCandidateId,
 } from "@/documents/docx/docx-alternative-carrier-bakeoff-v1";
-import { strFromU8, unzipSync, type Unzipped } from "fflate";
+import { strFromU8, strToU8, unzipSync, zipSync, type Unzipped } from "fflate";
 import { DOMParser } from "@xmldom/xmldom";
 import { describe, expect, test } from "vitest";
 import {
@@ -394,5 +394,47 @@ describe("docx-alternative-carrier-bakeoff-v1", () => {
         "docx-header-text-v1:beta:word/header1.xml",
       ],
     ]);
+  });
+
+  test("accepts a harmless extra XML part and relationship", async () => {
+    const bytes = await generateDocxAlternativeCarrier(
+      "matching-color-body-v1",
+      CANDIDATE_FIXTURE,
+    );
+    const entries = unzipSync(bytes);
+    entries["word/extra.xml"] = strToU8(
+      '<extra xmlns="urn:glyph:test"><value>synthetic</value></extra>',
+    );
+    const documentRelationships = readEntry(
+      entries,
+      "word/_rels/document.xml.rels",
+    );
+    if (!documentRelationships) {
+      throw new Error("Missing document relationships for test package");
+    }
+    entries["word/_rels/document.xml.rels"] = strToU8(
+      strFromU8(documentRelationships).replace(
+        "</Relationships>",
+        '<Relationship Id="rIdExtra" Type="http://example.invalid/extra" Target="extra.xml"/></Relationships>',
+      ),
+    );
+
+    const inspection = inspectTransformedDocx(
+      zipSync(entries),
+      CANDIDATE_FIXTURE.markers,
+    );
+
+    expect(inspection.entries).toContain("word/extra.xml");
+    expect(inspection.markerPresence).toEqual({
+      alpha: "present",
+      beta: "present",
+    });
+    expect(inspection.safety).toEqual({
+      externalRelationships: [],
+      unresolvedRelationshipTargets: [],
+      activeContentEntries: [],
+      activeRelationshipTypes: [],
+      macroContentTypes: [],
+    });
   });
 });
