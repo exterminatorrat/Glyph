@@ -31,3 +31,9 @@ The Milestone 1 project and research foundation is complete. Milestone 2, the `d
 ## Verification commands
 
 When executable tooling exists, authoritative commands belong in `package.json` scripts and are explained in `docs/TESTING.md`. Do not invent or document commands before the relevant tooling is installed.
+
+## Repository synchronization
+
+- `https://github.com/exterminatorrat/Glyph` is Glyph's canonical GitHub repository.
+- After a verified large implementation chunk, milestone, or other approved durable deliverable, commit the in-scope changes and synchronize them to the canonical repository. Preserve coherent commit boundaries and any branch or review requirements active for that task.
+- Never force-push, rewrite published history, or commit secrets, student data, generated research binaries, or unrelated working-tree changes.
