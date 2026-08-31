@@ -148,6 +148,10 @@ evidence.
 Task 1 freezes this protocol only. It performs no observation, dependency
 installation, DOCX generation, application code change, or manual experiment.
 No result record is created until the authorized observation tasks are complete.
+If later observation is operationally `BLOCKED`, do not create
+`research/experiments/docx-hidden-run-v1/run-001.json`, do not run its record
+validator, and do not make a final experiment-result commit. Any partial local
+artifacts or notes remain uncommitted and are reported to the user.
 
 Generated DOCX and clipboard artifacts remain inert, local, and ignored. The
 canonical artifact path for the later run record is exactly
@@ -166,9 +170,11 @@ research fixture and run-record contract only.
 
 ## Durable run-record contract
 
-Task 4 must create
+When observation produces a completed assessable material-editor result and is
+not operationally `BLOCKED`, Task 4 must create
 `research/experiments/docx-hidden-run-v1/run-001.json`. Its required top-level
-fields are:
+fields are as follows. An operationally blocked run creates no run record and has no
+scientific `gateDecision`.
 
 | Field | Contract |
 | --- | --- |
@@ -216,6 +222,17 @@ student content, and private browser state from every record.
 The gate is frozen before any observation. Milestone 2 ends with one of the
 three scientific decisions below, and even `PROCEED` does not authorize
 Milestone 3.
+
+For a completed, assessable, non-blocked editor outcome, apply the decisions in
+this order: (1) apply `PROCEED` first when all of its allowed conditions are
+satisfied; (2) if `PROCEED` is not satisfied, apply `ABANDON CURRENT CARRIER`
+when every completed material editor loses both markers, only the canonical
+package retains them, or every otherwise-preserving material editor exposes
+marker text ordinarily; (3) otherwise apply `REVISE CARRIER` to a bounded
+partial, placement-sensitive, or presentation-sensitive result plausibly worth
+a separately versioned retest. Marker exposure in a strict subset of otherwise-
+preserving material editor workflows is `REVISE CARRIER` only after `PROCEED`
+and `ABANDON CURRENT CARRIER` do not apply.
 
 ### PROCEED
 
@@ -267,8 +284,12 @@ If unresolved workflows leave no completed assessable editor result that
 satisfies one of the three rules, stop as operationally `BLOCKED` and request
 the missing environment. `BLOCKED` is an operational state, not a scientific
 gate decision; do not fabricate `PROCEED`, `REVISE CARRIER`, or `ABANDON CURRENT
-CARRIER` in that case. In particular, if no material editor workflow can be
-completed, do not create one of the three scientific decisions.
+CARRIER` in that case. Do not create
+`research/experiments/docx-hidden-run-v1/run-001.json`, do not run its record
+validator, and do not make a final experiment-result commit. Any partial local
+artifacts or notes remain uncommitted and are reported to the user. In
+particular, if no material editor workflow can be completed, do not create one
+of the three scientific decisions.
 
 After the carrier decision, stop this milestone. A decision does not establish
 prompt reuse, AI authorship, direct AI ingestion, student intent, cheating, or

@@ -527,13 +527,13 @@ export function inspectCarrierDocx(
 
 - [ ] **Step 6: Create the run record and apply the frozen gate mechanically**
 
-  Create `run-001.json` using actual dates, versions, hashes, steps, observations, deviations, and limitations. Include Word records even when `not_run`. Apply Task 1's decision rule unchanged and tie every rationale statement to workflow IDs.
+  First determine whether at least one material editor round-trip completed and yielded an assessable result. If no material editor round-trip completed, or unresolved outcomes leave no completed assessable material editor result, stop as operationally `BLOCKED`: do not create `research/experiments/docx-hidden-run-v1/run-001.json`, do not run the record validator below, and do not make a final experiment-result commit. Leave any partial local artifacts or notes uncommitted and report them to the user while requesting the missing environment. Do not fabricate a scientific decision.
 
-  If no material editor round-trip completed, stop without creating a scientific decision and request the missing environment. Otherwise record exactly one allowed decision. The rationale must remain carrier-only and must not report model, authorship, ingestion, intent, cheating, misconduct, or prompt-reuse findings.
+  Only when the run is not operationally blocked, create `run-001.json` using actual dates, versions, hashes, steps, observations, deviations, and limitations. Include Word records even when `not_run`. Apply the frozen gate in this deterministic order: (1) apply `PROCEED` first when all of its allowed conditions are satisfied; (2) if `PROCEED` is not satisfied, apply `ABANDON CURRENT CARRIER` when every completed material editor loses both markers, only the canonical package retains them, or every otherwise-preserving material editor exposes marker text ordinarily; (3) otherwise apply `REVISE CARRIER` for a bounded partial, placement-sensitive, or presentation-sensitive result plausibly worth a separately versioned retest. Marker exposure in a strict subset of otherwise-preserving material editor workflows is `REVISE CARRIER` only after `PROCEED` and `ABANDON CURRENT CARRIER` do not apply. Record exactly one allowed decision. The rationale must remain carrier-only and must not report model, authorship, ingestion, intent, cheating, misconduct, or prompt-reuse findings.
 
-  Parse the JSON with Node before review. Validate all required top-level fields, the exact experiment/profile/schema/marker/fixture constants, the five workflow IDs in order, allowed status and observation values, required reasons for `failed`/`not_run`, 64-character lowercase hashes for every retained artifact, a non-empty rationale and limitations array, and one allowed decision. Fail non-zero on any mismatch. Use only `node:fs/promises` and ordinary assertions; do not add a validation dependency or evaluation framework.
+  For a non-blocked run, parse the JSON with Node before review. Validate all required top-level fields, the exact experiment/profile/schema/marker/fixture constants, the five workflow IDs in order, allowed status and observation values, required reasons for `failed`/`not_run`, 64-character lowercase hashes for every retained artifact, a non-empty rationale and limitations array, and one allowed decision. Fail non-zero on any mismatch. Use only `node:fs/promises` and ordinary assertions; do not add a validation dependency or evaluation framework. Do not run this validator for an operationally `BLOCKED` run.
 
-  Run this dependency-free validation command:
+  For a non-blocked run, run this dependency-free validation command:
 
   ```bash
   node --input-type=module -e '
@@ -631,6 +631,8 @@ export function inspectCarrierDocx(
   ```
 
   Expected outcome: `protocol.md` is unchanged from its pre-observation commit; the only new durable result is `run-001.json`; ignored local artifacts remain untracked; the decision is justified only by recorded workflow observations.
+
+  If Task 4 is operationally `BLOCKED`, do not create or commit `run-001.json`, do not run its validator, and do not make this final experiment-result commit. Any partial local artifacts or notes remain uncommitted and are reported to the user.
 
   Commit:
 
