@@ -8,7 +8,9 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "build": "next build"
+    "build": "next build",
+    "research:carrier:generate": "node scripts/generate-docx-carrier-spike.ts",
+    "research:carrier:inspect": "node scripts/inspect-docx-carrier-spike.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {

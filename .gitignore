@@ -14,3 +14,6 @@ next-env.d.ts
 
 .DS_Store
 pnpm-debug.log*
+
+research/artifacts/docx-hidden-run-v1/*.docx
+research/artifacts/docx-hidden-run-v1/*.txt

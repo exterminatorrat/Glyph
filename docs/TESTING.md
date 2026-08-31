@@ -33,6 +33,15 @@ Milestone 0 contains no executable project tooling, so no package commands are s
 
 These commands verify software behavior and integration. They do not validate carrier survival, model compliance, end-to-end survival, or any research or teacher-facing interpretation.
 
+## Milestone 2 carrier commands
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm research:carrier:generate` | The canonical synthetic DOCX can be regenerated locally and its path and SHA-256 are reported. |
+| `pnpm research:carrier:inspect -- <path>` | One local DOCX can be opened as OOXML and summarized for fixed-marker, visible-content, active-content, macro, and external-relationship structure. |
+
+These commands and tests prove package structure only. They do not prove editor behavior, clipboard survival, accessibility behavior, model compliance, end-to-end survival, prompt reuse, AI authorship, direct ingestion, intent, cheating, or misconduct.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.
