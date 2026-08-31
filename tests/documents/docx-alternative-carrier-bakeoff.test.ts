@@ -128,6 +128,14 @@ describe("docx-alternative-carrier-bakeoff-v1", () => {
         runIndices: [1],
       },
     ]);
+    expect(markerOccurrences(inspection, "beta")).toMatchObject([
+      {
+        location: "body",
+        partName: "word/document.xml",
+        paragraphIndex: 2,
+        runIndices: [1],
+      },
+    ]);
     expect(markerOccurrences(inspection, "alpha")[0]?.runFormats).toEqual([
       {
         hidden: false,
@@ -155,6 +163,22 @@ describe("docx-alternative-carrier-bakeoff-v1", () => {
       CANDIDATE_FIXTURE.markers,
     );
 
+    expect(markerOccurrences(inspection, "alpha")).toMatchObject([
+      {
+        location: "body",
+        partName: "word/document.xml",
+        paragraphIndex: 0,
+        runIndices: [1],
+      },
+    ]);
+    expect(markerOccurrences(inspection, "beta")).toMatchObject([
+      {
+        location: "body",
+        partName: "word/document.xml",
+        paragraphIndex: 2,
+        runIndices: [1],
+      },
+    ]);
     expect(markerOccurrences(inspection, "alpha")[0]?.runFormats).toEqual([
       {
         hidden: false,
@@ -193,6 +217,14 @@ describe("docx-alternative-carrier-bakeoff-v1", () => {
       paragraphIndex: 1,
     });
     expect(markerOccurrences(inspection, "alpha")[0]?.runFormats).toEqual([
+      {
+        hidden: false,
+        color: null,
+        sizeHalfPoints: null,
+        sizeComplexScriptHalfPoints: null,
+      },
+    ]);
+    expect(markerOccurrences(inspection, "beta")[0]?.runFormats).toEqual([
       {
         hidden: false,
         color: null,

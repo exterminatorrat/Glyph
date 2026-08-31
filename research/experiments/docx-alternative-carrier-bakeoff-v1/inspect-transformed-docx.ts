@@ -338,6 +338,7 @@ const collectMacroContentTypes = (document: XmlDocument): string[] =>
 const textPartLocation = (
   entryName: string,
   document: XmlDocument,
+  headerPartNames: ReadonlySet<string>,
 ): OOXMLTextLocation | undefined => {
   const root = document.documentElement;
   if (!root || root.namespaceURI !== WORDPROCESSINGML_NAMESPACE) {
@@ -347,15 +348,7 @@ const textPartLocation = (
     case "document":
       return entryName === "word/document.xml" ? "body" : undefined;
     case "hdr":
-      return "header";
-    case "ftr":
-      return "footer";
-    case "footnotes":
-      return "footnote";
-    case "endnotes":
-      return "endnote";
-    case "comments":
-      return "comments";
+      return headerPartNames.has(entryName) ? "header" : undefined;
     default:
       return undefined;
   }
@@ -387,34 +380,25 @@ const findMarkerOccurrences = (
   runs: readonly RunInspection[],
   markers: Readonly<{ alpha: string; beta: string }>,
 ): TransformedMarkerOccurrence[] => {
-  const paragraphText = runs.map((run) => run.text).join("");
   const occurrences: TransformedMarkerOccurrence[] = [];
   for (const [markerId, marker] of Object.entries(markers) as [
     AlternativeCarrierMarkerId,
     string,
   ][]) {
-    let markerStart = paragraphText.indexOf(marker);
-    while (markerStart >= 0) {
-      const markerEnd = markerStart + marker.length;
-      const runIndices: number[] = [];
-      let offset = 0;
-      runs.forEach((run, runIndex) => {
-        const runEnd = offset + run.text.length;
-        if (offset < markerEnd && runEnd > markerStart) {
-          runIndices.push(runIndex);
-        }
-        offset = runEnd;
-      });
-      occurrences.push({
-        markerId,
-        partName,
-        location,
-        paragraphIndex,
-        runIndices,
-        runFormats: runIndices.map((runIndex) => runs[runIndex].format),
-      });
-      markerStart = paragraphText.indexOf(marker, markerEnd);
-    }
+    runs.forEach((run, runIndex) => {
+      let markerStart = run.text.indexOf(marker);
+      while (markerStart >= 0) {
+        occurrences.push({
+          markerId,
+          partName,
+          location,
+          paragraphIndex,
+          runIndices: [runIndex],
+          runFormats: [run.format],
+        });
+        markerStart = run.text.indexOf(marker, markerStart + marker.length);
+      }
+    });
   }
   return occurrences;
 };
@@ -447,8 +431,14 @@ export function inspectTransformedDocx(
   }
 
   const documents = new Map<string, XmlDocument>();
+  for (const entryName of [
+    "[Content_Types].xml",
+    "word/document.xml",
+  ]) {
+    documents.set(entryName, parseXml(entries, entryName));
+  }
   for (const entryName of fileEntries) {
-    if (entryName.endsWith(".xml") || entryName.endsWith(".rels")) {
+    if (entryName.endsWith(".rels")) {
       documents.set(entryName, parseXml(entries, entryName));
     }
   }
@@ -463,10 +453,44 @@ export function inspectTransformedDocx(
     );
   }
 
+  const headerPartNames = new Set<string>();
+  const documentRelationships = documents.get(
+    "word/_rels/document.xml.rels",
+  );
+  if (documentRelationships) {
+    descendantsByLocalName(documentRelationships, "Relationship")
+      .filter(
+        (relationship) =>
+          relationship.namespaceURI === PACKAGE_RELATIONSHIPS_NAMESPACE,
+      )
+      .forEach((relationship) => {
+        const type = relationship.getAttribute("Type") ?? "";
+        const targetMode = relationship.getAttribute("TargetMode");
+        const target = relationship.getAttribute("Target") ?? "";
+        if (
+          targetMode?.toLowerCase() !== "external" &&
+          type.endsWith("/header")
+        ) {
+          const targetEntry = resolveRelationshipTarget(
+            "word/_rels/document.xml.rels",
+            target,
+          );
+          if (fileEntries.includes(targetEntry)) {
+            headerPartNames.add(targetEntry);
+            documents.set(targetEntry, parseXml(entries, targetEntry));
+          }
+        }
+      });
+  }
+
   const paragraphs: TransformedParagraphInspection[] = [];
   const markerOccurrences: TransformedMarkerOccurrence[] = [];
   for (const [partName, partDocument] of documents) {
-    const location = textPartLocation(partName, partDocument);
+    const location = textPartLocation(
+      partName,
+      partDocument,
+      headerPartNames,
+    );
     if (!location) {
       continue;
     }
