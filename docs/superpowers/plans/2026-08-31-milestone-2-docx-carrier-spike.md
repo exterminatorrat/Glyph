@@ -16,7 +16,7 @@
 - The document profile is exactly `docx-hidden-run-v1`, and the sole carrier mechanism is WordprocessingML `w:vanish` on ordinary text runs.
 - The fixed research markers are exactly `GLYPH TEST MARKER ALPHA` and `GLYPH TEST MARKER BETA`. They are not generated markers, production fingerprints, semantic markers, or evidence of model behavior.
 - Carrier versioning remains independent from fingerprint schema, strategy, strategy version, and matching profile. Those fingerprint fields are not applicable in this experiment.
-- Do not add white-on-white text, zero-width Unicode, off-page positioning, tiny-font tricks, comments, custom XML, metadata carriers, macros, scripts, active content, embedded executables, or remote resources.
+- Do not add white-on-white text, zero-width Unicode, off-page positioning, tiny-font tricks, comments as a carrier, custom XML, metadata carriers, macros, scripts, active content, embedded executables, or remote resources. The exact empty comments package plumbing emitted by `docx@9.7.1` is allowed only as recorded in Task 2 and must not carry marker text or any other content.
 - Treat the carrier as inspectable, removable, non-cryptographic, experimental, potentially exposed by accessibility or hidden-text settings, and potentially lost during editing or conversion.
 - Use synthetic content only. No student work, real assignment, student name, school record, credential, or private account detail may enter code, tests, artifacts, records, logs, or Git.
 - Do not add Supabase, Postgres, authentication, RLS, routes, Protect, Analyze, uploads, model testing, AI APIs, fingerprint generation, ExactCanary, context analysis, semantic matching, or speculative strategy classes.
@@ -183,6 +183,27 @@
 
 ## Task 2: Add minimal DOCX tooling and implement the carrier red-first
 
+> **Approved execution amendment (2026-08-31):** `docx@9.7.1` emits inert
+> comments package plumbing. Treat only `word/comments.xml`,
+> `word/_rels/comments.xml.rels`, the exact `/word/comments.xml`
+> WordprocessingML comments content-type override, and the exact internal
+> `comments -> comments.xml` document relationship as expected. This is
+> generator plumbing, not a carrier mechanism, and does not change
+> `docx-hidden-run-v1`, the fixture, markers, placement, protocol, or
+> scientific gate.
+
+> The structural contract must explicitly prove: zero `w:comment` elements;
+> no fixed marker or other content in `word/comments.xml`; zero relationships
+> in `word/_rels/comments.xml.rels`; zero `w:commentRangeStart`,
+> `w:commentRangeEnd`, or `w:commentReference` elements in
+> `word/document.xml`; the single exact internal comments relationship with
+> no external target mode; and the single exact comments content-type
+> declaration. Continue to reject `commentsExtended.xml`, `commentsIds.xml`,
+> `people.xml`, their relationships, every other unexpected part, actual
+> comments, macros, VBA, scripts, active content, external/remote
+> relationships, and marker text in comments-related parts. If `docx@9.7.1`
+> emits any additional comments part, stop instead of widening the allowlist.
+
 **Files:**
 
 - Modify: `package.json` and `pnpm-lock.yaml` — add and lock only the generator and structural inspection packages.
@@ -283,8 +304,8 @@ export function inspectCarrierDocx(
   7. Report entries matching `word/vbaProject.bin`, `word/vbaData.xml`, `word/activeX/`, `word/embeddings/`, `word/oleObject/`, `word/webextensions/`, `customUI/`, or `customXml/` case-insensitively.
   8. Report relationship types ending in `/oleObject`, `/package`, `/control`, `/attachedTemplate`, or `/aFChunk`.
   9. Parse `[Content_Types].xml` and report types containing `macroEnabled`, `vbaProject`, `activeX`, or `oleObject`, case-insensitively.
-  10. Ignore ZIP directory entries ending in `/`, then compare file entries against this exact canonical allowlist for the text-only fixture: `[Content_Types].xml`, `_rels/.rels`, `docProps/app.xml`, `docProps/core.xml`, `docProps/custom.xml`, `word/document.xml`, `word/styles.xml`, `word/numbering.xml`, `word/settings.xml`, `word/fontTable.xml`, `word/footnotes.xml`, `word/endnotes.xml`, `word/_rels/document.xml.rels`, `word/_rels/fontTable.xml.rels`, `word/_rels/footnotes.xml.rels`, and `word/_rels/endnotes.xml.rels`. Report every other file as unexpected. If the selected verified package version cannot produce this allowlisted shape for the frozen fixture, stop for plan review instead of silently expanding the package surface.
-  11. Compare relationships against these exact type/target pairs. In `_rels/.rels`: `http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument` -> `word/document.xml`; `http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties` -> `docProps/core.xml`; `http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties` -> `docProps/app.xml`; and `http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties` -> `docProps/custom.xml`. In `word/_rels/document.xml.rels`, the same Office Document relationship namespace with suffixes `styles`, `numbering`, `settings`, `fontTable`, `footnotes`, and `endnotes` targets the same-named `.xml` file. Other `.rels` files must contain no relationships for this fixture. Report all other relationships as unexpected. Require every target to resolve to an allowlisted entry and every relationship to omit `TargetMode="External"`.
+  10. Ignore ZIP directory entries ending in `/`, then compare file entries against this exact canonical allowlist for the text-only fixture: `[Content_Types].xml`, `_rels/.rels`, `docProps/app.xml`, `docProps/core.xml`, `docProps/custom.xml`, `word/document.xml`, `word/styles.xml`, `word/numbering.xml`, `word/settings.xml`, `word/fontTable.xml`, `word/footnotes.xml`, `word/endnotes.xml`, `word/comments.xml`, `word/_rels/document.xml.rels`, `word/_rels/comments.xml.rels`, `word/_rels/fontTable.xml.rels`, `word/_rels/footnotes.xml.rels`, and `word/_rels/endnotes.xml.rels`. Report every other file as unexpected. If the selected verified package version cannot produce this allowlisted shape for the frozen fixture, stop for plan review instead of silently expanding the package surface.
+  11. Compare relationships against these exact type/target pairs. In `_rels/.rels`: `http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument` -> `word/document.xml`; `http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties` -> `docProps/core.xml`; `http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties` -> `docProps/app.xml`; and `http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties` -> `docProps/custom.xml`. In `word/_rels/document.xml.rels`, the same Office Document relationship namespace with suffixes `styles`, `numbering`, `settings`, `fontTable`, `footnotes`, `endnotes`, and `comments` targets the same-named `.xml` file. Other `.rels` files must contain no relationships for this fixture. Report all other relationships as unexpected. Require every target to resolve to an allowlisted entry and every relationship to omit `TargetMode="External"`.
   12. Return the exact inspector shape above. Do not render documents or infer application behavior.
 
 - [ ] **Step 4: Write and observe the failing structural tests before the generator exists**
@@ -293,7 +314,7 @@ export function inspectCarrierDocx(
 
   1. `creates a parseable DOCX package with required core entries` checks the `PK` signature and requires `[Content_Types].xml`, `_rels/.rels`, `docProps/core.xml`, `docProps/app.xml`, `word/document.xml`, and `word/_rels/document.xml.rels`.
   2. `places exactly two fixed markers in the intended vanished runs` checks all three visible paragraphs exactly, exactly two hidden runs, Alpha at paragraph `0` run `1`, Beta at paragraph `2` run `1`, and no marker in a visible run. It also decodes every XML/text package entry and proves each fixed marker occurs exactly once in the entire package and only in `word/document.xml`.
-  3. `contains only the expected inert package structure` requires the macro, active-content, external-relationship, unexpected-entry, and unexpected-relationship arrays to be empty.
+  3. `contains only the expected inert package structure` requires the macro, active-content, external-relationship, unexpected-entry, and unexpected-relationship arrays to be empty, and proves the exact inert comments package plumbing: zero `w:comment` elements; no fixed marker or other content in `word/comments.xml`; zero relationships in `word/_rels/comments.xml.rels`; zero comment range/reference elements in `word/document.xml`; one internal `comments -> comments.xml` relationship without `TargetMode="External"`; and one exact `/word/comments.xml` comments content-type override.
   4. `is structurally stable across two generated packages` compares inspection fields from two generations without comparing binary bytes or checksums.
 
   Import the not-yet-created generator and run:
