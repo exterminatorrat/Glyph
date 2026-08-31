@@ -19,6 +19,20 @@ When executable tooling exists:
 
 Milestone 0 contains no executable project tooling, so no package commands are specified or implied. Dependency versions and commands are recorded only in the milestone that installs them.
 
+## Milestone 1 command contract
+
+`package.json` is the authoritative executable source for these commands.
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm dev` | The application starts on `127.0.0.1` for local development. A manual root-page response confirms only a local smoke check. |
+| `pnpm lint` | ESLint accepts the current project files under the Next.js core-web-vitals and TypeScript rules. |
+| `pnpm typecheck` | Next.js route types generate and strict TypeScript checking completes with no type errors or emitted JavaScript. |
+| `pnpm test` | The finite Vitest suite passes in its configured Node environment. |
+| `pnpm build` | Next.js can produce an optimized application build from the current source and configuration. |
+
+These commands verify software behavior and integration. They do not validate carrier survival, model compliance, end-to-end survival, or any research or teacher-facing interpretation.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.
