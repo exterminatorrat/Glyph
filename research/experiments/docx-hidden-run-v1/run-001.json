@@ -1,0 +1,212 @@
+{
+  "experimentId": "glyph-exp-a-docx-hidden-run-v1-001",
+  "experimentSchemaVersion": 1,
+  "date": "2026-08-31",
+  "documentProfile": "docx-hidden-run-v1",
+  "fingerprintStrategy": null,
+  "fingerprintStrategyVersion": null,
+  "matchingProfile": null,
+  "fixedMarkers": {
+    "alpha": "GLYPH TEST MARKER ALPHA",
+    "beta": "GLYPH TEST MARKER BETA"
+  },
+  "visibleFixture": {
+    "id": "synthetic-library-hours-v1",
+    "sourcePath": "research/experiments/docx-hidden-run-v1/fixture.ts"
+  },
+  "sourceGenerator": {
+    "path": "src/documents/docx/docx-hidden-run-v1.ts",
+    "gitCommit": "f50490724a1fd3cc03c2bf2b2d225ee1be00ce6e",
+    "nodeVersion": "v26.7.0",
+    "pnpmVersion": "11.19.0",
+    "docxVersion": "9.7.1"
+  },
+  "canonicalArtifact": {
+    "path": "research/artifacts/docx-hidden-run-v1/glyph-docx-hidden-run-v1-spike.docx",
+    "sha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf"
+  },
+  "workflows": [
+    {
+      "workflowId": "canonical-package",
+      "status": "completed",
+      "failureReason": null,
+      "application": {
+        "name": "Glyph carrier generator",
+        "version": "f50490724a1fd3cc03c2bf2b2d225ee1be00ce6e"
+      },
+      "platform": {
+        "name": "macOS",
+        "version": "26.6.2 (25G83)"
+      },
+      "steps": [
+        "Generated the canonical synthetic DOCX with the frozen local research command before manual observations began.",
+        "Recorded the canonical artifact SHA-256 and generator provenance.",
+        "Ran the strict canonical structural inspector against the generated artifact."
+      ],
+      "sourceArtifactSha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-hidden-run-v1/glyph-docx-hidden-run-v1-spike.docx",
+        "sha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf"
+      },
+      "markerPresence": {
+        "alpha": "present",
+        "beta": "present"
+      },
+      "visibleContent": "preserved",
+      "ordinaryVisibility": "not_assessable",
+      "conditionalExposure": [],
+      "protocolDeviation": null,
+      "notes": [
+        "The strict canonical inspector found exactly two hidden marker runs, with both fixed markers present only in runs containing w:vanish.",
+        "All three frozen visible paragraphs were present in order.",
+        "The canonical package contained no macros, executable content, external relationships, remote resources, or unexpected package parts."
+      ]
+    },
+    {
+      "workflowId": "word-roundtrip-docx",
+      "status": "not_run",
+      "failureReason": "Microsoft Word was not installed in the local test environment.",
+      "application": {
+        "name": "Microsoft Word",
+        "version": null
+      },
+      "platform": {
+        "name": "macOS",
+        "version": "26.6.2 (25G83)"
+      },
+      "steps": [
+        "Checked for Microsoft Word without installing or updating software."
+      ],
+      "sourceArtifactSha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf",
+      "resultArtifact": null,
+      "markerPresence": {
+        "alpha": "not_assessable",
+        "beta": "not_assessable"
+      },
+      "visibleContent": "not_assessable",
+      "ordinaryVisibility": "not_assessable",
+      "conditionalExposure": [],
+      "protocolDeviation": null,
+      "notes": [
+        "Microsoft Word round-trip behavior remains unassessed."
+      ]
+    },
+    {
+      "workflowId": "google-docs-roundtrip-docx",
+      "status": "completed",
+      "failureReason": null,
+      "application": {
+        "name": "Google Docs",
+        "version": null
+      },
+      "platform": {
+        "name": "macOS",
+        "version": "26.6.2 (25G83)"
+      },
+      "steps": [
+        "Uploaded the frozen canonical DOCX to a new Google Docs document.",
+        "Compared the ordinary document view with the frozen visible fixture and observed that neither fixed marker was visibly exposed.",
+        "Downloaded the Google Docs representation as a DOCX and recorded its SHA-256.",
+        "Attempted the strict canonical package-layout inspector, then performed an approved read-only OOXML inspection after the command rejected the transformed package layout."
+      ],
+      "sourceArtifactSha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-hidden-run-v1/google-docs-roundtrip.docx",
+        "sha256": "f0a5693d8c9a232d7c09cc4a89e1dc76136558883db2cb1169c8c8dda5cce2b2"
+      },
+      "markerPresence": {
+        "alpha": "absent",
+        "beta": "absent"
+      },
+      "visibleContent": "preserved",
+      "ordinaryVisibility": "hidden",
+      "conditionalExposure": [],
+      "protocolDeviation": "The strict canonical inspector rejected the Google Docs export because Google Docs rewrote the OOXML package layout and omitted docProps/core.xml. The canonical inspector was preserved unchanged. The exported file was instead examined with a completed read-only ZIP/XML inspection and was not validated by the canonical package-layout allowlist.",
+      "notes": [
+        "The exported DOCX contained all three frozen visible paragraphs in order.",
+        "Neither fixed marker appeared anywhere in the exported XML package, and word/document.xml contained zero w:vanish elements.",
+        "The read-only inspection found nine package entries, zero comment anchors or references, zero macro or executable entries, and zero external relationships or remote targets.",
+        "The Google Docs application version and browser version were not observable and were not inferred."
+      ]
+    },
+    {
+      "workflowId": "word-copy-plain-text",
+      "status": "not_run",
+      "failureReason": "Microsoft Word was not installed in the local test environment.",
+      "application": {
+        "name": "Microsoft Word",
+        "version": null
+      },
+      "platform": {
+        "name": "macOS",
+        "version": "26.6.2 (25G83)"
+      },
+      "steps": [
+        "Checked for Microsoft Word without installing or updating software."
+      ],
+      "sourceArtifactSha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf",
+      "resultArtifact": null,
+      "markerPresence": {
+        "alpha": "not_assessable",
+        "beta": "not_assessable"
+      },
+      "visibleContent": "not_assessable",
+      "ordinaryVisibility": "not_applicable",
+      "conditionalExposure": [],
+      "protocolDeviation": null,
+      "notes": [
+        "Microsoft Word clipboard behavior remains unassessed."
+      ]
+    },
+    {
+      "workflowId": "google-docs-copy-plain-text",
+      "status": "completed",
+      "failureReason": null,
+      "application": {
+        "name": "Google Docs",
+        "version": null
+      },
+      "platform": {
+        "name": "macOS",
+        "version": "26.6.2 (25G83)"
+      },
+      "steps": [
+        "Copied the complete ordinary-view body from the Google Docs representation of the canonical artifact.",
+        "Captured the user-supplied plain-text clipboard representation in the approved ignored artifact directory.",
+        "Computed its SHA-256 and searched independently for both fixed markers and the three frozen visible paragraphs."
+      ],
+      "sourceArtifactSha256": "6bcbc5403cae52083043a977c6099d2811d194461922f9335daf5ef0fe18ecbf",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-hidden-run-v1/google-docs-copy-plain-text.txt",
+        "sha256": "bef28d99df245b408c200aec3c3fdf71b34e7794c2a8ffd227bd670339fbdce5"
+      },
+      "markerPresence": {
+        "alpha": "absent",
+        "beta": "absent"
+      },
+      "visibleContent": "preserved",
+      "ordinaryVisibility": "not_applicable",
+      "conditionalExposure": [],
+      "protocolDeviation": "The plain-text clipboard representation was supplied directly to Codex and captured as the ignored artifact instead of being saved through TextEdit.",
+      "notes": [
+        "Both fixed-marker searches returned absent.",
+        "All three frozen visible paragraphs were present in order.",
+        "Clipboard absence is a carrier observation only and is not evidence about model input or behavior."
+      ]
+    }
+  ],
+  "gateDecision": "ABANDON CURRENT CARRIER",
+  "gateRationale": [
+    "The canonical-package workflow preserved both fixed research markers in exactly two w:vanish runs and preserved all three visible fixture paragraphs.",
+    "The google-docs-roundtrip-docx workflow preserved all three visible fixture paragraphs but removed Signal Alpha, Signal Beta, and all w:vanish runs.",
+    "The google-docs-copy-plain-text workflow preserved the visible fixture while carrying neither fixed marker.",
+    "Because every completed material editor round-trip lost both markers and only the canonical package retained them, the frozen gate requires ABANDON CURRENT CARRIER."
+  ],
+  "limitations": [
+    "This decision is scoped to the tested Google Docs import/export and ordinary copy/paste workflows.",
+    "Microsoft Word round-trip, clipboard, hidden-text display, and accessibility behavior remain unassessed because Microsoft Word was unavailable.",
+    "Google Docs accessibility or assistive-technology exposure was not assessed.",
+    "The Google Docs exported DOCX was examined with a read-only ZIP/XML inspection but was not validated by the strict canonical package-layout allowlist.",
+    "This carrier-survival result says nothing about generative-AI ingestion, model compliance, AI authorship, prompt reuse, student intent, or academic misconduct."
+  ]
+}
