@@ -365,6 +365,14 @@ const FORBIDDEN_KEY_PATTERN =
 const FORBIDDEN_VALUE_PATTERN =
   /(?:-----BEGIN [^-]+ PRIVATE KEY-----|\bBearer\s+\S+|\b(?:sk|rk|pk|ghp|github_pat|xox[abprs])[-_][A-Za-z0-9_-]+)/i;
 const URL_PATTERN = /(?:https?|ftp|gs|s3):\/\//i;
+const EMAIL_PATTERN =
+  /\b[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+\b/i;
+const ACCOUNT_TOKEN_PATTERN =
+  /\b(?:acct|account|user|profile|customer|tenant|workspace|organization|org)_[A-Z0-9][A-Z0-9_-]{2,}\b/i;
+const ACCOUNT_LABEL_PATTERN =
+  /\b(?:account|user|profile|customer|tenant|workspace|organization|org)\s*(?:id|identifier|number)?\s*[:=#]\s*[A-Z0-9][A-Z0-9._-]{2,}\b/i;
+const SAFETY_FINDING_PATH_PATTERN =
+  /\.safety\.(?:externalRelationships|unresolvedRelationshipTargets|activeContentEntries|activeRelationshipTypes|macroContentTypes)\[\d+\]$/;
 
 function ensure(
   condition: unknown,
@@ -501,17 +509,17 @@ const expectedArtifactPath = (
 
 const assertSafeRecordContent = (value: unknown, path = "$"): void => {
   if (typeof value === "string") {
-    const safetyPath = /\.safety\.(?:externalRelationships|unresolvedRelationshipTargets)(?:\[\d+\])?$/.test(path);
-    ensure(
-      safetyPath || !URL_PATTERN.test(value),
-      path,
-      "URL-shaped values are not allowed",
-    );
-    ensure(
-      !FORBIDDEN_VALUE_PATTERN.test(value),
-      path,
-      "credential-shaped values are not allowed",
-    );
+    const safetyPath = SAFETY_FINDING_PATH_PATTERN.test(path);
+    if (!safetyPath) {
+      ensure(!URL_PATTERN.test(value), path, "URL-shaped values are not allowed");
+      ensure(!EMAIL_PATTERN.test(value), path, "email-shaped values are not allowed");
+      ensure(
+        !ACCOUNT_TOKEN_PATTERN.test(value) && !ACCOUNT_LABEL_PATTERN.test(value),
+        path,
+        "account-shaped values are not allowed",
+      );
+    }
+    ensure(!FORBIDDEN_VALUE_PATTERN.test(value), path, "credential-shaped values are not allowed");
     return;
   }
   if (Array.isArray(value)) {
@@ -862,14 +870,24 @@ const assertCopy = (
   const protocolDeviation = nullableStringAt(object.protocolDeviation, `${path}.protocolDeviation`);
   const notes = stringArrayAt(object.notes, `${path}.notes`, false);
   let resultArtifact: ArtifactRef | null = null;
+  ensure(application.name === "Google Docs", `${path}.application.name`, "must be Google Docs");
   if (status === "completed") {
     ensure(failureReason === null, `${path}.failureReason`, "completed copy must have a null failure reason");
     resultArtifact = assertArtifactRef(object.resultArtifact, `${path}.resultArtifact`, candidateId, "copy");
+    ensure(markerPresence.alpha === "present" || markerPresence.alpha === "absent", `${path}.markerPresence.alpha`, "completed copy must assess Alpha");
+    ensure(markerPresence.beta === "present" || markerPresence.beta === "absent", `${path}.markerPresence.beta`, "completed copy must assess Beta");
+    ensure(["preserved", "changed", "lost"].includes(visibleBody), `${path}.visibleBody`, "completed copy must assess visible body");
   } else {
     ensure(failureReason !== null && failureReason.trim().length > 0, `${path}.failureReason`, "failed or not-run copy needs a non-empty reason");
-    ensure(object.resultArtifact === null, `${path}.resultArtifact`, "failed or not-run copy must not retain an artifact");
-    ensure(markerPresence.alpha === "not_assessable" && markerPresence.beta === "not_assessable", `${path}.markerPresence`, "failed or not-run copy markers must be not_assessable");
-    ensure(visibleBody === "not_assessable", `${path}.visibleBody`, "failed or not-run copy body must be not_assessable");
+    if (object.resultArtifact === null) {
+      ensure(markerPresence.alpha === "not_assessable" && markerPresence.beta === "not_assessable", `${path}.markerPresence`, "copy without an artifact must leave markers not_assessable");
+      ensure(visibleBody === "not_assessable", `${path}.visibleBody`, "copy without an artifact must leave body not_assessable");
+    } else {
+      resultArtifact = assertArtifactRef(object.resultArtifact, `${path}.resultArtifact`, candidateId, "copy");
+      ensure(markerPresence.alpha === "present" || markerPresence.alpha === "absent", `${path}.markerPresence.alpha`, "copy with an artifact must assess Alpha");
+      ensure(markerPresence.beta === "present" || markerPresence.beta === "absent", `${path}.markerPresence.beta`, "copy with an artifact must assess Beta");
+      ensure(["preserved", "changed", "lost"].includes(visibleBody), `${path}.visibleBody`, "copy with an artifact must assess visible body");
+    }
   }
   return {
     status,
@@ -1003,6 +1021,10 @@ const markerRetainsMechanism = (
   markerId: "alpha" | "beta",
 ): boolean => {
   const contract = CANDIDATE_CONTRACT[candidate.candidateId];
+  const expectedParagraphIndex =
+    markerId === "alpha"
+      ? contract.alphaParagraphIndex
+      : contract.betaParagraphIndex;
   const occurrences = candidate.googleDocsRoundtrip.transformedInspection.markerOccurrences.filter(
     (occurrence) => occurrence.markerId === markerId,
   );
@@ -1010,7 +1032,9 @@ const markerRetainsMechanism = (
     occurrences.length > 0 &&
     occurrences.every(
       (occurrence) =>
-        occurrence.location === "body" &&
+        occurrence.partName === contract.partName &&
+        occurrence.location === contract.location &&
+        occurrence.paragraphIndex === expectedParagraphIndex &&
         occurrence.runFormats.every((format) => formatMatches(format, contract.format)),
     )
   );
@@ -1057,12 +1081,6 @@ const hasRevisionEvidence = (
       alphaPresent &&
       betaPresent &&
       (roundtrip.visibleBody === "changed" || roundtrip.visibleBody === "lost")
-    ) {
-      return true;
-    }
-    if (
-      (alphaPresent || betaPresent) &&
-      roundtrip.conditionalExposure.length > 0
     ) {
       return true;
     }
@@ -1219,6 +1237,8 @@ const artifactAbsolutePath = async (
   artifactPath: string,
   path: string,
 ): Promise<string> => {
+  const canonicalRepositoryRoot = await realpath(repositoryRoot).catch(() => null);
+  ensure(canonicalRepositoryRoot !== null, path, "repository root could not be resolved");
   const artifactDirectory = resolve(repositoryRoot, ARTIFACT_DIRECTORY);
   const artifactDirectoryInfo = await lstat(artifactDirectory).catch(() => null);
   ensure(artifactDirectoryInfo?.isDirectory() === true && !artifactDirectoryInfo.isSymbolicLink(), path, "artifact directory must be a real directory");
@@ -1229,6 +1249,8 @@ const artifactAbsolutePath = async (
   const canonicalDirectory = await realpath(artifactDirectory).catch(() => null);
   const canonicalFile = await realpath(absolutePath).catch(() => null);
   ensure(canonicalDirectory !== null && canonicalFile !== null, path, "artifact path could not be resolved");
+  ensure(isInside(canonicalRepositoryRoot, canonicalDirectory), path, "artifact directory escaped the repository root");
+  ensure(isInside(canonicalRepositoryRoot, canonicalFile), path, "artifact path escaped the repository root");
   ensure(isInside(canonicalDirectory, canonicalFile), path, "artifact path escaped the bakeoff directory");
   return canonicalFile;
 };

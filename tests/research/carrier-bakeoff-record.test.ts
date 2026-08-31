@@ -376,6 +376,36 @@ describe("alternative carrier bakeoff record validator", () => {
     }
   });
 
+  test("retains URL-shaped OOXML safety findings as assessable evidence", async () => {
+    const { repositoryRoot, record } = await withTempRecord();
+    try {
+      const candidate = record.candidates[1];
+      const safety = {
+        externalRelationships: ["https://example.invalid/external"],
+        unresolvedRelationshipTargets: ["http://example.invalid/missing"],
+        activeContentEntries: ["http://example.invalid/active-content"],
+        activeRelationshipTypes: [
+          "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
+        ],
+        macroContentTypes: ["http://example.invalid/macro-content"],
+      };
+      Object.assign(candidate.googleDocsRoundtrip, {
+        transformedInspection: {
+          ...candidate.googleDocsRoundtrip.transformedInspection,
+          safety,
+        },
+      });
+      const matrix = matrixFor(candidate.candidateId, candidate);
+      Object.assign(matrix.engineering, { roundtripSafetyClean: false });
+      Object.assign(record.matrix, { 1: matrix });
+      await expect(
+        validateBakeoffRunRecord(record, { repositoryRoot }),
+      ).resolves.toEqual(record);
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  });
+
   test.each([
     ["a fourth candidate", (record: BakeoffRunRecord) => {
       Object.assign(record, {
@@ -437,6 +467,72 @@ describe("alternative carrier bakeoff record validator", () => {
         "sub-legible-body-1pt-v1",
         candidate,
       ) });
+    });
+  });
+
+  test("rejects SELECT_CANDIDATE when matching-color Alpha moves to another body paragraph", async () => {
+    await expectInvalidRecord((record) => {
+      const candidate = record.candidates[0];
+      const movedOccurrences = sourceOccurrencesFor(candidate.candidateId).map(
+        (occurrence) =>
+          occurrence.markerId === "alpha"
+            ? { ...occurrence, paragraphIndex: 1 }
+            : occurrence,
+      );
+      Object.assign(candidate, {
+        googleDocsRoundtrip: {
+          ...candidate.googleDocsRoundtrip,
+          transformedInspection: inspectionFor(candidate.candidateId, {
+            occurrences: movedOccurrences,
+          }),
+        },
+      });
+      Object.assign(record.matrix, {
+        0: matrixFor(candidate.candidateId, candidate),
+      });
+    });
+  });
+
+  test("rejects SELECT_CANDIDATE when sub-legible Beta moves to another body paragraph", async () => {
+    await expectInvalidRecord((record) => {
+      const matchingCandidate = record.candidates[0];
+      const absentInspection = inspectionFor(matchingCandidate.candidateId, {
+        markerPresence: { alpha: "absent", beta: "absent" },
+        occurrences: [],
+      });
+      Object.assign(matchingCandidate, {
+        googleDocsRoundtrip: {
+          ...matchingCandidate.googleDocsRoundtrip,
+          markerPresence: { alpha: "absent", beta: "absent" },
+          transformedInspection: absentInspection,
+        },
+      });
+      Object.assign(record.matrix, {
+        0: matrixFor(matchingCandidate.candidateId, matchingCandidate),
+      });
+
+      const candidate = record.candidates[1];
+      const movedOccurrences = sourceOccurrencesFor(candidate.candidateId).map(
+        (occurrence) =>
+          occurrence.markerId === "beta"
+            ? { ...occurrence, paragraphIndex: 1 }
+            : occurrence,
+      );
+      Object.assign(candidate, {
+        googleDocsRoundtrip: {
+          ...candidate.googleDocsRoundtrip,
+          markerPresence: { alpha: "present", beta: "present" },
+          transformedInspection: inspectionFor(candidate.candidateId, {
+            occurrences: movedOccurrences,
+          }),
+        },
+      });
+      Object.assign(record.matrix, {
+        1: matrixFor(candidate.candidateId, candidate),
+      });
+      Object.assign(record, {
+        selectedCandidateId: "sub-legible-body-1pt-v1",
+      });
     });
   });
 
@@ -504,6 +600,48 @@ describe("alternative carrier bakeoff record validator", () => {
     }
   });
 
+  test("does not treat conditional exposure alone as revision evidence when ordinary visibility is visible", async () => {
+    const { repositoryRoot, record } = await withTempRecord();
+    try {
+      const matchingCandidate = record.candidates[0];
+      Object.assign(matchingCandidate, {
+        googleDocsRoundtrip: {
+          ...matchingCandidate.googleDocsRoundtrip,
+          ordinaryVisibility: "visible",
+          conditionalExposure: ["other_recorded_tool"],
+        },
+      });
+      Object.assign(record.matrix, {
+        0: matrixFor(matchingCandidate.candidateId, matchingCandidate),
+      });
+
+      const headerCandidate = record.candidates[2];
+      const inspection = inspectionFor(headerCandidate.candidateId, {
+        markerPresence: { alpha: "absent", beta: "absent" },
+        occurrences: [],
+      });
+      Object.assign(headerCandidate, {
+        googleDocsRoundtrip: {
+          ...headerCandidate.googleDocsRoundtrip,
+          markerPresence: { alpha: "absent", beta: "absent" },
+          transformedInspection: inspection,
+        },
+      });
+      Object.assign(record.matrix, {
+        2: matrixFor(headerCandidate.candidateId, headerCandidate),
+      });
+      Object.assign(record, {
+        gateDecision: "NO_VIABLE_DOCX_CARRIER",
+        selectedCandidateId: null,
+      });
+      await expect(
+        validateBakeoffRunRecord(record, { repositoryRoot }),
+      ).resolves.toEqual(record);
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  });
+
   test("accepts a failed clipboard workflow with a reason and not-assessable observations", async () => {
     const { repositoryRoot, record } = await withTempRecord();
     try {
@@ -527,6 +665,54 @@ describe("alternative carrier bakeoff record validator", () => {
     } finally {
       await rm(repositoryRoot, { recursive: true, force: true });
     }
+  });
+
+  test("rejects a completed clipboard workflow with unassessed observations", async () => {
+    await expectInvalidRecord((record) => {
+      const candidate = record.candidates[2];
+      Object.assign(candidate, {
+        googleDocsCopyPlainText: {
+          ...candidate.googleDocsCopyPlainText,
+          markerPresence: { alpha: "not_assessable", beta: "not_assessable" },
+          visibleBody: "not_assessable",
+        },
+      });
+      Object.assign(record.matrix, {
+        2: matrixFor(candidate.candidateId, candidate),
+      });
+    });
+  });
+
+  test("accepts a failed clipboard workflow with a retained artifact and assessed observations", async () => {
+    const { repositoryRoot, record } = await withTempRecord();
+    try {
+      const candidate = record.candidates[2];
+      Object.assign(candidate, {
+        googleDocsCopyPlainText: {
+          ...candidate.googleDocsCopyPlainText,
+          status: "failed",
+          failureReason: "The synthetic clipboard destination returned partial evidence.",
+          markerPresence: { alpha: "absent", beta: "absent" },
+          visibleBody: "changed",
+        },
+      });
+      Object.assign(record.matrix, {
+        2: matrixFor(candidate.candidateId, candidate),
+      });
+      await expect(
+        validateBakeoffRunRecord(record, { repositoryRoot }),
+      ).resolves.toEqual(record);
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("requires Google Docs provenance for a completed clipboard workflow", async () => {
+    await expectInvalidRecord((record) => {
+      Object.assign(record.candidates[0].googleDocsCopyPlainText.application, {
+        name: "TextEdit",
+      });
+    });
   });
 
   test("rejects nested extra fields and inconsistent round-trip safety summaries", async () => {
@@ -566,6 +752,29 @@ describe("alternative carrier bakeoff record validator", () => {
       ).rejects.toThrow();
     } finally {
       await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects an artifact directory that escapes through a symlinked ancestor", async () => {
+    const repositoryRoot = await mkdtemp(join(tmpdir(), "glyph-bakeoff-repository-"));
+    const externalRoot = await mkdtemp(join(tmpdir(), "glyph-bakeoff-external-"));
+    const record = structuredClone(makeRecord()) as BakeoffRunRecord;
+    try {
+      await writeRecordArtifacts(externalRoot, record);
+      await mkdir(join(repositoryRoot, "research", "artifacts"), {
+        recursive: true,
+      });
+      await symlink(
+        join(externalRoot, ARTIFACT_DIRECTORY),
+        join(repositoryRoot, ARTIFACT_DIRECTORY),
+        "dir",
+      );
+      await expect(
+        validateBakeoffRunRecord(record, { repositoryRoot }),
+      ).rejects.toThrow();
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+      await rm(externalRoot, { recursive: true, force: true });
     }
   });
 
@@ -650,5 +859,31 @@ describe("alternative carrier bakeoff record validator", () => {
     }],
   ])("rejects %s", async (_description, mutate) => {
     await expectInvalidRecord(mutate);
+  });
+
+  test("rejects email and account identifiers embedded in prose values", async () => {
+    await expectInvalidRecord((record) => {
+      Object.assign(record, {
+        limitations: [
+          "Contact reviewer@example.com after checking account id: acct_123456.",
+        ],
+      });
+    });
+  });
+
+  test("allows fixed scientific prose without identifier-shaped values", async () => {
+    const { repositoryRoot, record } = await withTempRecord();
+    try {
+      Object.assign(record, {
+        limitations: [
+          "The account-safe carrier result remains scoped to the frozen protocol.",
+        ],
+      });
+      await expect(
+        validateBakeoffRunRecord(record, { repositoryRoot }),
+      ).resolves.toEqual(record);
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
   });
 });
