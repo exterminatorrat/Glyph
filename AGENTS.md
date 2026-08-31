@@ -26,7 +26,7 @@ Glyph is not an AI-writing detector and does not determine authorship, direct AI
 
 Work only on the active approved milestone. Milestone 2, the `docx-hidden-run-v1` carrier spike, is a hard research gate and precedes Supabase and product workflows. Milestone 7, the baseline controlled experiment, is a second go/no-go gate before the Analyze vertical slice.
 
-The current repository contains only the approved Milestone 0 documentation. Do not begin a later milestone without explicit authorization.
+The Milestone 1 project and research foundation is complete. Milestone 2, the `docx-hidden-run-v1` carrier spike, is next and must not begin until its plan is explicitly approved; Supabase and product workflows remain later milestones.
 
 ## Verification commands
 
