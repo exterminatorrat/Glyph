@@ -189,6 +189,37 @@ describe("transformed DOCX inspector", () => {
     );
   });
 
+  test("ignores marker text in unsupported WordprocessingML styles parts", async () => {
+    const bytes = await generatedBodyPackage();
+    const entries = unzipSync(bytes);
+    entries["word/document.xml"] = strToU8(
+      strFromU8(requiredEntry(entries, "word/document.xml")).replace(
+        FIXED_MARKER_ALPHA,
+        "removed synthetic marker",
+      ),
+    );
+    entries["word/styles.xml"] = strToU8(
+      '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:styleId="synthetic"><w:p><w:r><w:t>GLYPH TEST MARKER ALPHA</w:t></w:r></w:p></w:style></w:styles>',
+    );
+
+    const inspection = inspectTransformedDocx(
+      zipSync(entries),
+      CANDIDATE_FIXTURE.markers,
+    );
+
+    expect(inspection.markerPresence.alpha).toBe("absent");
+    expect(
+      inspection.markerOccurrences.filter(
+        (occurrence) => occurrence.markerId === "alpha",
+      ),
+    ).toEqual([]);
+    expect(
+      inspection.paragraphs.some(
+        (paragraph) => paragraph.partName === "word/styles.xml",
+      ),
+    ).toBe(false);
+  });
+
   test("reports active content and relationship safety independently of markers", async () => {
     const bytes = await generatedBodyPackage();
     const entries = unzipSync(bytes);

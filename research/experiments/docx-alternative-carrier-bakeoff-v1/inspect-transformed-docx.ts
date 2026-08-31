@@ -374,11 +374,6 @@ const rootTextPartLocation = (
   return TEXT_PART_ROOT_LOCATIONS[rootName];
 };
 
-const hasWordprocessingParagraphs = (document: XmlDocument): boolean =>
-  descendantsByLocalName(document, "p").some((paragraph) =>
-    isElement(paragraph, WORDPROCESSINGML_NAMESPACE, "p"),
-  );
-
 const paragraphElements = (document: XmlDocument): XmlElement[] =>
   descendantsByLocalName(document, "p").filter((paragraph) =>
     isElement(paragraph, WORDPROCESSINGML_NAMESPACE, "p"),
@@ -521,14 +516,6 @@ export function inspectTransformedDocx(
     }
     if (referencedPartNames.has(entryName) && rootLocation !== undefined) {
       return rootLocation === "body" ? "other" : rootLocation;
-    }
-
-    if (
-      partDocument.documentElement?.namespaceURI ===
-        WORDPROCESSINGML_NAMESPACE &&
-      hasWordprocessingParagraphs(partDocument)
-    ) {
-      return "other";
     }
     return undefined;
   };
