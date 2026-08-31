@@ -26,19 +26,50 @@ const isNotFound = (error: unknown): boolean =>
   "code" in error &&
   error.code === "ENOENT";
 
+const nearestExistingCanonicalPath = async (
+  candidate: string,
+): Promise<string> => {
+  let current = candidate;
+  while (true) {
+    try {
+      return await realpath(current);
+    } catch (error: unknown) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+      const parent = dirname(current);
+      if (parent === current) {
+        throw error;
+      }
+      current = parent;
+    }
+  }
+};
+
+export const assertArtifactDirectoryWithinRepository = async (
+  root: string,
+  directory: string,
+): Promise<void> => {
+  const canonicalRoot = await realpath(root);
+  const canonicalAncestor = await nearestExistingCanonicalPath(directory);
+  if (isOutsideRepository(canonicalRoot, canonicalAncestor)) {
+    throw new Error(
+      "The carrier artifact directory must remain inside the repository.",
+    );
+  }
+};
+
 const main = async (): Promise<void> => {
   const bytes = await generateDocxHiddenRunV1(CARRIER_SPIKE_INPUT);
-  await mkdir(dirname(artifactAbsolutePath), { recursive: true });
-
-  const canonicalRepositoryRoot = await realpath(repositoryRoot);
-  const canonicalArtifactDirectory = await realpath(
+  await assertArtifactDirectoryWithinRepository(
+    repositoryRoot,
     dirname(artifactAbsolutePath),
   );
-  if (
-    isOutsideRepository(canonicalRepositoryRoot, canonicalArtifactDirectory)
-  ) {
-    throw new Error("The carrier artifact directory must remain inside the repository.");
-  }
+  await mkdir(dirname(artifactAbsolutePath), { recursive: true });
+  await assertArtifactDirectoryWithinRepository(
+    repositoryRoot,
+    dirname(artifactAbsolutePath),
+  );
 
   try {
     if ((await lstat(artifactAbsolutePath)).isSymbolicLink()) {
@@ -56,7 +87,12 @@ const main = async (): Promise<void> => {
   process.stdout.write(`${JSON.stringify({ artifactPath, sha256 })}\n`);
 };
 
-main().catch((error: unknown) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main().catch((error: unknown) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

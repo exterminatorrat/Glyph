@@ -441,6 +441,14 @@ export function inspectCarrierDocx(bytes: Uint8Array): CarrierDocxInspection {
   if (!document || !contentTypes || !commentsDocument) {
     throw new Error("Missing required parsed DOCX XML entries");
   }
+  if (
+    !document.documentElement ||
+    !isElement(document.documentElement, WORDPROCESSINGML_NAMESPACE, "document")
+  ) {
+    throw new Error(
+      "word/document.xml: expected WordprocessingML document root",
+    );
+  }
 
   const runs: CarrierRunInspection[] = [];
   const visibleParagraphs: string[] = [];
