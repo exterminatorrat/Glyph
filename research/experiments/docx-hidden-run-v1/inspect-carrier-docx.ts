@@ -8,6 +8,10 @@ import {
 
 const WORDPROCESSINGML_NAMESPACE =
   "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+const PACKAGE_RELATIONSHIPS_NAMESPACE =
+  "http://schemas.openxmlformats.org/package/2006/relationships";
+const CONTENT_TYPES_NAMESPACE =
+  "http://schemas.openxmlformats.org/package/2006/content-types";
 const OFFICE_DOCUMENT_RELATIONSHIPS_NAMESPACE =
   "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 
@@ -274,6 +278,7 @@ const collectRelationships = (
       const expectedIndex = expected.findIndex(
         ([expectedType, expectedTarget], index) =>
           !consumedExpected.has(index) &&
+          relationship.namespaceURI === PACKAGE_RELATIONSHIPS_NAMESPACE &&
           expectedType === type &&
           expectedTarget === target &&
           targetMode === null,
@@ -322,9 +327,10 @@ const inspectContentTypes = (
 ): { macroContentTypes: string[]; unexpectedComments: string[] } => {
   const macroContentTypes: string[] = [];
   const unexpectedComments: string[] = [];
-  for (const element of descendantsByLocalName(document, "Default").concat(
-    descendantsByLocalName(document, "Override"),
-  )) {
+  const contentTypeElements = descendantsByLocalName(document, "Default")
+    .concat(descendantsByLocalName(document, "Override"))
+    .filter((element) => element.namespaceURI === CONTENT_TYPES_NAMESPACE);
+  for (const element of contentTypeElements) {
     const contentType = element.getAttribute("ContentType") ?? "";
     if (/(?:macroEnabled|vbaProject|activeX|oleObject)/i.test(contentType)) {
       macroContentTypes.push(contentType);
@@ -345,8 +351,10 @@ const inspectContentTypes = (
     }
   }
 
-  const commentsOverrides = descendantsByLocalName(document, "Override").filter(
-    (element) => element.getAttribute("PartName") === "/word/comments.xml",
+  const commentsOverrides = contentTypeElements.filter(
+    (element) =>
+      localNameOf(element) === "Override" &&
+      element.getAttribute("PartName") === "/word/comments.xml",
   );
   if (
     commentsOverrides.length !== 1 ||

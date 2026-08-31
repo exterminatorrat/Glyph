@@ -57,7 +57,7 @@
   pnpm --version
   ```
 
-  Expected outcome: the physical directory is `/Users/harryjin/Glyph`; `0a799387329024bdfe55da82b35e4cc669fdab5b` is the current Milestone 1 commit; only `AGENTS.md` and this approved plan are uncommitted; Node and pnpm are available. Any other change stops execution before dependency or protocol work.
+  Expected outcome: the physical directory is `/Users/harryjin/Glyph`; `0a799387329024bdfe55da82b35e4cc669fdab5b` is the recorded Milestone 1 baseline used to start Task 1, and the approved Task 1 outcome for Task 2 is `5abab8cbb1bd081e8f55a5d6eea99b6211d6a925`; only `AGENTS.md` and this approved plan are uncommitted at the historical Task 1 checkpoint; Node and pnpm are available. Any other change stops execution before dependency or protocol work.
 
 - [ ] **Step 2: Freeze the exact synthetic fixture and placement**
 
