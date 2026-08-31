@@ -87,11 +87,11 @@ describe("alternative carrier command safety", () => {
   test("generator uses the exact candidate switch and usage boundary", () => {
     const missing = runScript(generationScript, []);
     expect(missing.status).not.toBe(0);
-    expect(missing.stderr).toContain(generatorUsage);
+    expect(missing.stderr).toBe(`${generatorUsage}\n`);
 
     const unknown = runScript(generationScript, ["--", "unknown-candidate"]);
     expect(unknown.status).not.toBe(0);
-    expect(unknown.stderr).toContain(generatorUsage);
+    expect(unknown.stderr).toBe(`${generatorUsage}\n`);
   });
 
   test("generator cannot redirect output and refuses to overwrite a symlink", async () => {
