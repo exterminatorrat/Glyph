@@ -177,6 +177,69 @@ describe("docx-semantic-white-carrier-qualification-v1", () => {
     }
   });
 
+  test("rejects marker runs with no direct color element", async () => {
+    const bytes = mutateDocument(await generatedSource(), (xml) => {
+      const original = '<w:color w:val="FFFFFF"/>';
+      if (!xml.includes(original)) {
+        throw new Error("Generated marker color was not found");
+      }
+      return xml.replaceAll(original, "");
+    });
+    const mechanisms = await markerMechanisms(bytes);
+
+    expect(mechanisms).toHaveLength(2);
+    expect(mechanisms.every((entry) => entry.directColorValue === null)).toBe(
+      true,
+    );
+    expect(mechanisms.every((entry) => entry.semanticDirectWhite)).toBe(false);
+    expect(
+      mechanisms.every((entry) =>
+        entry.forbiddenProperties.includes("directColorValue"),
+      ),
+    ).toBe(true);
+  });
+
+  test("requires namespaced w:val for direct color", async () => {
+    const bytes = mutateDocument(await generatedSource(), (xml) => {
+      const original = '<w:color w:val="FFFFFF"/>';
+      if (!xml.includes(original)) {
+        throw new Error("Generated marker color was not found");
+      }
+      return xml.replaceAll(original, '<w:color val="FFFFFF"/>');
+    });
+    const mechanisms = await markerMechanisms(bytes);
+
+    expect(mechanisms.every((entry) => entry.directColorValue === null)).toBe(
+      true,
+    );
+    expect(mechanisms.every((entry) => entry.semanticDirectWhite)).toBe(false);
+    expect(
+      mechanisms.every((entry) =>
+        entry.forbiddenProperties.includes("directColorValue"),
+      ),
+    ).toBe(true);
+  });
+
+  test("treats vanish without namespaced w:val as enabled", async () => {
+    const bytes = mutateDocument(await generatedSource(), (xml) => {
+      const original = '<w:color w:val="FFFFFF"/>';
+      if (!xml.includes(original)) {
+        throw new Error("Generated marker color was not found");
+      }
+      return xml.replaceAll(
+        original,
+        `${original}<w:vanish val="false"/>`,
+      );
+    });
+    const mechanisms = await markerMechanisms(bytes);
+
+    expect(mechanisms.every((entry) => entry.hidden)).toBe(true);
+    expect(mechanisms.every((entry) => entry.semanticDirectWhite)).toBe(false);
+    expect(
+      mechanisms.every((entry) => entry.forbiddenProperties.includes("hidden")),
+    ).toBe(true);
+  });
+
   test.each([
     ["themeColor", '<w:color w:val="FFFFFF" w:themeColor="accent1"/>'],
     ["themeTint", '<w:color w:val="FFFFFF" w:themeTint="99"/>'],

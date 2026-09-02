@@ -91,17 +91,12 @@ const attributeValue = (
   element: XmlElement,
   localName: string,
 ): string | null => {
-  const value =
-    element.getAttributeNS(WORDPROCESSINGML_NAMESPACE, localName) ||
-    element.getAttribute(`w:${localName}`) ||
-    element.getAttribute(localName);
+  const value = element.getAttributeNS(WORDPROCESSINGML_NAMESPACE, localName);
   return value || null;
 };
 
 const hasAttribute = (element: XmlElement, localName: string): boolean =>
-  element.hasAttributeNS(WORDPROCESSINGML_NAMESPACE, localName) ||
-  element.hasAttribute(`w:${localName}`) ||
-  element.hasAttribute(localName);
+  element.hasAttributeNS(WORDPROCESSINGML_NAMESPACE, localName);
 
 const attributeOrEmpty = (
   element: XmlElement | undefined,
