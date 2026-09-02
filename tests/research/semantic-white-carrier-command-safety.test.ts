@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { describe, expect, test } from "vitest";
 import { QUALIFICATION_FIXTURE } from "../../research/experiments/docx-semantic-white-carrier-qualification-v1/fixture";
+import { inspectSemanticWhiteCarrier } from "../../research/experiments/docx-semantic-white-carrier-qualification-v1/inspect-semantic-white-docx";
 import { generateMatchingColorBodyV2 } from "../../src/documents/docx/docx-matching-color-body-v2";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -298,21 +299,10 @@ describe("semantic-white carrier command safety", () => {
         "transformed",
         "markerMechanisms",
       ]);
-      expect(summary.sha256).toBe(
-        createHash("sha256").update(source).digest("hex"),
-      );
-      const transformed = summary.transformed as Record<string, unknown>;
-      expect(transformed.markerPresence).toEqual({
-        alpha: "present",
-        beta: "present",
+      expect(summary).toEqual({
+        sha256: createHash("sha256").update(source).digest("hex"),
+        ...inspectSemanticWhiteCarrier(source, QUALIFICATION_FIXTURE.markers),
       });
-      const mechanisms = summary.markerMechanisms as Array<{
-        semanticDirectWhite: boolean;
-      }>;
-      expect(mechanisms).toHaveLength(2);
-      expect(
-        mechanisms.every((entry) => entry.semanticDirectWhite),
-      ).toBe(true);
 
       const nonWhite = mutateDocument(source, (xml) =>
         xml.replaceAll(
@@ -327,12 +317,10 @@ describe("semantic-white carrier command safety", () => {
       ]);
       expect(semanticFailure.status).toBe(0);
       const semanticSummary = parseJsonObject(semanticFailure.stdout);
-      const semanticMechanisms = semanticSummary.markerMechanisms as Array<{
-        semanticDirectWhite: boolean;
-      }>;
-      expect(
-        semanticMechanisms.every((entry) => !entry.semanticDirectWhite),
-      ).toBe(true);
+      expect(semanticSummary).toEqual({
+        sha256: createHash("sha256").update(nonWhite).digest("hex"),
+        ...inspectSemanticWhiteCarrier(nonWhite, QUALIFICATION_FIXTURE.markers),
+      });
     } finally {
       await rm(repository, { recursive: true, force: true });
     }
