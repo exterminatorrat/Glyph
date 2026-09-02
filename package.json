@@ -15,7 +15,8 @@
     "research:carrier:bakeoff:inspect": "node scripts/inspect-docx-alternative-carrier.ts",
     "research:carrier:bakeoff:validate": "node scripts/validate-docx-alternative-carrier-run.ts",
     "research:carrier:semantic-white:generate": "node scripts/generate-docx-semantic-white-carrier.ts",
-    "research:carrier:semantic-white:inspect": "node scripts/inspect-docx-semantic-white-carrier.ts"
+    "research:carrier:semantic-white:inspect": "node scripts/inspect-docx-semantic-white-carrier.ts",
+    "research:carrier:semantic-white:validate": "node scripts/validate-docx-semantic-white-carrier-run.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {
