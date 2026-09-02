@@ -24,7 +24,12 @@ Glyph is not an AI-writing detector and does not determine authorship, direct AI
 
 ## Milestones and gates
 
-Work only on the active approved milestone. Milestone 2 ended with the recorded abandonment of `docx-hidden-run-v1`; Milestone 2B, the alternative DOCX carrier bakeoff, is the current research milestone. Milestone 3 and product workflows remain later and require a separate positive carrier gate and approval; Milestone 7 remains the later baseline controlled-experiment go/no-go gate before Analyze.
+Work only on the active approved milestone. Milestone 2 ended with the recorded abandonment of `docx-hidden-run-v1`;
+Milestone 2B recorded `REVISE_CANDIDATE`; Milestone 2C, the separately
+versioned semantic-white carrier qualification, is the current research
+milestone. Milestone 3 and product workflows remain later and require a
+positive Milestone 2C transport gate plus the accessibility boundary recorded
+by that experiment.
 
 ## Verification commands
 
