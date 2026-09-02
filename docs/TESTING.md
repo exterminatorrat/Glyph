@@ -52,6 +52,24 @@ These commands and tests prove package structure only. They do not prove editor 
 
 These two commands prove package structure only. The validator command is added with the Task 5 record validator and must not be invoked before the non-blocked record exists. None of these commands proves editor behavior beyond the separately recorded Google Docs observation, clipboard survival, accessibility behavior, model compliance, end-to-end survival, prompt reuse, AI authorship, direct ingestion, intent, cheating, or misconduct.
 
+## Milestone 2C semantic-white carrier qualification commands
+
+The versioned semantic-white commands are authoritative for the separately
+frozen `matching-color-body-v2` candidate:
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm research:carrier:semantic-white:generate` | The canonical synthetic DOCX was generated once at `research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2.docx`, and its candidate ID, document profile, path, and lowercase SHA-256 were reported. Existing files and symlinks are never replaced. |
+| `pnpm research:carrier:semantic-white:inspect -- research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2.docx` | The canonical DOCX was read-only inspected for transformed marker/visible-body structure, semantic direct-white run mechanisms, and package-safety findings. |
+| `pnpm research:carrier:semantic-white:inspect -- research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2-google-docs-roundtrip.docx` | The Google Docs transformed DOCX was read-only inspected with the same complete semantic-white evidence and package-safety fields. Repeat for the Microsoft Word round-trip path when that artifact exists. |
+
+These commands prove package structure only. They do not prove Google Docs or
+Microsoft Word editor behavior, ordinary visibility, clipboard survival,
+accessibility safety, production readiness, AI ingestion or behavior,
+authorship, prompt reuse, intent, cheating, or misconduct. Generation and
+inspection tests use disposable copied repositories or temporary artifacts and
+do not write the canonical artifact in the development checkout.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.

@@ -5,7 +5,7 @@ import {
   type OOXMLTextLocation,
   type TransformedDocxInspection,
   type TransformedMarkerOccurrence,
-} from "../docx-alternative-carrier-bakeoff-v1/inspect-transformed-docx";
+} from "../docx-alternative-carrier-bakeoff-v1/inspect-transformed-docx.ts";
 
 const WORDPROCESSINGML_NAMESPACE =
   "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
