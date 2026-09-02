@@ -1,0 +1,1160 @@
+{
+  "experimentId": "glyph-exp-a-docx-alternative-carrier-bakeoff-v1-001",
+  "experimentSchemaVersion": 1,
+  "date": "2026-09-02",
+  "bakeoffProfile": "docx-alternative-carrier-bakeoff-v1",
+  "fingerprintStrategy": null,
+  "fingerprintStrategyVersion": null,
+  "matchingProfile": null,
+  "fixedMarkers": {
+    "alpha": "GLYPH TEST MARKER ALPHA",
+    "beta": "GLYPH TEST MARKER BETA"
+  },
+  "visibleFixture": {
+    "id": "synthetic-library-hours-v1",
+    "sourcePath": "research/experiments/docx-hidden-run-v1/fixture.ts"
+  },
+  "sourceGenerator": {
+    "path": "src/documents/docx/docx-alternative-carrier-bakeoff-v1.ts",
+    "gitCommit": "26533c351c1cb8e34e3a8d3410ff35f6847b1168",
+    "nodeVersion": "v26.7.0",
+    "pnpmVersion": "11.19.0",
+    "docxVersion": "9.7.1"
+  },
+  "googleDocsProtocol": {
+    "application": {
+      "name": "Google Docs",
+      "version": null
+    },
+    "platform": {
+      "name": "macOS",
+      "version": "26.2 build 25C56"
+    },
+    "candidateOrder": [
+      "matching-color-body-v1",
+      "sub-legible-body-1pt-v1",
+      "docx-header-text-v1"
+    ],
+    "documentRule": "one new unshared document per candidate"
+  },
+  "candidates": [
+    {
+      "candidateId": "matching-color-body-v1",
+      "mechanism": "ordinary-body-color-FFFFFF",
+      "documentProfile": "docx-matching-color-body-v1",
+      "canonicalArtifact": {
+        "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/matching-color-body-v1.docx",
+        "sha256": "8a997bd0b538e8ff5a2e89aa514d14dd783f42473cbcd80070eda004b8afe657"
+      },
+      "canonicalProfileValidation": {
+        "status": "passed",
+        "testCommand": "pnpm test tests/documents/docx-alternative-carrier-bakeoff.test.ts"
+      },
+      "sourceInspection": {
+        "entries": [
+          "[Content_Types].xml",
+          "_rels/.rels",
+          "docProps/app.xml",
+          "docProps/core.xml",
+          "docProps/custom.xml",
+          "word/_rels/comments.xml.rels",
+          "word/_rels/document.xml.rels",
+          "word/_rels/endnotes.xml.rels",
+          "word/_rels/fontTable.xml.rels",
+          "word/_rels/footnotes.xml.rels",
+          "word/comments.xml",
+          "word/document.xml",
+          "word/endnotes.xml",
+          "word/fontTable.xml",
+          "word/footnotes.xml",
+          "word/numbering.xml",
+          "word/settings.xml",
+          "word/styles.xml"
+        ],
+        "visibleBodyParagraphs": [
+          "Read the passage below. Then summarize its main idea in two sentences.",
+          "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+          "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+        ],
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "markerOccurrences": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "FFFFFF",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "FFFFFF",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "safety": {
+          "externalRelationships": [],
+          "unresolvedRelationshipTargets": [],
+          "activeContentEntries": [],
+          "activeRelationshipTypes": [],
+          "macroContentTypes": []
+        }
+      },
+      "googleDocsRoundtrip": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": null
+        },
+        "steps": [
+          "Imported the canonical DOCX into Google Docs and recorded the ordinary view before selection.",
+          "Exported the retained Google Docs document as the candidate-specific DOCX.",
+          "Recorded the user-supplied observation that selection revealed the marker text."
+        ],
+        "sourceArtifactSha256": "8a997bd0b538e8ff5a2e89aa514d14dd783f42473cbcd80070eda004b8afe657",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/matching-color-body-v1-google-docs-roundtrip.docx",
+          "sha256": "4d91c468c0e114e8faefa1e41c9933f20d078f80ee1532af182abf19d0d96c1a"
+        },
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "visibleBody": "preserved",
+        "ordinaryVisibility": "not_visible",
+        "conditionalExposure": [],
+        "transformedInspection": {
+          "entries": [
+            "[Content_Types].xml",
+            "_rels/.rels",
+            "word/_rels/document.xml.rels",
+            "word/document.xml",
+            "word/fontTable.xml",
+            "word/numbering.xml",
+            "word/settings.xml",
+            "word/styles.xml",
+            "word/theme/theme1.xml"
+          ],
+          "visibleBodyParagraphs": [
+            "Read the passage below. Then summarize its main idea in two sentences.",
+            "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+            "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+          ],
+          "markerPresence": {
+            "alpha": "present",
+            "beta": "present"
+          },
+          "markerOccurrences": [
+            {
+              "markerId": "alpha",
+              "partName": "word/document.xml",
+              "location": "body",
+              "paragraphIndex": 0,
+              "runIndices": [
+                1
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": "ffffff",
+                  "sizeHalfPoints": null,
+                  "sizeComplexScriptHalfPoints": null
+                }
+              ]
+            },
+            {
+              "markerId": "beta",
+              "partName": "word/document.xml",
+              "location": "body",
+              "paragraphIndex": 2,
+              "runIndices": [
+                1
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": "ffffff",
+                  "sizeHalfPoints": null,
+                  "sizeComplexScriptHalfPoints": null
+                }
+              ]
+            }
+          ],
+          "safety": {
+            "externalRelationships": [],
+            "unresolvedRelationshipTargets": [],
+            "activeContentEntries": [],
+            "activeRelationshipTypes": [],
+            "macroContentTypes": []
+          }
+        },
+        "protocolDeviation": null,
+        "notes": [
+          "User-supplied original observation: Alpha and Beta were not visible in ordinary view and became visible after selection.",
+          "The three-paragraph body and layout appeared normal."
+        ]
+      },
+      "googleDocsCopyPlainText": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": null
+        },
+        "steps": [
+          "Selected the ordinary body, copied it, and retained the candidate-specific plain-text artifact."
+        ],
+        "sourceArtifactSha256": "8a997bd0b538e8ff5a2e89aa514d14dd783f42473cbcd80070eda004b8afe657",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/matching-color-body-v1-google-docs-copy-plain-text.txt",
+          "sha256": "43cdba6faefe5de823562c0b5c2b6bfe5dc3989b19e57106402e8eb56bdd4493"
+        },
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "visibleBody": "changed",
+        "ordinaryVisibility": "not_applicable",
+        "conditionalExposure": [
+          "plain_text_extraction"
+        ],
+        "protocolDeviation": null,
+        "notes": [
+          "Retained existing plain-text copy; its marker-bearing body text was independently inspected."
+        ]
+      }
+    },
+    {
+      "candidateId": "sub-legible-body-1pt-v1",
+      "mechanism": "ordinary-body-size-1pt",
+      "documentProfile": "docx-sub-legible-body-1pt-v1",
+      "canonicalArtifact": {
+        "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/sub-legible-body-1pt-v1.docx",
+        "sha256": "f6b64bc860baed5397570ee5659c1adac8b958760e485cbed99933e7286973d5"
+      },
+      "canonicalProfileValidation": {
+        "status": "passed",
+        "testCommand": "pnpm test tests/documents/docx-alternative-carrier-bakeoff.test.ts"
+      },
+      "sourceInspection": {
+        "entries": [
+          "[Content_Types].xml",
+          "_rels/.rels",
+          "docProps/app.xml",
+          "docProps/core.xml",
+          "docProps/custom.xml",
+          "word/_rels/comments.xml.rels",
+          "word/_rels/document.xml.rels",
+          "word/_rels/endnotes.xml.rels",
+          "word/_rels/fontTable.xml.rels",
+          "word/_rels/footnotes.xml.rels",
+          "word/comments.xml",
+          "word/document.xml",
+          "word/endnotes.xml",
+          "word/fontTable.xml",
+          "word/footnotes.xml",
+          "word/numbering.xml",
+          "word/settings.xml",
+          "word/styles.xml"
+        ],
+        "visibleBodyParagraphs": [
+          "Read the passage below. Then summarize its main idea in two sentences.",
+          "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+          "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+        ],
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "markerOccurrences": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          }
+        ],
+        "safety": {
+          "externalRelationships": [],
+          "unresolvedRelationshipTargets": [],
+          "activeContentEntries": [],
+          "activeRelationshipTypes": [],
+          "macroContentTypes": []
+        }
+      },
+      "googleDocsRoundtrip": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": "26.2 build 25C56"
+        },
+        "steps": [
+          "Imported the frozen source into a new unshared Google Docs document for the authorized visual-only rerun.",
+          "Recorded the ordinary 100% view before selection; marker words were not readable and appeared as tiny dash-like gray traces.",
+          "Clicked inside the ordinary body and pressed Cmd+A exactly once; recorded the post-selection view.",
+          "Retained the existing candidate-specific DOCX export; no replacement or re-export was performed during the rerun."
+        ],
+        "sourceArtifactSha256": "f6b64bc860baed5397570ee5659c1adac8b958760e485cbed99933e7286973d5",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/sub-legible-body-1pt-v1-google-docs-roundtrip.docx",
+          "sha256": "48837e525272c468338489fac6eaa7eb46677323cacb137dcd55fbb7af06d262"
+        },
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "visibleBody": "preserved",
+        "ordinaryVisibility": "visible",
+        "conditionalExposure": [],
+        "transformedInspection": {
+          "entries": [
+            "[Content_Types].xml",
+            "_rels/.rels",
+            "word/_rels/document.xml.rels",
+            "word/document.xml",
+            "word/fontTable.xml",
+            "word/numbering.xml",
+            "word/settings.xml",
+            "word/styles.xml",
+            "word/theme/theme1.xml"
+          ],
+          "visibleBodyParagraphs": [
+            "Read the passage below. Then summarize its main idea in two sentences.",
+            "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+            "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+          ],
+          "markerPresence": {
+            "alpha": "present",
+            "beta": "present"
+          },
+          "markerOccurrences": [
+            {
+              "markerId": "alpha",
+              "partName": "word/document.xml",
+              "location": "body",
+              "paragraphIndex": 0,
+              "runIndices": [
+                1
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": null,
+                  "sizeHalfPoints": 2,
+                  "sizeComplexScriptHalfPoints": 2
+                }
+              ]
+            },
+            {
+              "markerId": "beta",
+              "partName": "word/document.xml",
+              "location": "body",
+              "paragraphIndex": 2,
+              "runIndices": [
+                1
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": null,
+                  "sizeHalfPoints": 2,
+                  "sizeComplexScriptHalfPoints": 2
+                }
+              ]
+            }
+          ],
+          "safety": {
+            "externalRelationships": [],
+            "unresolvedRelationshipTargets": [],
+            "activeContentEntries": [],
+            "activeRelationshipTypes": [],
+            "macroContentTypes": []
+          }
+        },
+        "protocolDeviation": "Authorized visual-only rerun on 2026-09-02; no replacement, re-export, or copy was performed, so the existing DOCX and plain-text artifacts remain the retained evidence.",
+        "notes": [
+          "At 100% before selection, Alpha and Beta were not readable as words; each appeared as a tiny dash-like gray trace at its frozen marker position.",
+          "After one click in the ordinary body and Cmd+A exactly once, the three body paragraphs were selected; Alpha and Beta remained unreadable as words and remained tiny dash-like traces.",
+          "All three body paragraphs were intact and in order on one page with normal wrapping and no meaningful layout or pagination disturbance."
+        ]
+      },
+      "googleDocsCopyPlainText": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": "26.2 build 25C56"
+        },
+        "steps": [
+          "Selected the ordinary body, copied it, and retained the candidate-specific plain-text artifact."
+        ],
+        "sourceArtifactSha256": "f6b64bc860baed5397570ee5659c1adac8b958760e485cbed99933e7286973d5",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/sub-legible-body-1pt-v1-google-docs-copy-plain-text.txt",
+          "sha256": "43cdba6faefe5de823562c0b5c2b6bfe5dc3989b19e57106402e8eb56bdd4493"
+        },
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "visibleBody": "changed",
+        "ordinaryVisibility": "not_applicable",
+        "conditionalExposure": [
+          "plain_text_extraction"
+        ],
+        "protocolDeviation": "The authorized visual-only rerun did not repeat the clipboard step; the existing plain-text artifact was retained unchanged.",
+        "notes": [
+          "Retained existing plain-text copy unchanged; the authorized visual-only rerun did not repeat or replace the copy."
+        ]
+      }
+    },
+    {
+      "candidateId": "docx-header-text-v1",
+      "mechanism": "ordinary-header-text",
+      "documentProfile": "docx-header-text-v1",
+      "canonicalArtifact": {
+        "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/docx-header-text-v1.docx",
+        "sha256": "a70bac05acbb34aeeaeac7f1608f840d65a9022d1098ad8450d15ebf5911f20f"
+      },
+      "canonicalProfileValidation": {
+        "status": "passed",
+        "testCommand": "pnpm test tests/documents/docx-alternative-carrier-bakeoff.test.ts"
+      },
+      "sourceInspection": {
+        "entries": [
+          "[Content_Types].xml",
+          "_rels/.rels",
+          "docProps/app.xml",
+          "docProps/core.xml",
+          "docProps/custom.xml",
+          "word/_rels/comments.xml.rels",
+          "word/_rels/document.xml.rels",
+          "word/_rels/endnotes.xml.rels",
+          "word/_rels/fontTable.xml.rels",
+          "word/_rels/footnotes.xml.rels",
+          "word/_rels/header1.xml.rels",
+          "word/comments.xml",
+          "word/document.xml",
+          "word/endnotes.xml",
+          "word/fontTable.xml",
+          "word/footnotes.xml",
+          "word/header1.xml",
+          "word/numbering.xml",
+          "word/settings.xml",
+          "word/styles.xml"
+        ],
+        "visibleBodyParagraphs": [
+          "Read the passage below. Then summarize its main idea in two sentences.",
+          "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+          "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+        ],
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "markerOccurrences": [
+          {
+            "markerId": "alpha",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 0,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 1,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "safety": {
+          "externalRelationships": [],
+          "unresolvedRelationshipTargets": [],
+          "activeContentEntries": [],
+          "activeRelationshipTypes": [],
+          "macroContentTypes": []
+        }
+      },
+      "googleDocsRoundtrip": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": "26.2 build 25C56"
+        },
+        "steps": [
+          "Imported the canonical DOCX into one new unshared Google Docs document.",
+          "Recorded the ordinary paginated view at the toolbar-selected 100% zoom.",
+          "Exported the document as the candidate-specific DOCX.",
+          "Selected the ordinary body once for the secondary plain-text copy and recorded the header observation."
+        ],
+        "sourceArtifactSha256": "a70bac05acbb34aeeaeac7f1608f840d65a9022d1098ad8450d15ebf5911f20f",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/docx-header-text-v1-google-docs-roundtrip.docx",
+          "sha256": "d14a4a2cba50435eac80c57c8a29866a25628b974c0ba1381f0f2dde942ffe01"
+        },
+        "markerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "visibleBody": "preserved",
+        "ordinaryVisibility": "visible",
+        "conditionalExposure": [],
+        "transformedInspection": {
+          "entries": [
+            "[Content_Types].xml",
+            "_rels/.rels",
+            "word/_rels/document.xml.rels",
+            "word/document.xml",
+            "word/fontTable.xml",
+            "word/header1.xml",
+            "word/numbering.xml",
+            "word/settings.xml",
+            "word/styles.xml",
+            "word/theme/theme1.xml"
+          ],
+          "visibleBodyParagraphs": [
+            "Read the passage below. Then summarize its main idea in two sentences.",
+            "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+            "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+          ],
+          "markerPresence": {
+            "alpha": "present",
+            "beta": "present"
+          },
+          "markerOccurrences": [
+            {
+              "markerId": "alpha",
+              "partName": "word/header1.xml",
+              "location": "header",
+              "paragraphIndex": 0,
+              "runIndices": [
+                0
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": null,
+                  "sizeHalfPoints": null,
+                  "sizeComplexScriptHalfPoints": null
+                }
+              ]
+            },
+            {
+              "markerId": "beta",
+              "partName": "word/header1.xml",
+              "location": "header",
+              "paragraphIndex": 1,
+              "runIndices": [
+                0
+              ],
+              "runFormats": [
+                {
+                  "hidden": false,
+                  "color": null,
+                  "sizeHalfPoints": null,
+                  "sizeComplexScriptHalfPoints": null
+                }
+              ]
+            }
+          ],
+          "safety": {
+            "externalRelationships": [],
+            "unresolvedRelationshipTargets": [],
+            "activeContentEntries": [],
+            "activeRelationshipTypes": [],
+            "macroContentTypes": []
+          }
+        },
+        "protocolDeviation": null,
+        "notes": [
+          "The three frozen body paragraphs were intact and in order.",
+          "Alpha and Beta were plainly visible in the default header on two top-of-page lines.",
+          "The header was not selected by body Select All; selection reveal is not assessable because the header was already ordinarily visible.",
+          "No body overlap, truncation, or pagination change was observed; the two-line header effect is recorded factually."
+        ]
+      },
+      "googleDocsCopyPlainText": {
+        "status": "completed",
+        "failureReason": null,
+        "application": {
+          "name": "Google Docs",
+          "version": null
+        },
+        "platform": {
+          "name": "macOS",
+          "version": "26.2 build 25C56"
+        },
+        "steps": [
+          "Selected the ordinary body, copied it, and retained the candidate-specific plain-text artifact."
+        ],
+        "sourceArtifactSha256": "a70bac05acbb34aeeaeac7f1608f840d65a9022d1098ad8450d15ebf5911f20f",
+        "resultArtifact": {
+          "path": "research/artifacts/docx-alternative-carrier-bakeoff-v1/docx-header-text-v1-google-docs-copy-plain-text.txt",
+          "sha256": "bef28d99df245b408c200aec3c3fdf71b34e7794c2a8ffd227bd670339fbdce5"
+        },
+        "markerPresence": {
+          "alpha": "absent",
+          "beta": "absent"
+        },
+        "visibleBody": "preserved",
+        "ordinaryVisibility": "not_applicable",
+        "conditionalExposure": [
+          "plain_text_extraction"
+        ],
+        "protocolDeviation": null,
+        "notes": [
+          "Body-only Select All copy excluded both header markers.",
+          "The plain-text result contains 275 bytes and one final newline."
+        ]
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "candidateId": "matching-color-body-v1",
+      "transport": {
+        "canonicalValid": true,
+        "sourceMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "sourceLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "FFFFFF",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "FFFFFF",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "sourceFormats": [
+          {
+            "hidden": false,
+            "color": "FFFFFF",
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          },
+          {
+            "hidden": false,
+            "color": "FFFFFF",
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          }
+        ],
+        "roundtripMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "roundtripLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "ffffff",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": "ffffff",
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "roundtripFormats": [
+          {
+            "hidden": false,
+            "color": "ffffff",
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          },
+          {
+            "hidden": false,
+            "color": "ffffff",
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          }
+        ],
+        "roundtripVisibleBody": "preserved",
+        "copyMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "copyVisibleBody": "changed"
+      },
+      "presentation": {
+        "ordinaryVisibility": "not_visible",
+        "layoutDisturbance": "none_observed",
+        "selectionReveal": "revealed",
+        "backgroundOrThemeReveal": "not_run",
+        "explicitFormattingReveal": "not_run"
+      },
+      "accessibilityTrust": {
+        "assistiveExposure": "not_run",
+        "accidentalExposureNotes": [
+          "Selection revealed both marker words after the ordinary body was selected."
+        ],
+        "limitations": [
+          "Dark mode/background and accessibility were not tested."
+        ]
+      },
+      "engineering": {
+        "structuralSimplicity": "single-direct-color-property",
+        "deterministicGeneration": true,
+        "deterministicInspection": true,
+        "testedEditorScope": "Google Docs import/export only",
+        "sourceSafetyClean": true,
+        "roundtripSafetyClean": true
+      }
+    },
+    {
+      "candidateId": "sub-legible-body-1pt-v1",
+      "transport": {
+        "canonicalValid": true,
+        "sourceMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "sourceLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          }
+        ],
+        "sourceFormats": [
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": 2,
+            "sizeComplexScriptHalfPoints": 2
+          },
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": 2,
+            "sizeComplexScriptHalfPoints": 2
+          }
+        ],
+        "roundtripMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "roundtripLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 0,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/document.xml",
+            "location": "body",
+            "paragraphIndex": 2,
+            "runIndices": [
+              1
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": 2,
+                "sizeComplexScriptHalfPoints": 2
+              }
+            ]
+          }
+        ],
+        "roundtripFormats": [
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": 2,
+            "sizeComplexScriptHalfPoints": 2
+          },
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": 2,
+            "sizeComplexScriptHalfPoints": 2
+          }
+        ],
+        "roundtripVisibleBody": "preserved",
+        "copyMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "copyVisibleBody": "changed"
+      },
+      "presentation": {
+        "ordinaryVisibility": "visible",
+        "layoutDisturbance": "none_observed",
+        "selectionReveal": "not_revealed",
+        "backgroundOrThemeReveal": "not_run",
+        "explicitFormattingReveal": "not_run"
+      },
+      "accessibilityTrust": {
+        "assistiveExposure": "not_run",
+        "accidentalExposureNotes": [
+          "Tiny dash-like gray traces were visible before and after selection; marker words were not readable as words."
+        ],
+        "limitations": [
+          "Background/theme and accessibility were not tested.",
+          "This was an authorized visual-only rerun; no replacement export or copy was produced."
+        ]
+      },
+      "engineering": {
+        "structuralSimplicity": "single-direct-size-property",
+        "deterministicGeneration": true,
+        "deterministicInspection": true,
+        "testedEditorScope": "Google Docs import/export only",
+        "sourceSafetyClean": true,
+        "roundtripSafetyClean": true
+      }
+    },
+    {
+      "candidateId": "docx-header-text-v1",
+      "transport": {
+        "canonicalValid": true,
+        "sourceMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "sourceLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 0,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 1,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "sourceFormats": [
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          },
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          }
+        ],
+        "roundtripMarkerPresence": {
+          "alpha": "present",
+          "beta": "present"
+        },
+        "roundtripLocations": [
+          {
+            "markerId": "alpha",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 0,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          },
+          {
+            "markerId": "beta",
+            "partName": "word/header1.xml",
+            "location": "header",
+            "paragraphIndex": 1,
+            "runIndices": [
+              0
+            ],
+            "runFormats": [
+              {
+                "hidden": false,
+                "color": null,
+                "sizeHalfPoints": null,
+                "sizeComplexScriptHalfPoints": null
+              }
+            ]
+          }
+        ],
+        "roundtripFormats": [
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          },
+          {
+            "hidden": false,
+            "color": null,
+            "sizeHalfPoints": null,
+            "sizeComplexScriptHalfPoints": null
+          }
+        ],
+        "roundtripVisibleBody": "preserved",
+        "copyMarkerPresence": {
+          "alpha": "absent",
+          "beta": "absent"
+        },
+        "copyVisibleBody": "preserved"
+      },
+      "presentation": {
+        "ordinaryVisibility": "visible",
+        "layoutDisturbance": "none_observed",
+        "selectionReveal": "not_assessable",
+        "backgroundOrThemeReveal": "not_run",
+        "explicitFormattingReveal": "not_run"
+      },
+      "accessibilityTrust": {
+        "assistiveExposure": "not_run",
+        "accidentalExposureNotes": [
+          "Both marker words were plainly visible in the ordinary default header; body selection did not select the header."
+        ],
+        "limitations": [
+          "Background/theme, explicit formatting, and assistive checks were not run.",
+          "Selection reveal is not assessable because the header was already visible and was not selected."
+        ]
+      },
+      "engineering": {
+        "structuralSimplicity": "single-default-header-region",
+        "deterministicGeneration": true,
+        "deterministicInspection": true,
+        "testedEditorScope": "Google Docs import/export only",
+        "sourceSafetyClean": true,
+        "roundtripSafetyClean": true
+      }
+    }
+  ],
+  "gateDecision": "REVISE_CANDIDATE",
+  "selectedCandidateId": null,
+  "gateRationale": [
+    "REVISE_CANDIDATE is the mechanical result because all three round-trip DOCX artifacts are completed and inspectable, no body candidate satisfies every frozen selection condition, and bounded evidence supports a separately versioned retest.",
+    "matching-color-body-v1 retains both markers in the body and preserves the visible body, but the transformed export reports direct color as lowercase ffffff rather than the frozen FFFFFF contract, and the user-supplied observation reports that selection reveals the marker words.",
+    "sub-legible-body-1pt-v1 retains both markers with direct w:sz=2 and w:szCs=2 and preserves the visible body, but the authorized 2026-09-02 visual-only rerun observed tiny dash-like gray traces in ordinary view before and after selection, so the marker carrier was visible although the words were not readable.",
+    "docx-header-text-v1 retains both markers in word/header1.xml and preserves the body, but it is a header-only regional diagnostic, is never selectable, and its markers were plainly visible in the ordinary default header.",
+    "The result is limited to the tested Google Docs import/export and ordinary-view conditions. Plain-text copies are secondary observations and do not determine the gate."
+  ],
+  "limitations": [
+    "This is evidence from one synthetic fixture and one tested Google Docs import/export workflow; it is not a general compatibility, security, or production-readiness conclusion.",
+    "Candidate A dark mode/background and accessibility checks were not tested; selection reveal was observed.",
+    "Candidate B's authorized visual-only rerun on 2026-09-02 did not replace, re-export, or copy the existing artifacts; its visual evidence is recorded separately from the retained structural and copy artifacts.",
+    "Candidate C background/theme, explicit-formatting, and assistive checks were not run; selection reveal is not assessable because the header was already visible and body selection did not include it.",
+    "No conclusion about AI behavior, authorship, ingestion, intent, or misconduct is made."
+  ]
+}
