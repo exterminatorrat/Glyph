@@ -896,6 +896,15 @@ const assertGoogleDocs = (value: unknown): GoogleDocsEvidence => {
     "$.googleDocs.screenReader",
     "must be exactly not_assessable",
   );
+  const selectionReveal = assertReveal(
+    object.selectionReveal,
+    "$.googleDocs.selectionReveal",
+  );
+  ensure(
+    selectionReveal !== "not_assessable",
+    "$.googleDocs.selectionReveal",
+    "required selection observation is not assessable",
+  );
   const limitations = stringArrayAt(
     object.limitations,
     "$.googleDocs.limitations",
@@ -922,10 +931,7 @@ const assertGoogleDocs = (value: unknown): GoogleDocsEvidence => {
       "$.googleDocs.plainTextCopy",
       "googleCopy",
     ),
-    selectionReveal: assertReveal(
-      object.selectionReveal,
-      "$.googleDocs.selectionReveal",
-    ),
+    selectionReveal,
     screenReader: "not_assessable",
     limitations,
   };
@@ -970,6 +976,15 @@ const assertMicrosoftWord = (value: unknown): MicrosoftWordEvidence => {
     "$.microsoftWord.screenReader",
     "must be exactly not_assessable",
   );
+  const selectionReveal = assertReveal(
+    object.selectionReveal,
+    "$.microsoftWord.selectionReveal",
+  );
+  ensure(
+    selectionReveal !== "not_assessable",
+    "$.microsoftWord.selectionReveal",
+    "required selection observation is not assessable",
+  );
   const accessibilityObject = exactObject(
     object.accessibilityAssistant,
     ["status", "findings", "limitations"],
@@ -1012,10 +1027,7 @@ const assertMicrosoftWord = (value: unknown): MicrosoftWordEvidence => {
       "$.microsoftWord.plainTextCopy",
       "wordCopy",
     ),
-    selectionReveal: assertReveal(
-      object.selectionReveal,
-      "$.microsoftWord.selectionReveal",
-    ),
+    selectionReveal,
     accessibilityAssistant: {
       status: accessibilityStatus,
       findings: stringArrayAt(
@@ -1292,6 +1304,15 @@ const markerMechanismPasses = (
 const matchesFrozenVisibleBody = (paragraphs: readonly string[]): boolean =>
   sameValue(paragraphs, VISIBLE_PARAGRAPHS);
 
+const derivedVisibleBody = (
+  paragraphs: readonly string[],
+): Exclude<VisibleBody, "not_assessable"> =>
+  paragraphs.length === 0
+    ? "lost"
+    : matchesFrozenVisibleBody(paragraphs)
+      ? "preserved"
+      : "changed";
+
 const inspectCanonicalEvidence = (
   bytes: Uint8Array,
   evidence: CanonicalEvidence,
@@ -1349,6 +1370,7 @@ const inspectDocxEvidence = (
     bytes,
     QUALIFICATION_FIXTURE.markers,
   );
+  const visibleBodyParagraphs = visibleBodyFromInspection(inspection);
   equalAt(
     evidence.markerPresence,
     inspection.transformed.markerPresence,
@@ -1356,7 +1378,7 @@ const inspectDocxEvidence = (
   );
   equalAt(
     evidence.visibleBodyParagraphs,
-    visibleBodyFromInspection(inspection),
+    visibleBodyParagraphs,
     `${path}.visibleBodyParagraphs`,
   );
   equalAt(
@@ -1365,13 +1387,11 @@ const inspectDocxEvidence = (
     `${path}.markerMechanisms`,
   );
   equalAt(evidence.safety, inspection.transformed.safety, `${path}.safety`);
-  if (evidence.visibleBody === "preserved") {
-    ensure(
-      matchesFrozenVisibleBody(visibleBodyFromInspection(inspection)),
-      `${path}.visibleBodyParagraphs`,
-      "preserved DOCX evidence must retain the frozen visible body",
-    );
-  }
+  ensure(
+    evidence.visibleBody === derivedVisibleBody(visibleBodyParagraphs),
+    `${path}.visibleBody`,
+    "does not match the artifact-derived visible body status",
+  );
   return inspection;
 };
 
@@ -1387,7 +1407,6 @@ const inspectCopyEvidence = (
     throw new Error(`${path}: copy artifact is not valid UTF-8`);
   }
   ensure(!text.includes("\0"), path, "copy artifact contains a NUL character");
-  ensure(text.endsWith("\n"), path, "copy artifact must end with a newline");
   const paragraphs = text.replace(/\r\n?/g, "\n").split("\n");
   if (paragraphs.at(-1) === "") {
     paragraphs.pop();
@@ -1407,13 +1426,11 @@ const inspectCopyEvidence = (
     evidence.visibleBodyParagraphs,
     `${path}.visibleBodyParagraphs`,
   );
-  if (evidence.visibleBody === "preserved") {
-    ensure(
-      matchesFrozenVisibleBody(visibleBodyParagraphs),
-      `${path}.visibleBodyParagraphs`,
-      "preserved copy evidence must retain the frozen visible body",
-    );
-  }
+  ensure(
+    evidence.visibleBody === derivedVisibleBody(visibleBodyParagraphs),
+    `${path}.visibleBody`,
+    "does not match the artifact-derived visible body status",
+  );
 };
 
 const sourcePasses = (

@@ -29,6 +29,7 @@ import {
 } from "../../research/experiments/docx-semantic-white-carrier-qualification-v1/fixture";
 import { inspectSemanticWhiteCarrier } from "../../research/experiments/docx-semantic-white-carrier-qualification-v1/inspect-semantic-white-docx";
 import {
+  assertValidSemanticWhiteCarrierRun,
   validateSemanticWhiteCarrierRun,
   type QualificationRunRecord,
 } from "../../scripts/validate-docx-semantic-white-carrier-run";
@@ -341,6 +342,87 @@ const updateCopyEvidence = (
   );
 };
 
+const prepareRevisionFixture = async (fixture: Fixture): Promise<void> => {
+  setProperty(
+    fixture.record.microsoftWord.darkView,
+    "ordinaryVisibility",
+    "visible",
+  );
+  setProperty(fixture.record, "gateDecision", "REVISE_CARRIER");
+};
+
+const prepareAbandonFixture = async (fixture: Fixture): Promise<void> => {
+  const absent = removeMarkerRuns(fixture.source);
+  await writeArtifact(fixture.root, googleRoundtripPath, absent);
+  await writeArtifact(fixture.root, wordRoundtripPath, absent);
+  updateDocxEvidence(
+    fixture.record,
+    "googleDocs",
+    absent,
+    googleRoundtripPath,
+    "preserved",
+  );
+  updateDocxEvidence(
+    fixture.record,
+    "microsoftWord",
+    absent,
+    wordRoundtripPath,
+    "preserved",
+  );
+  const absentCopy = new TextEncoder().encode(
+    `${VISIBLE_PARAGRAPHS.join("\n")}\n`,
+  );
+  await writeArtifact(fixture.root, googleCopyPath, absentCopy);
+  await writeArtifact(fixture.root, wordCopyPath, absentCopy);
+  updateCopyEvidence(fixture.record, "googleDocs", absentCopy, googleCopyPath);
+  updateCopyEvidence(fixture.record, "microsoftWord", absentCopy, wordCopyPath);
+  setProperty(fixture.record, "gateDecision", "ABANDON_CARRIER");
+};
+
+type PathPart = string | number;
+type ObjectNode = Readonly<{
+  path: readonly PathPart[];
+  keys: readonly string[];
+}>;
+
+const objectNodes = (
+  value: unknown,
+  path: readonly PathPart[] = [],
+): ObjectNode[] => {
+  if (Array.isArray(value)) {
+    return value.flatMap((entry, index) =>
+      objectNodes(entry, [...path, index]),
+    );
+  }
+  if (value === null || typeof value !== "object") {
+    return [];
+  }
+  const object = value as Record<string, unknown>;
+  return [
+    { path, keys: Object.keys(object) },
+    ...Object.entries(object).flatMap(([key, entry]) =>
+      objectNodes(entry, [...path, key]),
+    ),
+  ];
+};
+
+const objectAtPath = (
+  root: unknown,
+  path: readonly PathPart[],
+): Record<string, unknown> => {
+  let current: unknown = root;
+  for (const part of path) {
+    current =
+      typeof part === "number"
+        ? (current as unknown[])[part]
+        : (current as Record<string, unknown>)[part];
+  }
+  if (current === null || typeof current !== "object" || Array.isArray(current)) {
+    throw new Error(`Expected object at ${path.join(".")}`);
+  }
+  return current as Record<string, unknown>;
+};
+
 const expectInvalid = async (
   mutate: (fixture: Fixture) => void | Promise<void>,
 ): Promise<void> => {
@@ -470,10 +552,7 @@ describe("semantic-white carrier run-record validator", () => {
       updateDocxEvidence(fixture.record, "googleDocs", lowercase, googleRoundtripPath);
       updateDocxEvidence(fixture.record, "microsoftWord", lowercase, wordRoundtripPath);
     }, "PROCEED"],
-    ["a visible Word dark marker", (fixture: Fixture) => {
-      setProperty(fixture.record.microsoftWord.darkView, "ordinaryVisibility", "visible");
-      setProperty(fixture.record, "gateDecision", "REVISE_CARRIER");
-    }, "REVISE_CARRIER"],
+    ["a visible Word dark marker", prepareRevisionFixture, "REVISE_CARRIER"],
     ["Google clipboard marker loss", async (fixture: Fixture) => {
       const bytes = new TextEncoder().encode(
         `${VISIBLE_PARAGRAPHS.join("\n")}\n`,
@@ -482,19 +561,7 @@ describe("semantic-white carrier run-record validator", () => {
       updateCopyEvidence(fixture.record, "googleDocs", bytes, googleCopyPath);
       setProperty(fixture.record, "gateDecision", "REVISE_CARRIER");
     }, "REVISE_CARRIER"],
-    ["no bounded survival", async (fixture: Fixture) => {
-      const absent = removeMarkerRuns(fixture.source);
-      await writeArtifact(fixture.root, googleRoundtripPath, absent);
-      await writeArtifact(fixture.root, wordRoundtripPath, absent);
-      updateDocxEvidence(fixture.record, "googleDocs", absent, googleRoundtripPath, "lost");
-      updateDocxEvidence(fixture.record, "microsoftWord", absent, wordRoundtripPath, "lost");
-      const absentCopy = new TextEncoder().encode(`${VISIBLE_PARAGRAPHS.join("\n")}\n`);
-      await writeArtifact(fixture.root, googleCopyPath, absentCopy);
-      await writeArtifact(fixture.root, wordCopyPath, absentCopy);
-      updateCopyEvidence(fixture.record, "googleDocs", absentCopy, googleCopyPath);
-      updateCopyEvidence(fixture.record, "microsoftWord", absentCopy, wordCopyPath);
-      setProperty(fixture.record, "gateDecision", "ABANDON_CARRIER");
-    }, "ABANDON_CARRIER"],
+    ["no bounded survival", prepareAbandonFixture, "ABANDON_CARRIER"],
   ])("derives the frozen gate for %s", async (_description, mutate, expected) => {
     const fixture = await makeFixture();
     try {
@@ -502,6 +569,132 @@ describe("semantic-white carrier run-record validator", () => {
       await expect(
         validateSemanticWhiteCarrierRun(fixture.record, fixture.root),
       ).resolves.toMatchObject({ gateDecision: expected });
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  test.each(["changed", "lost"] as const)(
+    "rejects exact artifact evidence mislabeled as %s",
+    async (visibleBody) => {
+      await expectInvalid(({ record }) => {
+        for (const editor of ["googleDocs", "microsoftWord"] as const) {
+          setProperty(record[editor].docxRoundtrip, "visibleBody", visibleBody);
+          setProperty(record[editor].plainTextCopy, "visibleBody", visibleBody);
+        }
+        setProperty(record, "gateDecision", "ABANDON_CARRIER");
+      });
+    },
+  );
+
+  test.each(["googleDocs", "microsoftWord"] as const)(
+    "rejects %s selection when it is not assessable",
+    async (editor) => {
+      await expectInvalid(({ record }) => {
+        setProperty(record[editor], "selectionReveal", "not_assessable");
+      });
+    },
+  );
+
+  test.each([
+    ["with a terminal newline", copyText()],
+    ["without a terminal newline", copyText().replace(/\n$/, "")],
+  ] as const)("accepts clipboard UTF-8 %s", async (_description, text) => {
+    const fixture = await makeFixture();
+    try {
+      const bytes = new TextEncoder().encode(text);
+      await writeArtifact(fixture.root, googleCopyPath, bytes);
+      await writeArtifact(fixture.root, wordCopyPath, bytes);
+      updateCopyEvidence(fixture.record, "googleDocs", bytes, googleCopyPath);
+      updateCopyEvidence(fixture.record, "microsoftWord", bytes, wordCopyPath);
+      await expect(
+        validateSemanticWhiteCarrierRun(fixture.record, fixture.root),
+      ).resolves.toMatchObject({ gateDecision: "PROCEED" });
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  test.each(["REVISE_CARRIER", "ABANDON_CARRIER"] as const)(
+    "rejects %s when the fixed PROCEED evidence declares the wrong decision",
+    async (wrongDecision) => {
+      await expectInvalid(({ record }) => {
+        setProperty(record, "gateDecision", wrongDecision);
+      });
+    },
+  );
+
+  test.each(["PROCEED", "ABANDON_CARRIER"] as const)(
+    "rejects %s when the fixed REVISE_CARRIER evidence declares the wrong decision",
+    async (wrongDecision) => {
+      const fixture = await makeFixture();
+      try {
+        await prepareRevisionFixture(fixture);
+        setProperty(fixture.record, "gateDecision", wrongDecision);
+        await expect(
+          validateSemanticWhiteCarrierRun(fixture.record, fixture.root),
+        ).rejects.toThrow();
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  test.each(["PROCEED", "REVISE_CARRIER"] as const)(
+    "rejects %s when the fixed ABANDON_CARRIER evidence declares the wrong decision",
+    async (wrongDecision) => {
+      const fixture = await makeFixture();
+      try {
+        await prepareAbandonFixture(fixture);
+        setProperty(fixture.record, "gateDecision", wrongDecision);
+        await expect(
+          validateSemanticWhiteCarrierRun(fixture.record, fixture.root),
+        ).rejects.toThrow();
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  test("rejects deleting every record property through exact-shape validation", async () => {
+    const fixture = await makeFixture();
+    try {
+      const nodes = objectNodes(fixture.record);
+      const mutationCount = nodes.reduce(
+        (count, node) => count + node.keys.length,
+        0,
+      );
+      expect(mutationCount).toBeGreaterThan(40);
+      for (const node of nodes) {
+        for (const key of node.keys) {
+          const mutated = structuredClone(fixture.record) as unknown;
+          const object = objectAtPath(mutated, node.path);
+          delete object[key];
+          expect(() => assertValidSemanticWhiteCarrierRun(mutated)).toThrow(
+            /unexpected or missing fields/,
+          );
+        }
+      }
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects adding a benign unexpected key to every nested object", async () => {
+    const fixture = await makeFixture();
+    try {
+      const nodes = objectNodes(fixture.record);
+      expect(nodes.some((node) => node.path.includes("markerMechanisms"))).toBe(
+        true,
+      );
+      for (const node of nodes) {
+        const mutated = structuredClone(fixture.record) as unknown;
+        const object = objectAtPath(mutated, node.path);
+        Object.assign(object, { unexpectedField: true });
+        expect(() => assertValidSemanticWhiteCarrierRun(mutated)).toThrow(
+          /unexpected or missing fields/,
+        );
+      }
     } finally {
       await rm(fixture.root, { recursive: true, force: true });
     }
