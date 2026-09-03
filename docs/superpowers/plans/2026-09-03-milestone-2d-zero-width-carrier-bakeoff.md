@@ -1015,6 +1015,36 @@ type GateDecision =
   | "SELECT_B"
   | "REVISE_ZERO_WIDTH_CARRIER"
   | "ABANDON_ZERO_WIDTH_CARRIER";
+type GateRationaleCode =
+  | "candidate-a-transport-pass"
+  | "candidate-b-transport-pass"
+  | "bounded-transport-evidence-without-selectable-pass"
+  | "no-bounded-transport-evidence";
+type ViewObservationCode =
+  | "body-preserved"
+  | "carrier-not-visible"
+  | "layout-none-observed"
+  | "layout-minor"
+  | "layout-material";
+type AccessibilityFindingCode =
+  | "accessibility-assistant-contrast-finding"
+  | "accessibility-assistant-no-finding";
+type TransportLimitation =
+  | "transport-only"
+  | "no-ai-ingestion-claim"
+  | "no-model-compliance-claim"
+  | "no-authorship-claim"
+  | "no-prompt-reuse-claim"
+  | "no-intent-claim"
+  | "no-cheating-claim"
+  | "no-misconduct-claim";
+type ProtocolDeviationCode = "core-metadata-redacted";
+type DistributionLimitationCode = "core-metadata-requires-privacy-review";
+type EditorLimitationCode =
+  | "google-dark-view-not-assessable"
+  | "google-screen-reader-not-assessable"
+  | "word-screen-reader-not-assessable"
+  | "word-accessibility-assistant-not-assessable";
 
 type ArtifactEvidence = Readonly<{ path: string; sha256: SHA256 }>;
 type ApplicationEvidence = Readonly<{ name: string; version: string | null }>;
@@ -1028,7 +1058,7 @@ type ViewEvidence = Readonly<{
   visibleBody: VisibleBody;
   carrierPresentation: CarrierPresentation;
   layoutDisturbance: LayoutDisturbance;
-  notes: readonly string[];
+  notes: readonly ViewObservationCode[];
 }>;
 type InspectionEvidence = Readonly<{
   candidateId: CandidateId;
@@ -1053,17 +1083,17 @@ type PlainTextEvidence = Readonly<{
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: ZeroWidthTextInspection;
-  protocolDeviation: string | null;
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  notes: readonly never[];
 }>;
 type DocxRoundtripEvidence = Readonly<{
   status: "completed";
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: InspectionEvidence;
-  protocolDeviation: string | null;
-  distributionLimitations: readonly string[];
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  distributionLimitations: readonly DistributionLimitationCode[];
+  notes: readonly never[];
 }>;
 type GoogleDocsCandidateEvidence = Readonly<{
   application: ApplicationEvidence & Readonly<{ name: "Google Docs" }>;
@@ -1077,7 +1107,7 @@ type GoogleDocsCandidateEvidence = Readonly<{
   plainTextCopy: PlainTextEvidence;
   selectionObservation: SelectionObservation;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 type MicrosoftWordCandidateEvidence = Readonly<{
   application: ApplicationEvidence & Readonly<{ name: "Microsoft Word" }>;
@@ -1091,11 +1121,11 @@ type MicrosoftWordCandidateEvidence = Readonly<{
   selectionObservation: SelectionObservation;
   accessibilityAssistant: Readonly<{
     status: "completed" | "not_assessable";
-    findings: readonly string[];
-    limitations: readonly string[];
+    findings: readonly AccessibilityFindingCode[];
+    limitations: readonly EditorLimitationCode[];
   }>;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 type CandidateRunEvidence = Readonly<{
   candidateId: CandidateId;
@@ -1107,7 +1137,7 @@ type CandidateRunEvidence = Readonly<{
   microsoftWord: MicrosoftWordCandidateEvidence;
   transportCriteriaSatisfied: boolean;
   selectableCandidatePasses: boolean;
-  limitations: readonly string[];
+  limitations: readonly TransportLimitation[];
 }>;
 type ZeroWidthBakeOffRunRecord = Readonly<{
   experimentId: "glyph-exp-docx-zero-width-carrier-bakeoff-v1-001";
@@ -1128,15 +1158,15 @@ type ZeroWidthBakeOffRunRecord = Readonly<{
   }>;
   sourceGenerator: Readonly<{
     path: "src/documents/docx/docx-zero-width-carrier-bakeoff-v1.ts";
-    gitCommit: string;
+    gitCommit: "3ffffdf5deb38cbd51a600b9e3a2c19c16040718";
     nodeVersion: string;
     pnpmVersion: string;
     docxVersion: "9.7.1";
   }>;
   candidates: readonly [CandidateRunEvidence, CandidateRunEvidence, CandidateRunEvidence];
   gateDecision: GateDecision;
-  gateRationale: readonly string[];
-  limitations: readonly string[];
+  gateRationale: readonly [GateRationaleCode];
+  limitations: readonly TransportLimitation[];
 }>;
 ```
 
@@ -1153,6 +1183,21 @@ mismatch, visible-body mismatch, unsafe package, and leaked metadata rejection.
 Require exact artifact suffixes derived from each candidate ID and reject
 aliases. Require Candidate C `selectable: false`, `priority: 3`, and
 `selectableCandidatePasses: false` even if all transport criteria are true.
+
+Use fixed observation, editor-limitation, protocol-deviation, and gate-
+rationale codes for every persisted narrative-like leaf. Require the exact
+transport-only limitation set (`transport-only`, `no-ai-ingestion-claim`,
+`no-model-compliance-claim`, `no-authorship-claim`, `no-prompt-reuse-claim`,
+`no-intent-claim`, `no-cheating-claim`, `no-misconduct-claim`) at both the
+candidate and run-record levels. Require the fixed Google dark/screen-reader
+and Word screen-reader limitations, with all screen-reader fields exactly
+`not_assessable`; reject arbitrary personal, assignment, student, model, or
+scientific-claim text recursively.
+
+Bind `sourceGenerator.gitCommit` to the lowercase SHA
+`3ffffdf5deb38cbd51a600b9e3a2c19c16040718`, the reviewed pre-generation
+checkpoint recorded in the fixture/protocol, and verify that it resolves to a
+local commit object. Test malformed, nonexistent, and different local SHAs.
 
 - [ ] **Step 2: Write failing mechanical gate tests**
 
@@ -1176,6 +1221,9 @@ selection observation and Accessibility Assistant findings are non-gating.
 Assert visibility or any `minor`/`material` disturbance fails a candidate.
 Assert missing Word dark-view evidence, a missing clipboard, or an unreadable
 artifact rejects validation rather than producing `ABANDON_ZERO_WIDTH_CARRIER`.
+Exercise every nested object for an extra key and every property for a missing
+key, and inject personal-name/prohibited-claim sentinels into every remaining
+free-text leaf to prove that no narrative value is persisted.
 
 - [ ] **Step 3: Run the validator test and observe red**
 
@@ -1190,6 +1238,11 @@ Expected: FAIL because the validator module does not exist.
 Follow the established M2C validator patterns for `exactObject`, safe strings,
 enums, arrays, repository containment, canonical real paths, regular files,
 SHA-256, and stable safe errors. Do not import from or alter an old validator.
+
+The parser must allow only the context-specific fixed codes declared above for
+notes, findings, deviations, limitations, and rationales. It must require the
+frozen generation SHA in lowercase forty-character form and verify its local
+Git commit object before artifact validation.
 
 Re-read every DOCX and TXT artifact locally, recompute its hash, run the new
 candidate-aware inspector, and require deep equality with the record after

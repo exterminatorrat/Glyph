@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   lstat,
@@ -7,10 +8,12 @@ import {
 } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import {
   BAKE_OFF_PROFILE,
   EXPERIMENT_ID,
   EXPERIMENT_SCHEMA_VERSION,
+  ZERO_WIDTH_GENERATION_CHECKPOINT,
   VISIBLE_FIXTURE_ID,
   VISIBLE_PARAGRAPHS,
   ZERO_WIDTH_CANDIDATES,
@@ -35,6 +38,8 @@ import {
   type ZeroWidthTextInspection,
 } from "../research/experiments/docx-zero-width-carrier-bakeoff-v1/inspect-zero-width-text.ts";
 
+const execFileAsync = promisify(execFile);
+
 export type SHA256 = string;
 export type ISODate = `${number}-${number}-${number}`;
 export type MarkerPresence = "present" | "absent";
@@ -57,6 +62,36 @@ export type GateDecision =
   | "SELECT_B"
   | "REVISE_ZERO_WIDTH_CARRIER"
   | "ABANDON_ZERO_WIDTH_CARRIER";
+export type GateRationaleCode =
+  | "candidate-a-transport-pass"
+  | "candidate-b-transport-pass"
+  | "bounded-transport-evidence-without-selectable-pass"
+  | "no-bounded-transport-evidence";
+export type ViewObservationCode =
+  | "body-preserved"
+  | "carrier-not-visible"
+  | "layout-none-observed"
+  | "layout-minor"
+  | "layout-material";
+export type AccessibilityFindingCode =
+  | "accessibility-assistant-contrast-finding"
+  | "accessibility-assistant-no-finding";
+export type TransportLimitation =
+  | "transport-only"
+  | "no-ai-ingestion-claim"
+  | "no-model-compliance-claim"
+  | "no-authorship-claim"
+  | "no-prompt-reuse-claim"
+  | "no-intent-claim"
+  | "no-cheating-claim"
+  | "no-misconduct-claim";
+export type ProtocolDeviationCode = "core-metadata-redacted";
+export type DistributionLimitationCode = "core-metadata-requires-privacy-review";
+export type EditorLimitationCode =
+  | "google-dark-view-not-assessable"
+  | "google-screen-reader-not-assessable"
+  | "word-screen-reader-not-assessable"
+  | "word-accessibility-assistant-not-assessable";
 
 export type ArtifactEvidence = Readonly<{
   path: string;
@@ -76,7 +111,7 @@ export type ViewEvidence = Readonly<{
   visibleBody: VisibleBody;
   carrierPresentation: CarrierPresentation;
   layoutDisturbance: LayoutDisturbance;
-  notes: readonly string[];
+  notes: readonly ViewObservationCode[];
 }>;
 export type InspectionEvidence = ZeroWidthDocxInspection;
 export type PlainTextEvidence = Readonly<{
@@ -84,17 +119,17 @@ export type PlainTextEvidence = Readonly<{
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: ZeroWidthTextInspection;
-  protocolDeviation: string | null;
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  notes: readonly never[];
 }>;
 export type DocxRoundtripEvidence = Readonly<{
   status: "completed";
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: InspectionEvidence;
-  protocolDeviation: string | null;
-  distributionLimitations: readonly string[];
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  distributionLimitations: readonly DistributionLimitationCode[];
+  notes: readonly never[];
 }>;
 export type GoogleDocsCandidateEvidence = Readonly<{
   application: ApplicationEvidence & Readonly<{ name: "Google Docs" }>;
@@ -108,7 +143,7 @@ export type GoogleDocsCandidateEvidence = Readonly<{
   plainTextCopy: PlainTextEvidence;
   selectionObservation: SelectionObservation;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 export type MicrosoftWordCandidateEvidence = Readonly<{
   application: ApplicationEvidence & Readonly<{ name: "Microsoft Word" }>;
@@ -122,11 +157,11 @@ export type MicrosoftWordCandidateEvidence = Readonly<{
   selectionObservation: SelectionObservation;
   accessibilityAssistant: Readonly<{
     status: "completed" | "not_assessable";
-    findings: readonly string[];
-    limitations: readonly string[];
+    findings: readonly AccessibilityFindingCode[];
+    limitations: readonly EditorLimitationCode[];
   }>;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 export type CandidateRunEvidence = Readonly<{
   candidateId: CandidateId;
@@ -140,7 +175,7 @@ export type CandidateRunEvidence = Readonly<{
   microsoftWord: MicrosoftWordCandidateEvidence;
   transportCriteriaSatisfied: boolean;
   selectableCandidatePasses: boolean;
-  limitations: readonly string[];
+  limitations: readonly TransportLimitation[];
 }>;
 export type ZeroWidthBakeOffRunRecord = Readonly<{
   experimentId: "glyph-exp-docx-zero-width-carrier-bakeoff-v1-001";
@@ -161,7 +196,7 @@ export type ZeroWidthBakeOffRunRecord = Readonly<{
   }>;
   sourceGenerator: Readonly<{
     path: "src/documents/docx/docx-zero-width-carrier-bakeoff-v1.ts";
-    gitCommit: string;
+    gitCommit: typeof ZERO_WIDTH_GENERATION_CHECKPOINT;
     nodeVersion: string;
     pnpmVersion: string;
     docxVersion: "9.7.1";
@@ -172,8 +207,8 @@ export type ZeroWidthBakeOffRunRecord = Readonly<{
     CandidateRunEvidence,
   ];
   gateDecision: GateDecision;
-  gateRationale: readonly string[];
-  limitations: readonly string[];
+  gateRationale: readonly GateRationaleCode[];
+  limitations: readonly TransportLimitation[];
 }>;
 
 type UnknownRecord = Record<string, unknown>;
@@ -194,9 +229,76 @@ const ARTIFACT_PATHS: Readonly<Record<ArtifactKind, string>> = {
   wordCopy: `${ARTIFACT_DIRECTORY}/CANDIDATE-microsoft-word-copy-plain-text.txt`,
 };
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/;
+const SAFE_VERSION_PATTERN = /^v?\d+(?:\.\d+){0,3}(?:[-+][A-Za-z0-9.-]+)?$/;
+const SAFE_BUILD_PATTERN = /^\d{2,3}[A-Z]\d+[a-z]?$/;
 const ENTRY_PATTERN = /^(?:\[Content_Types\]\.xml|_rels\/\.rels|word\/(?:document\.xml|styles\.xml|settings\.xml|numbering\.xml|fontTable\.xml|theme\/theme1\.xml|_rels\/document\.xml\.rels|(?:header|footer)\d+\.xml|_rels\/(?:header|footer)\d+\.xml\.rels|(?:footnotes|endnotes|comments)\.xml|_rels\/(?:footnotes|endnotes|comments)\.xml\.rels)|docProps\/(?:core|app|custom)\.xml|entry-redacted-[a-f0-9]{16})$/;
-const SAFE_PROPERTY_PATTERN = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
+const SAFE_PROPERTY_PATTERN = /^(?:bdr|bidi|caps|color|cs|eastAsianLayout|effect|emboss|fitText|highlight|i|iCs|imprint|kern|lang|noProof|outline|position|rFonts|rStyle|rtl|shadow|shd|smallCaps|snapToGrid|spacing|specVanish|sz|szCs|u|vanish|vertAlign|webHidden|property-redacted-[a-f0-9]{16})$/;
 const SAFE_CODE_POINT_PATTERN = /^U\+[0-9A-F]{4,5}$/;
+const SAFE_DIAGNOSTIC_REASONS = new Set([
+  "invalid frame length",
+  "invalid magic",
+  "invalid frame version",
+  "invalid marker ID",
+  "invalid payload length",
+  "invalid payload",
+  "invalid checksum",
+  "unexpected code point",
+  "frame decode failed",
+  "non-ordinary carrier context",
+  "mixed carrier run",
+  "carrier anchor is not frozen",
+]);
+const SAFE_VIEW_OBSERVATION_CODES = new Set<ViewObservationCode>([
+  "body-preserved",
+  "carrier-not-visible",
+  "layout-none-observed",
+  "layout-minor",
+  "layout-material",
+]);
+const SAFE_ACCESSIBILITY_FINDING_CODES = new Set<AccessibilityFindingCode>([
+  "accessibility-assistant-contrast-finding",
+  "accessibility-assistant-no-finding",
+]);
+const NO_NOTE_CODES = new Set<never>();
+const SAFE_EDITOR_LIMITATION_CODES = new Set<EditorLimitationCode>([
+  "google-dark-view-not-assessable",
+  "google-screen-reader-not-assessable",
+  "word-screen-reader-not-assessable",
+  "word-accessibility-assistant-not-assessable",
+]);
+const SAFE_DISTRIBUTION_LIMITATION_CODES = new Set<DistributionLimitationCode>([
+  "core-metadata-requires-privacy-review",
+]);
+const SAFE_PROTOCOL_DEVIATION_CODES = new Set<ProtocolDeviationCode>([
+  "core-metadata-redacted",
+]);
+export const TRANSPORT_LIMITATIONS = [
+  "transport-only",
+  "no-ai-ingestion-claim",
+  "no-model-compliance-claim",
+  "no-authorship-claim",
+  "no-prompt-reuse-claim",
+  "no-intent-claim",
+  "no-cheating-claim",
+  "no-misconduct-claim",
+] as const satisfies readonly TransportLimitation[];
+export const GOOGLE_LIMITATIONS = [
+  "google-dark-view-not-assessable",
+  "google-screen-reader-not-assessable",
+] as const satisfies readonly EditorLimitationCode[];
+export const WORD_LIMITATIONS = [
+  "word-screen-reader-not-assessable",
+] as const satisfies readonly EditorLimitationCode[];
+export const ACCESSIBILITY_NOT_ASSESSABLE_LIMITATIONS = [
+  "word-accessibility-assistant-not-assessable",
+] as const satisfies readonly EditorLimitationCode[];
+const GATE_RATIONALES: Readonly<Record<GateDecision, GateRationaleCode>> = {
+  SELECT_A: "candidate-a-transport-pass",
+  SELECT_B: "candidate-b-transport-pass",
+  REVISE_ZERO_WIDTH_CARRIER: "bounded-transport-evidence-without-selectable-pass",
+  ABANDON_ZERO_WIDTH_CARRIER: "no-bounded-transport-evidence",
+};
 const SAFE_FINDING_CODES = new Set([
   "external-relationship",
   "unresolved-relationship",
@@ -277,14 +379,16 @@ const stringAt = (value: unknown, path: string): string => {
   return value;
 };
 
-const nullableStringAt = (value: unknown, path: string): string | null => {
-  ensure(
-    value === null ||
-      (typeof value === "string" && value.trim().length > 0),
-    path,
-    "expected null or a non-empty string",
-  );
-  return value;
+const versionAt = (value: unknown, path: string): string => {
+  const version = stringAt(value, path);
+  ensure(SAFE_VERSION_PATTERN.test(version), path, "must use a safe version");
+  return version;
+};
+
+const buildAt = (value: unknown, path: string): string => {
+  const build = stringAt(value, path);
+  ensure(SAFE_BUILD_PATTERN.test(build), path, "must use a safe build label");
+  return build;
 };
 
 const booleanAt = (value: unknown, path: string): boolean => {
@@ -319,6 +423,63 @@ const stringArrayAt = (
   ensure(!requireNonEmpty || array.length > 0, path, "expected a non-empty array");
   return array.map((entry, index) => stringAt(entry, `${path}[${index}]`));
 };
+
+const codeArrayAt = <T extends string>(
+  value: unknown,
+  path: string,
+  allowed: ReadonlySet<T>,
+): T[] =>
+  arrayAt(value, path).map((entry, index) => {
+    const code = stringAt(entry, `${path}[${index}]`);
+    ensure(allowed.has(code as T), `${path}[${index}]`, "unexpected code");
+    return code as T;
+  });
+
+const codeAt = <T extends string>(
+  value: unknown,
+  path: string,
+  allowed: ReadonlySet<T>,
+): T => {
+  const code = stringAt(value, path);
+  ensure(allowed.has(code as T), path, "unexpected code");
+  return code as T;
+};
+
+const exactCodeArrayAt = <T extends string>(
+  value: unknown,
+  path: string,
+  expected: readonly T[],
+  allowed: ReadonlySet<T>,
+): T[] => {
+  const actual = codeArrayAt(value, path, allowed);
+  ensure(sameValue(actual, expected), path, "does not match the frozen codes");
+  return actual;
+};
+
+const diagnosticAt = (
+  value: unknown,
+  path: string,
+  candidateId: CandidateId,
+): string => {
+  const diagnostic = stringAt(value, path);
+  const prefix = `Candidate ${candidateId}: `;
+  ensure(
+    diagnostic.startsWith(prefix) &&
+      SAFE_DIAGNOSTIC_REASONS.has(diagnostic.slice(prefix.length)),
+    path,
+    "must use a fixed diagnostic",
+  );
+  return diagnostic;
+};
+
+const diagnosticArrayAt = (
+  value: unknown,
+  path: string,
+  candidateId: CandidateId,
+): string[] =>
+  arrayAt(value, path).map((entry, index) =>
+    diagnosticAt(entry, `${path}[${index}]`, candidateId),
+  );
 
 const enumAt = <T extends string>(
   value: unknown,
@@ -545,6 +706,7 @@ const assertDecodedFrame = (value: unknown, path: string): DocxCarrierOccurrence
 const assertCarrierOccurrence = (
   value: unknown,
   path: string,
+  candidateId: CandidateId,
 ): DocxCarrierOccurrence => {
   const object = exactObject(
     value,
@@ -604,11 +766,24 @@ const assertCarrierOccurrence = (
     ["alpha_frozen", "beta_frozen", "not_frozen"] as const,
     `${path}.anchor`,
   );
-  const decodeError = nullableStringAt(object.decodeError, `${path}.decodeError`);
+  const decodeError = object.decodeError === null
+    ? null
+    : diagnosticAt(object.decodeError, `${path}.decodeError`, candidateId);
   ensure(
     decodedFrame === null ? decodeError !== null : decodeError === null,
     `${path}.decodeError`,
     "must match decodedFrame",
+  );
+  ensure(
+    anchor === "not_frozen" || markerId === anchor.slice(0, -7),
+    `${path}.anchor`,
+    "must match markerId",
+  );
+  ensure(
+    context === "ordinary_body" ||
+      (decodedFrame === null && anchor === "not_frozen"),
+    `${path}.context`,
+    "must match decodedFrame and anchor",
   );
   return {
     markerId,
@@ -646,7 +821,16 @@ const assertCarrierRunProperty = (
     ["absent_value", "safe_literal", "redacted_literal"] as const,
     `${path}.valueClassification`,
   );
-  const safeValue = nullableStringAt(object.safeValue, `${path}.safeValue`);
+  const safeValue = object.safeValue === null
+    ? null
+    : stringAt(object.safeValue, `${path}.safeValue`);
+  if (safeValue !== null) {
+    ensure(
+      /^(?:[0-9]+(?:\.[0-9]+)?|[0-9A-F]{6}|[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*|auto|clear|continuous|default|double|dotted|dashed|left|right|center|both|none|single|solid|yellow|0|1|true|false|on|off)$/i.test(safeValue),
+      `${path}.safeValue`,
+      "must use a fixed safe literal",
+    );
+  }
   ensure(
     valueClassification === "safe_literal" ? safeValue !== null : safeValue === null,
     `${path}.safeValue`,
@@ -721,9 +905,9 @@ const assertInspection = (
     assertEntryLabel(entry, `${path}.entries[${index}]`),
   );
   const carrierOccurrences = arrayAt(object.carrierOccurrences, `${path}.carrierOccurrences`).map((entry, index) =>
-    assertCarrierOccurrence(entry, `${path}.carrierOccurrences[${index}]`),
+    assertCarrierOccurrence(entry, `${path}.carrierOccurrences[${index}]`, candidateId),
   );
-  const frameErrors = stringArrayAt(object.frameErrors, `${path}.frameErrors`);
+  const frameErrors = diagnosticArrayAt(object.frameErrors, `${path}.frameErrors`, candidateId);
   const unexpectedCandidateCodePoints = arrayAt(object.unexpectedCandidateCodePoints, `${path}.unexpectedCandidateCodePoints`).map((entry, index) =>
     assertPackageOccurrence(entry, `${path}.unexpectedCandidateCodePoints[${index}]`),
   );
@@ -770,6 +954,7 @@ const assertCodePointOccurrence = (
 const assertTextCarrierRun = (
   value: unknown,
   path: string,
+  candidateId: CandidateId,
 ): CarrierRunInspection => {
   const object = exactObject(
     value,
@@ -792,7 +977,14 @@ const assertTextCarrierRun = (
   const decodedFrame = object.decodedFrame === null
     ? null
     : assertDecodedFrame(object.decodedFrame, `${path}.decodedFrame`);
-  const error = nullableStringAt(object.error, `${path}.error`);
+  const error = object.error === null
+    ? null
+    : diagnosticAt(object.error, `${path}.error`, candidateId);
+  ensure(
+    decodedFrame === null ? error !== null : true,
+    `${path}.error`,
+    "must explain an undecodable frame",
+  );
   return {
     startCodePointIndex,
     endCodePointIndexExclusive,
@@ -823,7 +1015,7 @@ const assertTextInspection = (
     assertCodePointOccurrence(entry, `${path}.unexpectedCandidateCodePoints[${index}]`),
   );
   const carrierRuns = arrayAt(object.carrierRuns, `${path}.carrierRuns`).map((entry, index) =>
-    assertTextCarrierRun(entry, `${path}.carrierRuns[${index}]`),
+    assertTextCarrierRun(entry, `${path}.carrierRuns[${index}]`, candidateId),
   );
   return {
     candidateId,
@@ -838,7 +1030,7 @@ const assertTextInspection = (
     unexpectedCandidateCodePoints,
     carrierRuns,
     markerPresence: assertMarkerPresence(object.markerPresence, `${path}.markerPresence`),
-    frameErrors: stringArrayAt(object.frameErrors, `${path}.frameErrors`),
+    frameErrors: diagnosticArrayAt(object.frameErrors, `${path}.frameErrors`, candidateId),
     visibleBodyParagraphs: assertVisibleBodyParagraphs(object.visibleBodyParagraphs, `${path}.visibleBodyParagraphs`),
   };
 };
@@ -859,7 +1051,7 @@ const assertView = (value: unknown, path: string): ViewEvidence => {
     visibleBody,
     carrierPresentation,
     layoutDisturbance,
-    notes: stringArrayAt(object.notes, `${path}.notes`),
+    notes: codeArrayAt(object.notes, `${path}.notes`, SAFE_VIEW_OBSERVATION_CODES),
   };
 };
 
@@ -870,7 +1062,9 @@ const assertApplication = (
   const object = exactObject(value, ["name", "version"], path);
   return {
     name: stringAt(object.name, `${path}.name`),
-    version: nullableStringAt(object.version, `${path}.version`),
+    version: object.version === null
+      ? null
+      : versionAt(object.version, `${path}.version`),
   };
 };
 
@@ -879,10 +1073,16 @@ const assertPlatform = (
   path: string,
 ): PlatformEvidence => {
   const object = exactObject(value, ["name", "version", "build"], path);
+  const name = stringAt(object.name, `${path}.name`);
+  ensure(name === "macOS", `${path}.name`, "must use the frozen platform");
   return {
-    name: stringAt(object.name, `${path}.name`),
-    version: nullableStringAt(object.version, `${path}.version`),
-    build: nullableStringAt(object.build, `${path}.build`),
+    name,
+    version: object.version === null
+      ? null
+      : versionAt(object.version, `${path}.version`),
+    build: object.build === null
+      ? null
+      : buildAt(object.build, `${path}.build`),
   };
 };
 
@@ -903,9 +1103,15 @@ const assertDocxRoundtrip = (
     sourceArtifactSha256: assertHash(object.sourceArtifactSha256, `${path}.sourceArtifactSha256`),
     resultArtifact: assertArtifactRef(object.resultArtifact, `${path}.resultArtifact`, candidateId, kind),
     inspection: assertInspection(object.inspection, `${path}.inspection`, candidateId, "transformed"),
-    protocolDeviation: nullableStringAt(object.protocolDeviation, `${path}.protocolDeviation`),
-    distributionLimitations: stringArrayAt(object.distributionLimitations, `${path}.distributionLimitations`),
-    notes: stringArrayAt(object.notes, `${path}.notes`),
+    protocolDeviation: object.protocolDeviation === null
+      ? null
+      : codeAt(object.protocolDeviation, `${path}.protocolDeviation`, SAFE_PROTOCOL_DEVIATION_CODES),
+    distributionLimitations: codeArrayAt(
+      object.distributionLimitations,
+      `${path}.distributionLimitations`,
+      SAFE_DISTRIBUTION_LIMITATION_CODES,
+    ),
+    notes: exactCodeArrayAt(object.notes, `${path}.notes`, [], NO_NOTE_CODES),
   };
 };
 
@@ -926,8 +1132,10 @@ const assertPlainTextEvidence = (
     sourceArtifactSha256: assertHash(object.sourceArtifactSha256, `${path}.sourceArtifactSha256`),
     resultArtifact: assertArtifactRef(object.resultArtifact, `${path}.resultArtifact`, candidateId, kind),
     inspection: assertTextInspection(object.inspection, `${path}.inspection`, candidateId),
-    protocolDeviation: nullableStringAt(object.protocolDeviation, `${path}.protocolDeviation`),
-    notes: stringArrayAt(object.notes, `${path}.notes`),
+    protocolDeviation: object.protocolDeviation === null
+      ? null
+      : codeAt(object.protocolDeviation, `${path}.protocolDeviation`, SAFE_PROTOCOL_DEVIATION_CODES),
+    notes: exactCodeArrayAt(object.notes, `${path}.notes`, [], NO_NOTE_CODES),
   };
 };
 
@@ -969,7 +1177,12 @@ const assertGoogleDocs = (
     plainTextCopy: assertPlainTextEvidence(object.plainTextCopy, `${path}.plainTextCopy`, candidateId, "googleCopy"),
     selectionObservation: assertSelectionObservation(object.selectionObservation, `${path}.selectionObservation`),
     screenReader: "not_assessable",
-    limitations: stringArrayAt(object.limitations, `${path}.limitations`),
+    limitations: exactCodeArrayAt(
+      object.limitations,
+      `${path}.limitations`,
+      GOOGLE_LIMITATIONS,
+      SAFE_EDITOR_LIMITATION_CODES,
+    ),
   };
 };
 
@@ -989,10 +1202,28 @@ const assertMicrosoftWord = (
   ensure(object.screenReader === "not_assessable", `${path}.screenReader`, "must be exactly not_assessable");
   const accessibility = exactObject(object.accessibilityAssistant, ["status", "findings", "limitations"], `${path}.accessibilityAssistant`);
   const accessibilityStatus = enumAt(accessibility.status, ["completed", "not_assessable"] as const, `${path}.accessibilityAssistant.status`);
-  const accessibilityFindings = stringArrayAt(accessibility.findings, `${path}.accessibilityAssistant.findings`);
-  const accessibilityLimitations = stringArrayAt(accessibility.limitations, `${path}.accessibilityAssistant.limitations`);
+  const accessibilityFindings = codeArrayAt(
+    accessibility.findings,
+    `${path}.accessibilityAssistant.findings`,
+    SAFE_ACCESSIBILITY_FINDING_CODES,
+  );
+  const accessibilityLimitations = codeArrayAt(
+    accessibility.limitations,
+    `${path}.accessibilityAssistant.limitations`,
+    SAFE_EDITOR_LIMITATION_CODES,
+  );
   if (accessibilityStatus === "not_assessable") {
-    ensure(accessibilityLimitations.length > 0, `${path}.accessibilityAssistant.limitations`, "not_assessable requires a limitation");
+    ensure(
+      sameValue(accessibilityLimitations, ACCESSIBILITY_NOT_ASSESSABLE_LIMITATIONS),
+      `${path}.accessibilityAssistant.limitations`,
+      "must use the fixed not_assessable limitation",
+    );
+  } else {
+    ensure(
+      accessibilityLimitations.length === 0,
+      `${path}.accessibilityAssistant.limitations`,
+      "completed evidence must not claim an unavailable limitation",
+    );
   }
   return {
     application: { name: "Microsoft Word", version: application.version },
@@ -1010,7 +1241,12 @@ const assertMicrosoftWord = (
       limitations: accessibilityLimitations,
     },
     screenReader: "not_assessable",
-    limitations: stringArrayAt(object.limitations, `${path}.limitations`),
+    limitations: exactCodeArrayAt(
+      object.limitations,
+      `${path}.limitations`,
+      WORD_LIMITATIONS,
+      SAFE_EDITOR_LIMITATION_CODES,
+    ),
   };
 };
 
@@ -1066,12 +1302,16 @@ const assertCandidateRun = (
     microsoftWord: assertMicrosoftWord(object.microsoftWord, `${path}.microsoftWord`, candidateId),
     transportCriteriaSatisfied: booleanAt(object.transportCriteriaSatisfied, `${path}.transportCriteriaSatisfied`),
     selectableCandidatePasses: booleanAt(object.selectableCandidatePasses, `${path}.selectableCandidatePasses`),
-    limitations: stringArrayAt(object.limitations, `${path}.limitations`),
+    limitations: exactCodeArrayAt(
+      object.limitations,
+      `${path}.limitations`,
+      TRANSPORT_LIMITATIONS,
+      new Set(TRANSPORT_LIMITATIONS),
+    ),
   };
 };
 
 const assertRecordShape = (value: unknown): ZeroWidthBakeOffRunRecord => {
-  assertSafeRecordContent(value);
   const object = exactObject(
     value,
     ["experimentId", "experimentSchemaVersion", "date", "bakeOffProfile", "fingerprintStrategy", "fingerprintStrategyVersion", "matchingProfile", "fixedFrames", "visibleFixture", "sourceGenerator", "candidates", "gateDecision", "gateRationale", "limitations"],
@@ -1094,10 +1334,14 @@ const assertRecordShape = (value: unknown): ZeroWidthBakeOffRunRecord => {
   const sourceGenerator = exactObject(object.sourceGenerator, ["path", "gitCommit", "nodeVersion", "pnpmVersion", "docxVersion"], "$.sourceGenerator");
   ensure(sourceGenerator.path === SOURCE_GENERATOR_PATH, "$.sourceGenerator.path", "does not match the frozen generator path");
   ensure(sourceGenerator.docxVersion === DOCX_VERSION, "$.sourceGenerator.docxVersion", "does not match the frozen docx dependency");
+  const gitCommit = stringAt(sourceGenerator.gitCommit, "$.sourceGenerator.gitCommit");
+  ensure(GIT_COMMIT_PATTERN.test(gitCommit), "$.sourceGenerator.gitCommit", "must be a lowercase 40-character commit SHA");
+  ensure(gitCommit === ZERO_WIDTH_GENERATION_CHECKPOINT, "$.sourceGenerator.gitCommit", "must equal the frozen generation checkpoint");
   const candidatesValue = arrayAt(object.candidates, "$.candidates");
   ensure(candidatesValue.length === 3, "$.candidates", "must contain exactly three candidates");
   const candidates = candidatesValue.map((entry, index) => assertCandidateRun(entry, `$.candidates[${index}]`, index)) as [CandidateRunEvidence, CandidateRunEvidence, CandidateRunEvidence];
   const gateDecision = enumAt(object.gateDecision, ["SELECT_A", "SELECT_B", "REVISE_ZERO_WIDTH_CARRIER", "ABANDON_ZERO_WIDTH_CARRIER"] as const, "$.gateDecision");
+  assertSafeRecordContent(value);
   return {
     experimentId: EXPERIMENT_ID,
     experimentSchemaVersion: 1,
@@ -1117,17 +1361,31 @@ const assertRecordShape = (value: unknown): ZeroWidthBakeOffRunRecord => {
     },
     sourceGenerator: {
       path: SOURCE_GENERATOR_PATH,
-      gitCommit: stringAt(sourceGenerator.gitCommit, "$.sourceGenerator.gitCommit"),
-      nodeVersion: stringAt(sourceGenerator.nodeVersion, "$.sourceGenerator.nodeVersion"),
-      pnpmVersion: stringAt(sourceGenerator.pnpmVersion, "$.sourceGenerator.pnpmVersion"),
+      gitCommit: gitCommit as typeof ZERO_WIDTH_GENERATION_CHECKPOINT,
+      nodeVersion: versionAt(sourceGenerator.nodeVersion, "$.sourceGenerator.nodeVersion"),
+      pnpmVersion: versionAt(sourceGenerator.pnpmVersion, "$.sourceGenerator.pnpmVersion"),
       docxVersion: DOCX_VERSION,
     },
     candidates,
     gateDecision,
-    gateRationale: stringArrayAt(object.gateRationale, "$.gateRationale", true),
-    limitations: stringArrayAt(object.limitations, "$.limitations"),
+    gateRationale: exactCodeArrayAt(
+      object.gateRationale,
+      "$.gateRationale",
+      [GATE_RATIONALES[gateDecision]],
+      new Set(Object.values(GATE_RATIONALES)),
+    ),
+    limitations: exactCodeArrayAt(
+      object.limitations,
+      "$.limitations",
+      TRANSPORT_LIMITATIONS,
+      new Set(TRANSPORT_LIMITATIONS),
+    ),
   };
 };
+
+export const assertValidZeroWidthCarrierRun = (
+  value: unknown,
+): ZeroWidthBakeOffRunRecord => assertRecordShape(value);
 
 const artifactAbsolutePath = async (
   repositoryRoot: string,
@@ -1155,6 +1413,28 @@ const artifactAbsolutePath = async (
   ensure(isInside(canonicalRepositoryRoot, canonicalFile), path, "artifact path escaped repository root");
   ensure(isInside(canonicalDirectory, canonicalFile), path, "artifact path escaped artifact directory");
   return canonicalFile;
+};
+
+const assertGenerationCheckpointResolves = async (
+  repositoryRoot: string,
+  commit: string,
+): Promise<void> => {
+  const sourceRepositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+  const roots = [...new Set([repositoryRoot, process.cwd(), sourceRepositoryRoot])];
+  for (const root of roots) {
+    try {
+      await execFileAsync(
+        "git",
+        ["-C", root, "cat-file", "-e", `${commit}^{commit}`],
+        { encoding: "utf8" },
+      );
+      return;
+    } catch {
+      // Synthetic validation roots may not contain a Git checkout; the
+      // source checkout still must resolve the frozen object locally.
+    }
+  }
+  throw new Error("$.sourceGenerator.gitCommit: checkpoint does not resolve locally");
 };
 
 const readArtifact = async (
@@ -1347,8 +1627,16 @@ const assertMetadataLimitations = (
     coreMetadata.creator === "non_synthetic_redacted" ||
     coreMetadata.lastModifiedBy === "non_synthetic_redacted"
   ) {
-    ensure(evidence.protocolDeviation !== null, `${path}.protocolDeviation`, "required for redacted core metadata");
-    ensure(evidence.distributionLimitations.length > 0, `${path}.distributionLimitations`, "required for redacted core metadata");
+    ensure(
+      evidence.protocolDeviation === "core-metadata-redacted",
+      `${path}.protocolDeviation`,
+      "required for redacted core metadata",
+    );
+    ensure(
+      sameValue(evidence.distributionLimitations, ["core-metadata-requires-privacy-review"]),
+      `${path}.distributionLimitations`,
+      "required for redacted core metadata",
+    );
   }
 };
 
@@ -1441,6 +1729,10 @@ export async function validateZeroWidthCarrierRun(
 ): Promise<ZeroWidthBakeOffRunRecord> {
   const record = assertRecordShape(value);
   const repositoryRoot = resolve(root ?? process.cwd());
+  await assertGenerationCheckpointResolves(
+    repositoryRoot,
+    record.sourceGenerator.gitCommit,
+  );
   // Validate all three canonical sources first. An invalid canonical source is
   // invalid evidence and must never be downgraded to a transport revision.
   for (const [index, candidate] of record.candidates.entries()) {

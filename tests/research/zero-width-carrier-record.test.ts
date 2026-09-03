@@ -30,11 +30,16 @@ import {
 } from "../../research/experiments/docx-zero-width-carrier-bakeoff-v1/inspect-zero-width-text.ts";
 import { generateZeroWidthCarrierDocx } from "../../src/documents/docx/docx-zero-width-carrier-bakeoff-v1.ts";
 import {
+  ACCESSIBILITY_NOT_ASSESSABLE_LIMITATIONS,
+  assertValidZeroWidthCarrierRun,
   criteriaSatisfied,
   deriveZeroWidthGate,
+  GOOGLE_LIMITATIONS,
+  TRANSPORT_LIMITATIONS,
   type CandidateRunEvidence,
   type ZeroWidthBakeOffRunRecord,
   validateZeroWidthCarrierRun,
+  WORD_LIMITATIONS,
 } from "../../scripts/validate-docx-zero-width-carrier-run.ts";
 
 const artifactDirectory = "research/artifacts/docx-zero-width-carrier-bakeoff-v1";
@@ -139,7 +144,7 @@ const makeCandidate = async (
       },
       selectionObservation: "carrier_or_placeholder_revealed" as const,
       screenReader: "not_assessable" as const,
-      limitations: [],
+      limitations: [...GOOGLE_LIMITATIONS],
     },
     microsoftWord: {
       application: { name: "Microsoft Word" as const, version: null },
@@ -168,11 +173,11 @@ const makeCandidate = async (
       selectionObservation: "nothing_observed" as const,
       accessibilityAssistant: { status: "completed" as const, findings: [], limitations: [] },
       screenReader: "not_assessable" as const,
-      limitations: [],
+      limitations: [...WORD_LIMITATIONS],
     },
     transportCriteriaSatisfied: true,
     selectableCandidatePasses: definition.selectable,
-    limitations: [],
+    limitations: [...TRANSPORT_LIMITATIONS],
   } satisfies CandidateRunEvidence;
   if (!criteriaSatisfied(candidate)) throw new Error(`Invalid test candidate ${candidateId}`);
   return candidate;
@@ -201,15 +206,15 @@ const makeRecord = async (root: string): Promise<ZeroWidthBakeOffRunRecord> => {
     },
     sourceGenerator: {
       path: "src/documents/docx/docx-zero-width-carrier-bakeoff-v1.ts",
-      gitCommit: "a".repeat(40),
+      gitCommit: "3ffffdf5deb38cbd51a600b9e3a2c19c16040718",
       nodeVersion: "v26.3.0",
       pnpmVersion: "11.19.0",
       docxVersion: "9.7.1",
     },
     candidates: candidates as [CandidateRunEvidence, CandidateRunEvidence, CandidateRunEvidence],
     gateDecision: "SELECT_A",
-    gateRationale: ["Candidate A satisfies the frozen transport gate."],
-    limitations: ["Synthetic fixture only."],
+    gateRationale: ["candidate-a-transport-pass"],
+    limitations: [...TRANSPORT_LIMITATIONS],
   };
 };
 
@@ -232,6 +237,144 @@ const cloneRecord = (
 ): Mutable<ZeroWidthBakeOffRunRecord> & { extra?: boolean } =>
   structuredClone(record) as unknown as Mutable<ZeroWidthBakeOffRunRecord> & { extra?: boolean };
 
+const rationaleFor = {
+  SELECT_A: "candidate-a-transport-pass",
+  SELECT_B: "candidate-b-transport-pass",
+  REVISE_ZERO_WIDTH_CARRIER: "bounded-transport-evidence-without-selectable-pass",
+  ABANDON_ZERO_WIDTH_CARRIER: "no-bounded-transport-evidence",
+} as const;
+
+const configureNonAbandonGate = (
+  record: Mutable<ZeroWidthBakeOffRunRecord>,
+  decision: "SELECT_A" | "SELECT_B" | "REVISE_ZERO_WIDTH_CARRIER",
+): void => {
+  if (decision !== "SELECT_A") {
+    record.candidates[0].googleDocs.paginatedWhiteView.visibleBody = "changed";
+    record.candidates[0].transportCriteriaSatisfied = false;
+    record.candidates[0].selectableCandidatePasses = false;
+  }
+  if (decision === "REVISE_ZERO_WIDTH_CARRIER") {
+    record.candidates[1].googleDocs.paginatedWhiteView.visibleBody = "changed";
+    record.candidates[1].transportCriteriaSatisfied = false;
+    record.candidates[1].selectableCandidatePasses = false;
+  }
+  record.gateDecision = decision;
+  record.gateRationale = [rationaleFor[decision]];
+};
+
+const removeAllTransformedCarriers = async (
+  root: string,
+  record: Mutable<ZeroWidthBakeOffRunRecord>,
+): Promise<void> => {
+  const plainBody = new TextEncoder().encode(`${VISIBLE_PARAGRAPHS.join("\n")}\n`);
+  for (const candidate of record.candidates) {
+    for (const evidence of [
+      candidate.googleDocs.docxRoundtrip,
+      candidate.microsoftWord.docxRoundtrip,
+    ]) {
+      const path = resolve(root, evidence.resultArtifact.path);
+      const source = await readFile(path);
+      const entries = unzipSync(source);
+      const document = entries["word/document.xml"];
+      if (!document) throw new Error("Missing test document");
+      const stripped = ["alpha", "beta"].reduce(
+        (xml, markerId) =>
+          xml.split(encodeCarrier(candidate.candidateId, markerId as "alpha" | "beta")).join(""),
+        strFromU8(document),
+      );
+      entries["word/document.xml"] = strToU8(stripped);
+      const bytes = zipSync(entries, {
+        level: 6,
+        mtime: new Date("1980-01-01T00:00:00Z"),
+      });
+      await writeFile(path, bytes);
+      evidence.resultArtifact.sha256 = sha256(bytes);
+      evidence.inspection = inspectZeroWidthDocx(
+        bytes,
+        candidate.candidateId,
+        "transformed",
+      ) as never;
+    }
+    for (const evidence of [
+      candidate.googleDocs.plainTextCopy,
+      candidate.microsoftWord.plainTextCopy,
+    ]) {
+      await writeFile(resolve(root, evidence.resultArtifact.path), plainBody);
+      evidence.resultArtifact.sha256 = sha256(plainBody);
+      evidence.inspection = inspectZeroWidthText(
+        plainBody,
+        candidate.candidateId,
+      ) as never;
+    }
+    candidate.transportCriteriaSatisfied = false;
+    candidate.selectableCandidatePasses = false;
+  }
+  record.gateDecision = "ABANDON_ZERO_WIDTH_CARRIER";
+  record.gateRationale = [rationaleFor.ABANDON_ZERO_WIDTH_CARRIER];
+};
+
+type PathPart = string | number;
+type ObjectNode = Readonly<{ path: readonly PathPart[]; keys: readonly string[] }>;
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const objectNodes = (root: unknown): ObjectNode[] => {
+  const nodes: ObjectNode[] = [];
+  const visit = (value: unknown, path: PathPart[]): void => {
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => visit(entry, [...path, index]));
+      return;
+    }
+    if (!isObject(value)) return;
+    const keys = Object.keys(value);
+    nodes.push({ path, keys });
+    keys.forEach((key) => visit(value[key], [...path, key]));
+  };
+  visit(root, []);
+  return nodes;
+};
+
+const leafPaths = (
+  root: unknown,
+  predicate: (value: unknown) => boolean,
+): PathPart[][] => {
+  const paths: PathPart[][] = [];
+  const visit = (value: unknown, path: PathPart[]): void => {
+    if (predicate(value)) paths.push(path);
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => visit(entry, [...path, index]));
+    } else if (isObject(value)) {
+      Object.entries(value).forEach(([key, entry]) => visit(entry, [...path, key]));
+    }
+  };
+  visit(root, []);
+  return paths;
+};
+
+const valueAtPath = (root: unknown, path: readonly PathPart[]): unknown => {
+  let value = root;
+  for (const part of path) {
+    if (Array.isArray(value)) value = value[part as number];
+    else if (isObject(value)) value = value[String(part)];
+    else throw new Error(`Invalid test path: ${path.join(".")}`);
+  }
+  return value;
+};
+
+const setAtPath = (
+  root: unknown,
+  path: readonly PathPart[],
+  replacement: unknown,
+): void => {
+  if (path.length === 0) throw new Error("Cannot replace test root");
+  const parent = valueAtPath(root, path.slice(0, -1));
+  const part = path.at(-1)!;
+  if (Array.isArray(parent)) parent[part as number] = replacement;
+  else if (isObject(parent)) parent[String(part)] = replacement;
+  else throw new Error(`Invalid test path: ${path.join(".")}`);
+};
+
 describe("zero-width carrier run records", () => {
   test("validates exact artifacts, inspections, linkage, and Candidate C non-selectability", async () => {
     const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
@@ -244,6 +387,262 @@ describe("zero-width carrier run records", () => {
           { selectableCandidatePasses: true },
           { selectable: false, priority: 3, selectableCandidatePasses: false },
         ],
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects an extra or missing key at every nested object", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const nodes = objectNodes(record);
+      expect(nodes.length).toBeGreaterThan(40);
+      for (const node of nodes) {
+        for (const key of node.keys) {
+          const missing = structuredClone(record) as unknown;
+          const object = valueAtPath(missing, node.path);
+          if (!isObject(object)) throw new Error("Expected object test node");
+          delete object[key];
+          expect(() => assertValidZeroWidthCarrierRun(missing)).toThrow(
+            /unexpected or missing fields/,
+          );
+
+          const extra = structuredClone(record) as unknown;
+          const extraObject = valueAtPath(extra, node.path);
+          if (!isObject(extraObject)) throw new Error("Expected object test node");
+          extraObject.unexpectedField = true;
+          expect(() => assertValidZeroWidthCarrierRun(extra)).toThrow(
+            /unexpected or missing fields/,
+          );
+        }
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("rejects personal and prohibited claim text in every free-text leaf", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    const sentinel = "PERSONAL NAME; student response; AI ingestion proves authorship";
+    try {
+      const record = await makeRecord(root);
+      const stringPaths = leafPaths(record, (value) => typeof value === "string");
+      const nullablePaths = leafPaths(record, (value) => value === null);
+      const stringArrayPaths = leafPaths(
+        record,
+        (value) =>
+          Array.isArray(value) &&
+          (value.length === 0 || value.every((entry) => typeof entry === "string")),
+      );
+      expect(stringPaths.length).toBeGreaterThan(50);
+      expect(stringArrayPaths.length).toBeGreaterThan(20);
+      for (const path of stringPaths) {
+        const mutated = structuredClone(record) as unknown;
+        setAtPath(mutated, path, sentinel);
+        expect(() => assertValidZeroWidthCarrierRun(mutated)).toThrow();
+      }
+      for (const path of nullablePaths) {
+        const mutated = structuredClone(record) as unknown;
+        setAtPath(mutated, path, sentinel);
+        expect(() => assertValidZeroWidthCarrierRun(mutated)).toThrow();
+      }
+      for (const path of stringArrayPaths) {
+        const mutated = structuredClone(record) as unknown;
+        setAtPath(mutated, path, [sentinel]);
+        expect(() => assertValidZeroWidthCarrierRun(mutated)).toThrow();
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("rejects safe-looking codes in the wrong narrative context", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const wrongViewCode = cloneRecord(record);
+      wrongViewCode.candidates[0].googleDocs.paginatedWhiteView.notes = [
+        "accessibility-assistant-contrast-finding",
+      ] as never;
+      expect(() => assertValidZeroWidthCarrierRun(wrongViewCode)).toThrow();
+
+      const wrongAccessibilityCode = cloneRecord(record);
+      wrongAccessibilityCode.candidates[0].microsoftWord.accessibilityAssistant.findings = [
+        "body-preserved",
+      ] as never;
+      expect(() => assertValidZeroWidthCarrierRun(wrongAccessibilityCode)).toThrow();
+
+      const artifactNarrative = cloneRecord(record);
+      artifactNarrative.candidates[0].googleDocs.docxRoundtrip.notes = [
+        "body-preserved",
+      ] as never;
+      expect(() => assertValidZeroWidthCarrierRun(artifactNarrative)).toThrow();
+
+      const personalBuild = cloneRecord(record);
+      personalBuild.candidates[0].googleDocs.platform.build = "PersonalName";
+      expect(() => assertValidZeroWidthCarrierRun(personalBuild)).toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test.each([
+    ["malformed", "not-a-commit"],
+    ["nonexistent", "0000000000000000000000000000000000000000"],
+    ["different local commit", "7d504ec0380d24418b79d6d0c082879fccc47f58"],
+  ] as const)("rejects a %s source-generator checkpoint", async (_label, commit) => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const bad = cloneRecord(record);
+      bad.sourceGenerator.gitCommit = commit as never;
+      expect(() => assertValidZeroWidthCarrierRun(bad)).toThrow(/gitCommit/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test.each([
+    ["SELECT_A", "SELECT_A"],
+    ["SELECT_B", "SELECT_B"],
+    ["only diagnostic Candidate C", "REVISE_ZERO_WIDTH_CARRIER"],
+    ["no bounded survival", "ABANDON_ZERO_WIDTH_CARRIER"],
+  ] as const)("derives the fixed %s gate outcome", async (_label, expected) => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const candidates = cloneRecord(record).candidates as unknown as Mutable<CandidateRunEvidence>[];
+      if (expected === "SELECT_B") {
+        candidates[0] = {
+          ...candidates[0],
+          googleDocs: {
+            ...candidates[0].googleDocs,
+            paginatedWhiteView: {
+              ...candidates[0].googleDocs.paginatedWhiteView,
+              visibleBody: "changed",
+            },
+          },
+        };
+      } else if (expected === "REVISE_ZERO_WIDTH_CARRIER") {
+        for (const index of [0, 1]) {
+          candidates[index] = {
+            ...candidates[index],
+            googleDocs: {
+              ...candidates[index].googleDocs,
+              paginatedWhiteView: {
+                ...candidates[index].googleDocs.paginatedWhiteView,
+                visibleBody: "changed",
+              },
+            },
+          };
+        }
+      } else if (expected === "ABANDON_ZERO_WIDTH_CARRIER") {
+        for (const candidate of candidates) {
+          for (const editor of [candidate.googleDocs, candidate.microsoftWord]) {
+            editor.docxRoundtrip.inspection = {
+              ...editor.docxRoundtrip.inspection,
+              markerPresence: { alpha: "absent", beta: "absent" },
+            };
+            editor.plainTextCopy.inspection = {
+              ...editor.plainTextCopy.inspection,
+              markerPresence: { alpha: "absent", beta: "absent" },
+            };
+          }
+        }
+      }
+      expect(deriveZeroWidthGate(candidates)).toBe(expected);
+      for (const wrong of [
+        "SELECT_A",
+        "SELECT_B",
+        "REVISE_ZERO_WIDTH_CARRIER",
+        "ABANDON_ZERO_WIDTH_CARRIER",
+      ] as const) {
+        if (wrong !== expected) expect(deriveZeroWidthGate(candidates)).not.toBe(wrong);
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test.each([
+    "SELECT_A",
+    "SELECT_B",
+    "REVISE_ZERO_WIDTH_CARRIER",
+    "ABANDON_ZERO_WIDTH_CARRIER",
+  ] as const)("rejects every wrong declared decision for fixed %s evidence", async (expected) => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = cloneRecord(await makeRecord(root));
+      if (expected === "ABANDON_ZERO_WIDTH_CARRIER") {
+        await removeAllTransformedCarriers(root, record);
+      } else {
+        configureNonAbandonGate(record, expected);
+      }
+      await expect(validateZeroWidthCarrierRun(record, root)).resolves.toMatchObject({
+        gateDecision: expected,
+      });
+      for (const wrong of [
+        "SELECT_A",
+        "SELECT_B",
+        "REVISE_ZERO_WIDTH_CARRIER",
+        "ABANDON_ZERO_WIDTH_CARRIER",
+      ] as const) {
+        if (wrong === expected) continue;
+        const bad = cloneRecord(record);
+        bad.gateDecision = wrong;
+        bad.gateRationale = [rationaleFor[wrong]];
+        await expect(validateZeroWidthCarrierRun(bad, root)).rejects.toThrow(
+          /mechanical gate/,
+        );
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 120_000);
+
+  test.each([
+    ["Google Docs white", (candidate: CandidateRunEvidence) => candidate.googleDocs.paginatedWhiteView],
+    ["Word light", (candidate: CandidateRunEvidence) => candidate.microsoftWord.lightPrintLayout],
+    ["Word dark", (candidate: CandidateRunEvidence) => candidate.microsoftWord.darkPageCanvas],
+  ] as const)("treats minor and material %s layout disturbance as a candidate failure", async (_label, viewFor) => {
+    for (const disturbance of ["minor", "material"] as const) {
+      const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+      try {
+        const record = await makeRecord(root);
+        const bad = cloneRecord(record);
+        const candidate = bad.candidates[0];
+        const view = viewFor(candidate) as unknown as {
+          layoutDisturbance: "none_observed" | "minor" | "material";
+        };
+        view.layoutDisturbance = disturbance;
+        candidate.transportCriteriaSatisfied = false;
+        candidate.selectableCandidatePasses = false;
+        expect(view.layoutDisturbance).toBe(disturbance);
+        expect(candidate.transportCriteriaSatisfied).toBe(false);
+        bad.gateDecision = "SELECT_B";
+        bad.gateRationale = ["candidate-b-transport-pass"];
+        const validated = await validateZeroWidthCarrierRun(bad, root);
+        expect(validated.gateDecision).toBe("SELECT_B");
+        expect(validated.candidates[0]?.transportCriteriaSatisfied).toBe(false);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test("keeps selection and Accessibility Assistant observations non-gating", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const observed = cloneRecord(record);
+      observed.candidates[0].googleDocs.selectionObservation = "carrier_or_placeholder_revealed";
+      observed.candidates[0].microsoftWord.accessibilityAssistant.findings = [
+        "accessibility-assistant-contrast-finding",
+      ];
+      await expect(validateZeroWidthCarrierRun(observed, root)).resolves.toMatchObject({
+        gateDecision: "SELECT_A",
       });
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -307,7 +706,7 @@ describe("zero-width carrier run records", () => {
     }],
     ["unsafe URL", (record: ZeroWidthBakeOffRunRecord) => {
       const bad = cloneRecord(record);
-      bad.gateRationale = ["https://sentinel.invalid/private-response"];
+      bad.gateRationale = ["https://sentinel.invalid/private-response" as never];
       return bad;
     }],
   ] as const)("rejects %s", async (_label, mutate) => {
@@ -354,6 +753,7 @@ describe("zero-width carrier run records", () => {
       negative.candidates[0].transportCriteriaSatisfied = false;
       negative.candidates[0].selectableCandidatePasses = false;
       negative.gateDecision = "SELECT_B";
+      negative.gateRationale = ["candidate-b-transport-pass"];
       await expect(validateZeroWidthCarrierRun(negative, root)).resolves.toMatchObject({
         gateDecision: "SELECT_B",
       });
@@ -376,7 +776,7 @@ describe("zero-width carrier run records", () => {
         },
         microsoftWord: {
           ...aFail[0].microsoftWord,
-          accessibilityAssistant: { status: "not_assessable", findings: [], limitations: ["Unavailable"] },
+          accessibilityAssistant: { status: "not_assessable", findings: [], limitations: [...ACCESSIBILITY_NOT_ASSESSABLE_LIMITATIONS] },
         },
       };
       expect(deriveZeroWidthGate(aFail)).toBe("SELECT_B");

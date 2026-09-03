@@ -276,11 +276,71 @@ type SelectionObservation =
   | "nothing_observed"
   | "carrier_or_placeholder_revealed"
   | "not_assessable";
+type ViewObservationCode =
+  | "body-preserved"
+  | "carrier-not-visible"
+  | "layout-none-observed"
+  | "layout-minor"
+  | "layout-material";
+type AccessibilityFindingCode =
+  | "accessibility-assistant-contrast-finding"
+  | "accessibility-assistant-no-finding";
+type TransportLimitation =
+  | "transport-only"
+  | "no-ai-ingestion-claim"
+  | "no-model-compliance-claim"
+  | "no-authorship-claim"
+  | "no-prompt-reuse-claim"
+  | "no-intent-claim"
+  | "no-cheating-claim"
+  | "no-misconduct-claim";
+type ProtocolDeviationCode = "core-metadata-redacted";
+type DistributionLimitationCode = "core-metadata-requires-privacy-review";
+type EditorLimitationCode =
+  | "google-dark-view-not-assessable"
+  | "google-screen-reader-not-assessable"
+  | "word-screen-reader-not-assessable"
+  | "word-accessibility-assistant-not-assessable";
+type ZeroWidthMarkerId = "alpha" | "beta";
+type PackageCodePointOccurrence = Readonly<{
+  codePoint: string;
+  partName: string;
+  location: OOXMLTextLocation;
+  paragraphIndex: number;
+  runIndex: number;
+  codePointIndex: number;
+}>;
+type CarrierRunProperty = Readonly<{
+  partName: string;
+  paragraphIndex: number;
+  runIndex: number;
+  property: string;
+  valueClassification: "absent_value" | "safe_literal" | "redacted_literal";
+  safeValue: string | null;
+}>;
+type ForbiddenRunProperty = Readonly<{
+  partName: string;
+  paragraphIndex: number;
+  runIndex: number;
+  property: string;
+}>;
+type SafetyInspection = Readonly<{
+  externalRelationships: readonly string[];
+  unresolvedRelationshipTargets: readonly string[];
+  activeContentEntries: readonly string[];
+  activeRelationshipTypes: readonly string[];
+  macroContentTypes: readonly string[];
+}>;
 type GateDecision =
   | "SELECT_A"
   | "SELECT_B"
   | "REVISE_ZERO_WIDTH_CARRIER"
   | "ABANDON_ZERO_WIDTH_CARRIER";
+type GateRationaleCode =
+  | "candidate-a-transport-pass"
+  | "candidate-b-transport-pass"
+  | "bounded-transport-evidence-without-selectable-pass"
+  | "no-bounded-transport-evidence";
 
 type ArtifactEvidence = Readonly<{ path: string; sha256: SHA256 }>;
 type ApplicationEvidence = Readonly<{ name: string; version: string | null }>;
@@ -294,7 +354,7 @@ type ViewEvidence = Readonly<{
   visibleBody: VisibleBody;
   carrierPresentation: CarrierPresentation;
   layoutDisturbance: LayoutDisturbance;
-  notes: readonly string[];
+  notes: readonly ViewObservationCode[];
 }>;
 type OOXMLTextLocation =
   | "body"
@@ -384,17 +444,17 @@ type PlainTextEvidence = Readonly<{
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: ZeroWidthTextInspection;
-  protocolDeviation: string | null;
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  notes: readonly never[];
 }>;
 type DocxRoundtripEvidence = Readonly<{
   status: "completed";
   sourceArtifactSha256: SHA256;
   resultArtifact: ArtifactEvidence;
   inspection: InspectionEvidence;
-  protocolDeviation: string | null;
-  distributionLimitations: readonly string[];
-  notes: readonly string[];
+  protocolDeviation: ProtocolDeviationCode | null;
+  distributionLimitations: readonly DistributionLimitationCode[];
+  notes: readonly never[];
 }>;
 type GoogleDocsCandidateEvidence = Readonly<{
   application: ApplicationEvidence & { name: "Google Docs" };
@@ -408,7 +468,7 @@ type GoogleDocsCandidateEvidence = Readonly<{
   plainTextCopy: PlainTextEvidence;
   selectionObservation: SelectionObservation;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 type MicrosoftWordCandidateEvidence = Readonly<{
   application: ApplicationEvidence & { name: "Microsoft Word" };
@@ -422,11 +482,11 @@ type MicrosoftWordCandidateEvidence = Readonly<{
   selectionObservation: SelectionObservation;
   accessibilityAssistant: Readonly<{
     status: "completed" | "not_assessable";
-    findings: readonly string[];
-    limitations: readonly string[];
+    findings: readonly AccessibilityFindingCode[];
+    limitations: readonly EditorLimitationCode[];
   }>;
   screenReader: "not_assessable";
-  limitations: readonly string[];
+  limitations: readonly EditorLimitationCode[];
 }>;
 type CandidateRunEvidence = Readonly<{
   candidateId: CandidateId;
@@ -440,7 +500,7 @@ type CandidateRunEvidence = Readonly<{
   microsoftWord: MicrosoftWordCandidateEvidence;
   transportCriteriaSatisfied: boolean;
   selectableCandidatePasses: boolean;
-  limitations: readonly string[];
+  limitations: readonly TransportLimitation[];
 }>;
 type ZeroWidthBakeOffRunRecord = Readonly<{
   experimentId: "glyph-exp-docx-zero-width-carrier-bakeoff-v1-001";
@@ -461,7 +521,7 @@ type ZeroWidthBakeOffRunRecord = Readonly<{
   }>;
   sourceGenerator: Readonly<{
     path: "src/documents/docx/docx-zero-width-carrier-bakeoff-v1.ts";
-    gitCommit: string;
+    gitCommit: "3ffffdf5deb38cbd51a600b9e3a2c19c16040718";
     nodeVersion: string;
     pnpmVersion: string;
     docxVersion: "9.7.1";
@@ -472,8 +532,8 @@ type ZeroWidthBakeOffRunRecord = Readonly<{
     CandidateRunEvidence,
   ];
   gateDecision: GateDecision;
-  gateRationale: readonly string[];
-  limitations: readonly string[];
+  gateRationale: readonly [GateRationaleCode];
+  limitations: readonly TransportLimitation[];
 }>;
 ```
 
@@ -506,6 +566,30 @@ Missing, unreadable, or unreliable mandatory evidence is operationally
 from the mechanically derived result is rejected. A selection is a transport
 selection only and advances the named document profile to separate
 accessibility and international-text qualification.
+
+All persisted narrative-like leaves use fixed codes rather than free-form
+text. Every candidate and the top-level record must use exactly these transport
+limitations, in this order: `transport-only`, `no-ai-ingestion-claim`,
+`no-model-compliance-claim`, `no-authorship-claim`, `no-prompt-reuse-claim`,
+`no-intent-claim`, `no-cheating-claim`, and `no-misconduct-claim`. Gate
+rationales are one fixed code matching the derived decision. Visual notes and
+Accessibility Assistant findings use separate context-specific code sets;
+artifact notes are exactly empty because their inspections carry the evidence;
+protocol deviations and distribution limitations use fixed metadata-review
+codes only. Google Docs must retain exactly
+`google-dark-view-not-assessable` and `google-screen-reader-not-assessable`
+limitations, and its `darkView` and `screenReader` fields are exactly
+`not_assessable`. Word must retain exactly
+`word-screen-reader-not-assessable`, its `screenReader` is exactly
+`not_assessable`, and an unassessable Accessibility Assistant must use exactly
+`word-accessibility-assistant-not-assessable`.
+
+The source-generator `gitCommit` is the lowercase forty-character SHA
+`3ffffdf5deb38cbd51a600b9e3a2c19c16040718`, the reviewed implementation
+checkpoint immediately before canonical generation. The validator requires
+that exact SHA and verifies that it resolves to a local commit object before
+reading evidence. A malformed, missing, nonexistent, or different commit is
+invalid provenance.
 
 ## Accessibility, privacy, and implementation boundary
 

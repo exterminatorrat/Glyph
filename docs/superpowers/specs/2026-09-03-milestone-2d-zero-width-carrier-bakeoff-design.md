@@ -486,6 +486,27 @@ The record schema rejects missing and extra fields recursively. It contains no
 personal metadata value, document URL, credential, raw assignment prompt,
 student work, model response, or browser-private state.
 
+Persisted narrative-like leaves are constrained to fixed codes. Each candidate
+and the top-level record carries exactly the transport-only limitation set:
+`transport-only`, `no-ai-ingestion-claim`, `no-model-compliance-claim`,
+`no-authorship-claim`, `no-prompt-reuse-claim`, `no-intent-claim`,
+`no-cheating-claim`, and `no-misconduct-claim`. Gate rationale, visual notes,
+Accessibility Assistant findings, protocol deviations, distribution
+limitations, and editor limitations likewise use context-specific allowlists;
+artifact-note arrays are empty because their inspectors carry that evidence;
+arbitrary personal names, assignment/student/model content, and prohibited
+scientific claims cannot be persisted through the validator. Google dark view
+and all screen-reader fields remain exactly `not_assessable` with their fixed
+limitations; no free-form explanation is accepted in their place.
+
+The source-generator provenance is bound to the reviewed pre-generation
+checkpoint `3ffffdf5deb38cbd51a600b9e3a2c19c16040718`. The record stores that
+lowercase forty-character SHA, and validation requires both exact equality with
+the checkpoint and resolution to a local commit object before evidence is
+accepted. This freezes the generator implementation that future
+canonical artifacts must use without fabricating a current commit after
+generation.
+
 ## Implementation boundaries
 
 Implementation adds only:

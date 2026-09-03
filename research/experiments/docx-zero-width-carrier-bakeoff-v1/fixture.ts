@@ -11,6 +11,10 @@ export const EXPERIMENT_ID =
   "glyph-exp-docx-zero-width-carrier-bakeoff-v1-001";
 export const EXPERIMENT_SCHEMA_VERSION = 1;
 export const SYNTHETIC_CORE_AUTHOR = "Glyph synthetic research fixture";
+// The clean implementation checkpoint immediately before any canonical
+// artifact generation. Future run records remain bound to this reviewed tree.
+export const ZERO_WIDTH_GENERATION_CHECKPOINT =
+  "3ffffdf5deb38cbd51a600b9e3a2c19c16040718" as const;
 
 export const CANDIDATE_A = {
   id: "join-control-binary-v1",
