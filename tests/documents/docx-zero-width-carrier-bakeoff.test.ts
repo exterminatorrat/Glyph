@@ -213,6 +213,20 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     expect(inspection.frameErrors).toEqual([]);
   });
 
+  test("ignores unrelated default table and numbering styles for run inheritance", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const mutated = mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace(
+        "</w:styles>",
+        '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:rPr><w:vanish/></w:rPr></w:style><w:style w:type="numbering" w:default="1" w:styleId="NoList"><w:rPr><w:vanish/></w:rPr></w:style></w:styles>',
+      ),
+    );
+
+    const inspection = inspectZeroWidthDocx(mutated, CANDIDATE_A.id, "transformed");
+    expect(inspection.forbiddenRunProperties).toEqual([]);
+    expect(inspection.frameErrors).toEqual([]);
+  });
+
   test("reports missing and cyclic style inheritance as unresolved", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const missing = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>

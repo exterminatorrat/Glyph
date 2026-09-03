@@ -326,7 +326,7 @@ const RUN_RECORD_PATH =
 const FAILURE_USAGE =
   "Usage: pnpm research:carrier:zero-width:validate (reads run-001.json)";
 const FORBIDDEN_KEY_PATTERN =
-  /(?:account|credential|password|secret|token|api[_-]?key|access[_-]?key|refresh[_-]?token|authorization|bearer|email|username|user[_-]?id|student|teacher|school|class|identity|session|cookie|prompt|response|submission|assignment|answer|raw|payload(?:$|[_-])|document[_-]?(?:id|url|uri)|cloud|url|uri|href)/i;
+  /(?:account|credential|password|secret|token|api[_-]?key|access[_-]?key|refresh[_-]?token|authorization|bearer|email|username|user[_-]?id|student|teacher|school|class(?:$|[_-])|identity|session|cookie|prompt|response|submission|assignment|answer|raw|payload(?:$|[_-])|document[_-]?(?:id|url|uri)|cloud|url|uri|href)/i;
 const FORBIDDEN_VALUE_PATTERN =
   /(?:-----BEGIN [^-]+ PRIVATE KEY-----|\bBearer\s+\S+|\b(?:sk|rk|pk|ghp|github_pat|xox[abprs])[-_][A-Za-z0-9_-]+)/i;
 const URL_PATTERN = /(?:https?|ftp|gs|s3):\/\//i;
@@ -1786,6 +1786,11 @@ const main = async (): Promise<void> => {
   } catch {
     throw new Error("The zero-width run record is not valid JSON.");
   }
+  ensure(
+    recordText === `${JSON.stringify(value, null, 2)}\n`,
+    "$",
+    "must use canonical JSON",
+  );
   const record = await validateZeroWidthCarrierRun(value, repositoryRoot);
   process.stdout.write(`${JSON.stringify({
     status: "valid",

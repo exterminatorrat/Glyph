@@ -393,6 +393,27 @@ describe("zero-width carrier run records", () => {
     }
   });
 
+  test("accepts the inspector's valueClassification field", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = cloneRecord(await makeRecord(root));
+      record.candidates[0].googleDocs.docxRoundtrip.inspection.carrierRunProperties = [
+        {
+          partName: "word/document.xml",
+          paragraphIndex: 0,
+          runIndex: 0,
+          property: "rtl",
+          valueClassification: "safe_literal",
+          safeValue: "0",
+        },
+      ];
+
+      expect(() => assertValidZeroWidthCarrierRun(record)).not.toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   test("rejects an extra or missing key at every nested object", async () => {
     const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
     try {
@@ -920,7 +941,7 @@ describe("zero-width carrier run records", () => {
         "research/experiments/docx-zero-width-carrier-bakeoff-v1/run-001.json",
       );
       await mkdir(dirname(runPath), { recursive: true });
-      await writeFile(runPath, JSON.stringify(record));
+      await writeFile(runPath, `${JSON.stringify(record, null, 2)}\n`);
       const result = spawnSync(process.execPath, [validatorScript], {
         cwd: root,
         encoding: "utf8",
@@ -933,6 +954,37 @@ describe("zero-width carrier run records", () => {
         gateDecision: "SELECT_A",
         selectedDocumentProfile: "docx-zero-width-join-control-v1",
       });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("CLI rejects duplicate keys before a discarded unsafe value can evade validation", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = await makeRecord(root);
+      const runPath = resolve(
+        root,
+        "research/experiments/docx-zero-width-carrier-bakeoff-v1/run-001.json",
+      );
+      await mkdir(dirname(runPath), { recursive: true });
+      const canonical = `${JSON.stringify(record, null, 2)}\n`;
+      const duplicate = canonical.replace(
+        '  "gateRationale": [',
+        '  "gateRationale": "student@example.com",\n  "gateRationale": [',
+      );
+      expect(duplicate).not.toBe(canonical);
+      await writeFile(runPath, duplicate);
+
+      const result = spawnSync(process.execPath, [validatorScript], {
+        cwd: root,
+        encoding: "utf8",
+        env: { ...process.env, GLYPH_REPOSITORY_ROOT: root },
+      });
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("canonical JSON");
+      expect(result.stderr).not.toContain("student@example.com");
     } finally {
       await rm(root, { recursive: true, force: true });
     }

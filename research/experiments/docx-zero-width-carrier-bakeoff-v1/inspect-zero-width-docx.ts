@@ -809,7 +809,7 @@ const parseStyles = (styles: XmlDocument | undefined): StyleContext => {
     if (defaultValue === true) {
       if (type === "paragraph" || type === "character") {
         defaultIds[type].push(id);
-      } else {
+      } else if (type === "unknown") {
         defaultsUnresolved = true;
       }
     }
