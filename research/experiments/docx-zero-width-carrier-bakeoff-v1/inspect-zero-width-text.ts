@@ -5,7 +5,11 @@ import {
   isAnyCandidateCodePoint,
   isCandidateCodePoint,
 } from "./frame.ts";
-import type { CandidateId, ZeroWidthMarkerId } from "./fixture.ts";
+import {
+  VISIBLE_PARAGRAPHS,
+  type CandidateId,
+  type ZeroWidthMarkerId,
+} from "./fixture.ts";
 
 export type CodePointOccurrence = Readonly<{
   codePoint: string;
@@ -71,6 +75,15 @@ const paragraphLines = (text: string): string[] => {
   }
   return paragraphs;
 };
+
+const safeVisibleBodyParagraphs = (
+  paragraphs: readonly string[],
+): string[] =>
+  paragraphs.map((paragraph, index) =>
+    paragraph === VISIBLE_PARAGRAPHS[index] && index < VISIBLE_PARAGRAPHS.length
+      ? paragraph
+      : "redacted-visible-body",
+  );
 
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Carrier frame could not be decoded";
@@ -170,6 +183,6 @@ export function inspectZeroWidthText(
     carrierRuns,
     markerPresence,
     frameErrors,
-    visibleBodyParagraphs: paragraphLines(visibleText),
+    visibleBodyParagraphs: safeVisibleBodyParagraphs(paragraphLines(visibleText)),
   };
 }

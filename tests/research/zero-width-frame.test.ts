@@ -176,7 +176,7 @@ describe("zero-width carrier frames", () => {
       encoder.encode(`Read changed.${alpha} rest.`),
       "join-control-binary-v1",
     );
-    expect(inspection.visibleBodyParagraphs).toEqual(["Read changed. rest."]);
+    expect(inspection.visibleBodyParagraphs).toEqual(["redacted-visible-body"]);
   });
 
   test("inspects exact runs and computes the frozen visible body", () => {

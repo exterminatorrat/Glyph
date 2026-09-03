@@ -19,7 +19,8 @@
     "research:carrier:semantic-white:validate": "node scripts/validate-docx-semantic-white-carrier-run.ts",
     "research:carrier:zero-width:generate": "node scripts/generate-docx-zero-width-carrier.ts",
     "research:carrier:zero-width:inspect-docx": "node scripts/inspect-docx-zero-width-carrier.ts",
-    "research:carrier:zero-width:inspect-text": "node scripts/inspect-zero-width-plain-text.ts"
+    "research:carrier:zero-width:inspect-text": "node scripts/inspect-zero-width-plain-text.ts",
+    "research:carrier:zero-width:validate": "node scripts/validate-docx-zero-width-carrier-run.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {

@@ -15,6 +15,7 @@ import {
 } from "./frame.ts";
 import {
   SYNTHETIC_CORE_AUTHOR,
+  VISIBLE_PARAGRAPHS,
   type CandidateId,
   type ZeroWidthMarkerId,
 } from "./fixture.ts";
@@ -548,7 +549,7 @@ const safeLiteral = (
   const localName = localNameOf(property);
   if (["color", "fill"].includes(localName)) return /^[0-9a-f]{6}$/i.test(value);
   if (/^-?\d+(?:\.\d+)?$/.test(value)) return true;
-  if (/^(?:[a-z]{2,3})(?:-[A-Za-z0-9]{2,8})*$/.test(value)) return true;
+  if (localName === "lang" && /^(?:[a-z]{2,3})(?:-[A-Za-z0-9]{2,8})*$/.test(value)) return true;
   return SAFE_ENUM_VALUES.has(value.toLowerCase()) ||
     ["0", "1", "true", "false", "on", "off"].includes(value.toLowerCase());
 };
@@ -724,6 +725,15 @@ const coreValue = (
     : undefined;
   return element ? element.textContent ?? "" : null;
 };
+
+const safeVisibleBodyParagraphs = (
+  paragraphs: readonly string[],
+): string[] =>
+  paragraphs.map((paragraph, index) =>
+    paragraph === VISIBLE_PARAGRAPHS[index] && index < VISIBLE_PARAGRAPHS.length
+      ? paragraph
+      : "redacted-visible-body",
+  );
 
 const standaloneSequences = (
   document: XmlDocument,
@@ -909,7 +919,7 @@ export function inspectZeroWidthDocx(
     markerPresence,
     frameErrors,
     unexpectedCandidateCodePoints,
-    visibleBodyParagraphs: bodyParagraphs,
+    visibleBodyParagraphs: safeVisibleBodyParagraphs(bodyParagraphs),
     normalization: {
       nfc:
         normalizationText.normalize("NFC") === normalizationText

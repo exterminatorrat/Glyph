@@ -263,7 +263,7 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     );
     const inspection = inspectZeroWidthDocx(damaged, CANDIDATE_C.id, "transformed");
     expect(inspection.frameErrors.length).toBeGreaterThan(0);
-    expect(inspection.visibleBodyParagraphs[2]).toContain("X");
+    expect(inspection.visibleBodyParagraphs[2]).toBe("redacted-visible-body");
   });
 
   test("records package safety and redacts relationship values", async () => {
