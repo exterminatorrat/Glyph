@@ -464,6 +464,11 @@ const textFragmentsFromRun = (
           text: element.textContent ?? "",
           ordinary: !inField && isOrdinaryTextElement(element),
         });
+      } else if (["t", "delText", "instrText"].includes(localName)) {
+        chunks.push({
+          text: element.textContent ?? "",
+          ordinary: false,
+        });
       } else if (element.namespaceURI === WORDPROCESSINGML_NAMESPACE && localName === "tab") {
         chunks.push({
           text: "\t",
@@ -1091,7 +1096,7 @@ const sequenceRunContainsOnlyCarrier = (
         }
         ancestor = ancestor.parentNode;
       }
-      return ["rPr", "t", "delText", "instrText", "tab", "br", "cr"].includes(
+      return ["t", "delText", "instrText", "tab", "br", "cr"].includes(
         localNameOf(element),
       );
     });

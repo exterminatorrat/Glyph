@@ -488,6 +488,15 @@ describe("zero-width carrier run records", () => {
       narrativeVersion.sourceGenerator.nodeVersion =
         "1.2.3-student-response-ai-ingestion-proves-authorship";
       expect(() => assertValidZeroWidthCarrierRun(narrativeVersion)).toThrow();
+
+      const oversizedVersion = cloneRecord(record);
+      oversizedVersion.sourceGenerator.nodeVersion = `1.${"2".repeat(100)}`;
+      expect(() => assertValidZeroWidthCarrierRun(oversizedVersion)).toThrow();
+
+      const oversizedBuild = cloneRecord(record);
+      oversizedBuild.candidates[0].microsoftWord.platform.build =
+        `25C${"1".repeat(100)}`;
+      expect(() => assertValidZeroWidthCarrierRun(oversizedBuild)).toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }

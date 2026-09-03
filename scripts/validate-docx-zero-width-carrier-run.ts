@@ -230,8 +230,8 @@ const ARTIFACT_PATHS: Readonly<Record<ArtifactKind, string>> = {
 };
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/;
-const SAFE_VERSION_PATTERN = /^v?\d+(?:\.\d+){0,3}$/;
-const SAFE_BUILD_PATTERN = /^\d{2,3}[A-Z]\d+[a-z]?$/;
+const SAFE_VERSION_PATTERN = /^v?\d{1,3}(?:\.\d{1,5}){0,3}$/;
+const SAFE_BUILD_PATTERN = /^\d{2,3}[A-Z]\d{1,5}[a-z]?$/;
 const ENTRY_PATTERN = /^(?:\[Content_Types\]\.xml|_rels\/\.rels|word\/(?:document\.xml|styles\.xml|settings\.xml|numbering\.xml|fontTable\.xml|theme\/theme1\.xml|_rels\/document\.xml\.rels|(?:header|footer)\d+\.xml|_rels\/(?:header|footer)\d+\.xml\.rels|(?:footnotes|endnotes|comments)\.xml|_rels\/(?:footnotes|endnotes|comments)\.xml\.rels)|docProps\/(?:core|app|custom)\.xml|entry-redacted-[a-f0-9]{16})$/;
 const SAFE_PROPERTY_PATTERN = /^(?:bdr|bidi|caps|color|cs|eastAsianLayout|effect|emboss|fitText|highlight|i|iCs|imprint|kern|lang|noProof|outline|position|rFonts|rStyle|rtl|shadow|shd|smallCaps|snapToGrid|spacing|specVanish|sz|szCs|u|vanish|vertAlign|webHidden|property-redacted-[a-f0-9]{16})$/;
 const SAFE_CODE_POINT_PATTERN = /^U\+[0-9A-F]{4,5}$/;

@@ -256,6 +256,21 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     expect(inspection.visibleBodyParagraphs).toEqual(VISIBLE_PARAGRAPHS);
   });
 
+  test("rejects even an empty run-property container in canonical source mode", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const mutated = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>
+      run.replace("<w:t", "<w:rPr/><w:t"),
+    );
+    const inspection = inspectZeroWidthDocx(mutated, CANDIDATE_A.id, "source");
+    expect(inspection.carrierRunProperties).toEqual([]);
+    expect(inspection.frameErrors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("mixed carrier run"),
+        expect.stringContaining("carrier anchor is not frozen"),
+      ]),
+    );
+  });
+
   test("accepts editor-split carrier text while retaining all run indexes", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
@@ -305,7 +320,45 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     );
     const inspection = inspectZeroWidthDocx(foreign, CANDIDATE_A.id, "transformed");
     expect(inspection.markerPresence.alpha).toBe("absent");
-    expect(inspection.carrierOccurrences).toHaveLength(1);
+    expect(inspection.carrierOccurrences).toHaveLength(2);
+    expect(inspection.carrierOccurrences[0]).toMatchObject({
+      markerId: null,
+      context: "non_ordinary",
+      codePointCount: 120,
+    });
+    expect(inspection.frameErrors).toEqual(
+      expect.arrayContaining([expect.stringContaining("non-ordinary carrier context")]),
+    );
+  });
+
+  test("records an added foreign-namespace duplicate alongside intact valid frames", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const foreignDuplicate = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        "</w:p>",
+        `<w:r><x:t xmlns:x="urn:glyph:foreign-test">${alpha}</x:t></w:r></w:p>`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(
+      foreignDuplicate,
+      CANDIDATE_A.id,
+      "transformed",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(inspection.carrierOccurrences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markerId: null,
+          context: "non_ordinary",
+          codePointCount: 120,
+        }),
+      ]),
+    );
+    expect(inspection.markerPresence).toEqual({ alpha: "present", beta: "present" });
+    expect(inspection.frameErrors).toEqual(
+      expect.arrayContaining([expect.stringContaining("non-ordinary carrier context")]),
+    );
   });
 
   test("rejects moved, duplicate, non-body, and damaged carrier frames", async () => {
