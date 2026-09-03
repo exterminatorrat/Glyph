@@ -1,6 +1,6 @@
 # Milestone 2D Zero-Width Carrier Bake-Off Design
 
-Status: approved design for specification, 2026-09-03
+Status: approved specification, 2026-09-03
 
 ## Decision
 
