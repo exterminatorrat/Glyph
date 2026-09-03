@@ -297,7 +297,7 @@
         "activeRelationshipTypes": [],
         "macroContentTypes": []
       },
-      "protocolDeviation": null,
+      "protocolDeviation": "Microsoft Word added non-synthetic editor identity metadata in docProps/core.xml; no identity value is copied into this record.",
       "notes": [
         "Independent Microsoft Word export inspection found both markers in the frozen body locations with direct FFFFFF color; semantic direct white remained true and all safety findings were empty."
       ]
@@ -335,7 +335,8 @@
     },
     "screenReader": "not_assessable",
     "limitations": [
-      "Word screen-reader behavior is not_assessable in this transport-only run."
+      "Word screen-reader behavior is not_assessable in this transport-only run.",
+      "The ignored Microsoft Word round-trip artifact must not be distributed without a separate privacy review."
     ]
   },
   "gateDecision": "REVISE_CARRIER",
