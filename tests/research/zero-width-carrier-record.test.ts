@@ -483,6 +483,11 @@ describe("zero-width carrier run records", () => {
       const personalBuild = cloneRecord(record);
       personalBuild.candidates[0].googleDocs.platform.build = "PersonalName";
       expect(() => assertValidZeroWidthCarrierRun(personalBuild)).toThrow();
+
+      const narrativeVersion = cloneRecord(record);
+      narrativeVersion.sourceGenerator.nodeVersion =
+        "1.2.3-student-response-ai-ingestion-proves-authorship";
+      expect(() => assertValidZeroWidthCarrierRun(narrativeVersion)).toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -590,7 +595,7 @@ describe("zero-width carrier run records", () => {
         "ABANDON_ZERO_WIDTH_CARRIER",
       ] as const) {
         if (wrong === expected) continue;
-        const bad = cloneRecord(record);
+        const bad = cloneRecord(record as unknown as ZeroWidthBakeOffRunRecord);
         bad.gateDecision = wrong;
         bad.gateRationale = [rationaleFor[wrong]];
         await expect(validateZeroWidthCarrierRun(bad, root)).rejects.toThrow(
@@ -755,6 +760,78 @@ describe("zero-width carrier run records", () => {
       negative.gateDecision = "SELECT_B";
       negative.gateRationale = ["candidate-b-transport-pass"];
       await expect(validateZeroWidthCarrierRun(negative, root)).resolves.toMatchObject({
+        gateDecision: "SELECT_B",
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("accepts duplicate-frame DOCX evidence as a recordable negative result", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = cloneRecord(await makeRecord(root));
+      const candidate = record.candidates[0];
+      const evidence = candidate.googleDocs.docxRoundtrip;
+      const original = await readFile(resolve(root, evidence.resultArtifact.path));
+      const entries = unzipSync(original);
+      const document = entries["word/document.xml"];
+      if (!document) throw new Error("Missing test document");
+      const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+      entries["word/document.xml"] = strToU8(
+        strFromU8(document).replace(
+          "</w:p>",
+          `<w:r><w:t xml:space="preserve">${alpha}</w:t></w:r></w:p>`,
+        ),
+      );
+      const duplicate = zipSync(entries, {
+        level: 6,
+        mtime: new Date("1980-01-01T00:00:00Z"),
+      });
+      await writeFile(resolve(root, evidence.resultArtifact.path), duplicate);
+      evidence.resultArtifact.sha256 = sha256(duplicate);
+      evidence.inspection = inspectZeroWidthDocx(
+        duplicate,
+        CANDIDATE_A.id,
+        "transformed",
+      ) as never;
+      expect(evidence.inspection.frameErrors).toEqual(
+        expect.arrayContaining([expect.stringContaining("duplicate alpha frame")]),
+      );
+      candidate.transportCriteriaSatisfied = false;
+      candidate.selectableCandidatePasses = false;
+      record.gateDecision = "SELECT_B";
+      record.gateRationale = [rationaleFor.SELECT_B];
+      await expect(validateZeroWidthCarrierRun(record, root)).resolves.toMatchObject({
+        gateDecision: "SELECT_B",
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("accepts duplicate-frame clipboard evidence as a recordable negative result", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyph-zero-width-record-"));
+    try {
+      const record = cloneRecord(await makeRecord(root));
+      const candidate = record.candidates[0];
+      const evidence = candidate.microsoftWord.plainTextCopy;
+      const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+      const beta = encodeCarrier(CANDIDATE_A.id, "beta");
+      const duplicate = new TextEncoder().encode(
+        `${VISIBLE_PARAGRAPHS[0]}${alpha}\n${VISIBLE_PARAGRAPHS[1]}${alpha}\n${VISIBLE_PARAGRAPHS[2]}${beta}\n`,
+      );
+      await writeFile(resolve(root, evidence.resultArtifact.path), duplicate);
+      evidence.resultArtifact.sha256 = sha256(duplicate);
+      evidence.inspection = inspectZeroWidthText(duplicate, CANDIDATE_A.id) as never;
+      expect(evidence.inspection.frameErrors).toEqual(
+        expect.arrayContaining([expect.stringContaining("duplicate alpha frame")]),
+      );
+      candidate.transportCriteriaSatisfied = false;
+      candidate.selectableCandidatePasses = false;
+      record.gateDecision = "SELECT_B";
+      record.gateRationale = [rationaleFor.SELECT_B];
+      await expect(validateZeroWidthCarrierRun(record, root)).resolves.toMatchObject({
         gateDecision: "SELECT_B",
       });
     } finally {

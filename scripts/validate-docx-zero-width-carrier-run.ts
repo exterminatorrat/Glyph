@@ -207,7 +207,7 @@ export type ZeroWidthBakeOffRunRecord = Readonly<{
     CandidateRunEvidence,
   ];
   gateDecision: GateDecision;
-  gateRationale: readonly GateRationaleCode[];
+  gateRationale: readonly [GateRationaleCode];
   limitations: readonly TransportLimitation[];
 }>;
 
@@ -230,7 +230,7 @@ const ARTIFACT_PATHS: Readonly<Record<ArtifactKind, string>> = {
 };
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/;
-const SAFE_VERSION_PATTERN = /^v?\d+(?:\.\d+){0,3}(?:[-+][A-Za-z0-9.-]+)?$/;
+const SAFE_VERSION_PATTERN = /^v?\d+(?:\.\d+){0,3}$/;
 const SAFE_BUILD_PATTERN = /^\d{2,3}[A-Z]\d+[a-z]?$/;
 const ENTRY_PATTERN = /^(?:\[Content_Types\]\.xml|_rels\/\.rels|word\/(?:document\.xml|styles\.xml|settings\.xml|numbering\.xml|fontTable\.xml|theme\/theme1\.xml|_rels\/document\.xml\.rels|(?:header|footer)\d+\.xml|_rels\/(?:header|footer)\d+\.xml\.rels|(?:footnotes|endnotes|comments)\.xml|_rels\/(?:footnotes|endnotes|comments)\.xml\.rels)|docProps\/(?:core|app|custom)\.xml|entry-redacted-[a-f0-9]{16})$/;
 const SAFE_PROPERTY_PATTERN = /^(?:bdr|bidi|caps|color|cs|eastAsianLayout|effect|emboss|fitText|highlight|i|iCs|imprint|kern|lang|noProof|outline|position|rFonts|rStyle|rtl|shadow|shd|smallCaps|snapToGrid|spacing|specVanish|sz|szCs|u|vanish|vertAlign|webHidden|property-redacted-[a-f0-9]{16})$/;
@@ -245,6 +245,8 @@ const SAFE_DIAGNOSTIC_REASONS = new Set([
   "invalid checksum",
   "unexpected code point",
   "frame decode failed",
+  "duplicate alpha frame",
+  "duplicate beta frame",
   "non-ordinary carrier context",
   "mixed carrier run",
   "carrier anchor is not frozen",
@@ -1341,6 +1343,12 @@ const assertRecordShape = (value: unknown): ZeroWidthBakeOffRunRecord => {
   ensure(candidatesValue.length === 3, "$.candidates", "must contain exactly three candidates");
   const candidates = candidatesValue.map((entry, index) => assertCandidateRun(entry, `$.candidates[${index}]`, index)) as [CandidateRunEvidence, CandidateRunEvidence, CandidateRunEvidence];
   const gateDecision = enumAt(object.gateDecision, ["SELECT_A", "SELECT_B", "REVISE_ZERO_WIDTH_CARRIER", "ABANDON_ZERO_WIDTH_CARRIER"] as const, "$.gateDecision");
+  const gateRationale = exactCodeArrayAt(
+    object.gateRationale,
+    "$.gateRationale",
+    [GATE_RATIONALES[gateDecision]],
+    new Set(Object.values(GATE_RATIONALES)),
+  );
   assertSafeRecordContent(value);
   return {
     experimentId: EXPERIMENT_ID,
@@ -1368,12 +1376,7 @@ const assertRecordShape = (value: unknown): ZeroWidthBakeOffRunRecord => {
     },
     candidates,
     gateDecision,
-    gateRationale: exactCodeArrayAt(
-      object.gateRationale,
-      "$.gateRationale",
-      [GATE_RATIONALES[gateDecision]],
-      new Set(Object.values(GATE_RATIONALES)),
-    ),
+    gateRationale: [gateRationale[0]!],
     limitations: exactCodeArrayAt(
       object.limitations,
       "$.limitations",

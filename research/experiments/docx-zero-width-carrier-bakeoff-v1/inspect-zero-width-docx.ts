@@ -423,7 +423,12 @@ type TextFragment = Readonly<{
 }>;
 
 const isOrdinaryTextElement = (element: XmlElement): boolean => {
-  if (element.parentNode?.nodeType !== 1 || localNameOf(element.parentNode as XmlElement) !== "r") {
+  if (
+    element.namespaceURI !== WORDPROCESSINGML_NAMESPACE ||
+    element.parentNode?.nodeType !== 1 ||
+    (element.parentNode as XmlElement).namespaceURI !== WORDPROCESSINGML_NAMESPACE ||
+    localNameOf(element.parentNode as XmlElement) !== "r"
+  ) {
     return false;
   }
   let current: XmlNode | null = element;
@@ -451,17 +456,23 @@ const textFragmentsFromRun = (
         localNameOf(element) === "rPr"
       ) continue;
       const localName = localNameOf(element);
-      if (localName === "t" || localName === "delText" || localName === "instrText") {
+      if (
+        element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
+        (localName === "t" || localName === "delText" || localName === "instrText")
+      ) {
         chunks.push({
           text: element.textContent ?? "",
           ordinary: !inField && isOrdinaryTextElement(element),
         });
-      } else if (localName === "tab") {
+      } else if (element.namespaceURI === WORDPROCESSINGML_NAMESPACE && localName === "tab") {
         chunks.push({
           text: "\t",
           ordinary: !inField && isOrdinaryTextElement(element),
         });
-      } else if (localName === "br" || localName === "cr") {
+      } else if (
+        element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
+        (localName === "br" || localName === "cr")
+      ) {
         chunks.push({
           text: "\n",
           ordinary: !inField && isOrdinaryTextElement(element),
@@ -601,7 +612,12 @@ const styleTypeOf = (style: XmlElement): StyleType => {
 
 const styleDefaultOf = (style: XmlElement): boolean | null => {
   if (!hasAttribute(style, "default")) return false;
-  return enabledValue(style);
+  const value = attributeValue(style, "default");
+  if (value === null) return null;
+  const normalized = value.toLowerCase();
+  if (["1", "true", "on"].includes(normalized)) return true;
+  if (["0", "false", "off"].includes(normalized)) return false;
+  return null;
 };
 
 const parseStyles = (styles: XmlDocument | undefined): StyleContext => {
@@ -1075,7 +1091,7 @@ const sequenceRunContainsOnlyCarrier = (
         }
         ancestor = ancestor.parentNode;
       }
-      return ["t", "delText", "instrText", "tab", "br", "cr"].includes(
+      return ["rPr", "t", "delText", "instrText", "tab", "br", "cr"].includes(
         localNameOf(element),
       );
     });
@@ -1092,9 +1108,14 @@ const sequenceRunContainsOnlyCarrier = (
 const frozenAnchorFor = (
   sequence: CarrierSequence,
   candidateId: CandidateId,
+  mode: InspectionMode,
 ): CarrierAnchor => {
   const decoded = sequence.decodedFrame;
-  if (!decoded || !sequence.ordinary || !sequenceRunContainsOnlyCarrier(sequence)) {
+  if (
+    !decoded ||
+    !sequence.ordinary ||
+    (mode === "source" && !sequenceRunContainsOnlyCarrier(sequence))
+  ) {
     return "not_frozen";
   }
   const anchor = frozenAnchorParts(decoded.markerId);
@@ -1193,6 +1214,7 @@ export function inspectZeroWidthDocx(
     const anchor = frozenAnchorFor(
       { ...sequence, decodedFrame },
       candidateId,
+      mode,
     );
     const decodeError = sequence.error ??
       (sequence.decodedFrame && !sequence.ordinary
@@ -1205,7 +1227,7 @@ export function inspectZeroWidthDocx(
       } else {
         markerSet.add(decodedFrame.markerId);
       }
-      if (!carrierOnly) {
+      if (mode === "source" && !carrierOnly) {
         frameErrors.push(`Candidate ${candidateId}: mixed carrier run`);
       }
       if (anchor === "not_frozen") {
@@ -1226,7 +1248,7 @@ export function inspectZeroWidthDocx(
       anchor,
       decodeError,
     });
-    if (decodedFrame && sequence.ordinary && carrierOnly && paragraph.location === "body" && paragraph.partName === "word/document.xml") {
+    if (decodedFrame && sequence.ordinary && paragraph.location === "body" && paragraph.partName === "word/document.xml") {
       points.forEach(({ codePointIndex }) =>
         removableBodyIndexes.add(
           `${paragraph.partName}:${paragraph.paragraphIndex}:${codePointIndex}`,

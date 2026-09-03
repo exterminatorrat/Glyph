@@ -200,6 +200,19 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     ]);
   });
 
+  test("does not treat explicit-false paragraph or character styles as defaults", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const mutated = mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace(
+        "</w:styles>",
+        '<w:style w:type="paragraph" w:default="0" w:styleId="FalseParagraphOne"><w:rPr><w:vanish/></w:rPr></w:style><w:style w:type="paragraph" w:default="false" w:styleId="FalseParagraphTwo"><w:rPr><w:vanish/></w:rPr></w:style><w:style w:type="character" w:default="off" w:styleId="FalseCharacter"><w:rPr><w:vanish/></w:rPr></w:style></w:styles>',
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(mutated, CANDIDATE_A.id, "source");
+    expect(inspection.forbiddenRunProperties).toEqual([]);
+    expect(inspection.frameErrors).toEqual([]);
+  });
+
   test("reports missing and cyclic style inheritance as unresolved", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const missing = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>
@@ -238,6 +251,9 @@ describe("zero-width carrier DOCX generator and inspector", () => {
       ]),
     );
     expect(inspection.forbiddenRunProperties).toEqual([]);
+    expect(inspection.frameErrors).toEqual([]);
+    expect(inspection.carrierOccurrences[1]?.anchor).toBe("beta_frozen");
+    expect(inspection.visibleBodyParagraphs).toEqual(VISIBLE_PARAGRAPHS);
   });
 
   test("accepts editor-split carrier text while retaining all run indexes", async () => {
@@ -252,6 +268,44 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     const inspection = inspectZeroWidthDocx(split, CANDIDATE_A.id, "transformed");
     expect(inspection.frameErrors).toEqual([]);
     expect(inspection.carrierOccurrences[0]?.runIndices).toEqual([1, 2]);
+  });
+
+  test("accepts an editor-merged transformed carrier while keeping canonical source runs strict", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const merged = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        `</w:t></w:r><w:r><w:t xml:space="preserve">${alpha}`,
+        alpha,
+      ),
+    );
+    const transformed = inspectZeroWidthDocx(merged, CANDIDATE_A.id, "transformed");
+    expect(transformed.frameErrors).toEqual([]);
+    expect(transformed.carrierOccurrences[0]?.runIndices).toEqual([0]);
+    expect(transformed.carrierOccurrences[0]?.anchor).toBe("alpha_frozen");
+    expect(transformed.visibleBodyParagraphs).toEqual(VISIBLE_PARAGRAPHS);
+
+    const canonical = inspectZeroWidthDocx(merged, CANDIDATE_A.id, "source");
+    expect(canonical.frameErrors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("mixed carrier run"),
+        expect.stringContaining("carrier anchor is not frozen"),
+      ]),
+    );
+  });
+
+  test("does not accept foreign-namespace text lookalikes as ordinary carrier text", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const foreign = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        `<w:t xml:space="preserve">${alpha}</w:t>`,
+        `<x:t xmlns:x="urn:glyph:foreign-test">${alpha}</x:t>`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(foreign, CANDIDATE_A.id, "transformed");
+    expect(inspection.markerPresence.alpha).toBe("absent");
+    expect(inspection.carrierOccurrences).toHaveLength(1);
   });
 
   test("rejects moved, duplicate, non-body, and damaged carrier frames", async () => {
