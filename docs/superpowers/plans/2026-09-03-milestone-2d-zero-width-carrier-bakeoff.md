@@ -37,6 +37,32 @@
 - Use existing dependencies only. `pnpm-lock.yaml` must not change.
 - One mutating implementer owns all overlapping files serially. Read-only reviewers may run in parallel only at the checkpoints named below and never edit the worktree.
 
+## Controller rulings added before implementation
+
+The following review rulings are binding refinements of the approved design and
+apply to Tasks 1–5:
+
+- Effective hidden state must resolve direct `w:vanish`, character and
+  paragraph style inheritance including `basedOn` chains, and `docDefaults`.
+  Cycles, missing referenced styles, or unhandled inheritance are unresolved
+  findings and fail source/transformed conformance.
+- The validator rejects the entire record unless all three canonical source
+  inspections pass the exact source contract. Invalid canonical evidence is
+  not a revision or abandonment outcome.
+- A non-blocked record requires assessable visible-body, presentation, and
+  layout evidence for Google paginated white, Word light, and Word dark views,
+  and assessable selection observations in both editors. `not_assessable` is
+  retained only for Google dark/screen-reader and appropriately unavailable
+  Accessibility Assistant evidence with limitations.
+- Readable negative DOCX/TXT evidence (missing, damaged, duplicate, or unsafe
+  frames/packages) is emitted as complete safe JSON with exit status zero.
+  Usage, path/read, malformed package/XML, and invalid UTF-8 errors remain
+  nonzero; negative outputs are recordable evidence.
+- Relationship and package-entry findings use only privacy-safe fixed
+  classifications/counts or stable redacted finding IDs. Raw relationship
+  targets, type strings, URLs, paths, and personal text never enter inspection
+  objects, command output, errors, or records.
+
 ## File Map
 
 | File | Responsibility |
