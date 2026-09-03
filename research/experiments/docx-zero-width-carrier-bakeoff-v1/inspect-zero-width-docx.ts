@@ -485,7 +485,7 @@ const textFragmentsFromRun = (
       const element = child as XmlElement;
       if (
         element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
-        localNameOf(element) === "p"
+        (localNameOf(element) === "p" || localNameOf(element) === "r")
       ) continue;
       if (
         element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&

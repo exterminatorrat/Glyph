@@ -395,6 +395,30 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     });
   });
 
+  test("counts a nested WordprocessingML run carrier exactly once", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const nested = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        "</w:p>",
+        `<w:r><w:ruby><w:r><w:t>${alpha}</w:t></w:r></w:ruby></w:r></w:p>`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(nested, CANDIDATE_A.id, "transformed");
+    const nonOrdinary = inspection.carrierOccurrences.filter(
+      ({ context }) => context === "non_ordinary",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(nonOrdinary).toHaveLength(1);
+    expect(nonOrdinary[0]).toMatchObject({
+      markerId: null,
+      location: "body",
+      paragraphIndex: 0,
+      runIndices: [4],
+      codePointCount: 120,
+    });
+  });
+
   test("retains the owning run index for carrier text inside run properties", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
