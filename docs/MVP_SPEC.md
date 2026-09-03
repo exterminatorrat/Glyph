@@ -58,6 +58,17 @@ The milestone ends in exactly one recorded decision:
 
 Only `PROCEED` authorizes Milestone 3 under this specification. A revision requires an approved specification change before further implementation.
 
+### Approved carrier successors
+
+Milestone 2C ended with `REVISE_CARRIER` after its separately versioned
+semantic-white qualification. The approved Milestone 2D design,
+`docs/superpowers/specs/2026-09-03-milestone-2d-zero-width-carrier-bakeoff-design.md`,
+is the current specification revision for the zero-width carrier successor
+bake-off. It qualifies transport and ordinary presentation only; any selected
+document profile still requires separate accessibility and international-text
+qualification. Milestone 3 and all product workflows remain unauthorized until
+that successor gate and its later qualification are complete.
+
 ## 5. Fingerprint requirements
 
 If the carrier gate passes, Milestone 3 introduces the conceptual `FingerprintEngine` interface:

@@ -81,6 +81,18 @@ Milestone 2 ends with one decision:
 
 A failed carrier result cannot be rationalized by application investment because persistence and product workflows do not exist yet.
 
+### Versioned carrier successors
+
+Milestone 2C recorded `REVISE_CARRIER` for its semantic-white qualification.
+Milestone 2D is the current, separately versioned zero-width carrier
+bake-off, frozen in the [Milestone 2D protocol](../research/experiments/docx-zero-width-carrier-bakeoff-v1/protocol.md).
+It asks whether fixed checksum-protected zero-width frames survive independent
+Google Docs and Microsoft Word DOCX round trips and ordinary plain-text copy
+while remaining absent from required ordinary views. The result is transport
+evidence only: a selected profile advances to separate accessibility and
+international-text qualification and does not change the interpretation ladder
+or authorize Milestone 3/product claims.
+
 ## Experiment B — model compliance
 
 ### Question
