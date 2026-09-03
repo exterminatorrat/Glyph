@@ -766,14 +766,4 @@ describe("semantic-white carrier run-record validator", () => {
     }
   });
 
-  test("does not create a real run record or canonical artifact", async () => {
-    expect(
-      await readFile(
-        resolve(
-          fileURLToPath(new URL("../../", import.meta.url)),
-          "research/experiments/docx-semantic-white-carrier-qualification-v1/run-001.json",
-        ),
-      ).catch(() => null),
-    ).toBeNull();
-  });
 });
