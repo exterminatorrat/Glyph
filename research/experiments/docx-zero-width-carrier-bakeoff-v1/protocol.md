@@ -214,15 +214,22 @@ classifications.
 
 Source mode requires exactly Alpha in body paragraph 0 run 1 and Beta in body
 paragraph 2 run 1, no candidate-alphabet code points elsewhere, one frame per
-marker, no carrier run properties, and clean package safety. Transformed mode
-allows benign run splitting or merging only when exact frames, body positions,
-visible body, and safety remain valid. A transformed carrier must not move,
-duplicate, mix alphabets, gain enabled hidden text, or become damaged.
+marker, no carrier run properties, and clean package safety. Each occurrence
+also records a privacy-safe `U+...` code-point sequence, count, location, run
+indexes, `context`, frozen-prefix/frame/suffix `anchor`, and nullable decoded
+frame plus `decodeError`; damaged and undecodable expected-alphabet sequences
+remain in the inspection rather than disappearing. Source carrier runs must
+contain only their exact frame. Transformed mode allows benign split or merged
+runs only when exact frames, body positions, visible body, and safety remain
+valid. A transformed carrier must not move, duplicate, mix alphabets, gain
+enabled hidden text, or become damaged.
 
 The plain-text inspector validates UTF-8, records exact code-point labels and
-indexes, decodes only contiguous exact expected-alphabet runs, reports
-normalization observations without applying normalization, and removes only
-successfully identified carrier runs when computing visible paragraphs.
+indexes, decodes only contiguous exact expected-alphabet runs, retains every
+truncated or undecodable run with its safe sequence, count, indexes, nullable
+decoded frame, and decode error, reports normalization observations without
+applying normalization, and removes only successfully identified carrier runs
+when computing visible paragraphs.
 
 The only forbidden carrier properties are enabled `w:vanish`, `w:webHidden`,
 and `w:specVanish`. Explicitly disabled hidden properties are evidence but are
@@ -230,13 +237,18 @@ not forbidden. Other editor-added direct properties are recorded with
 privacy-safe classifications; arbitrary literal values are redacted.
 
 Effective hidden state resolves direct run properties, `docDefaults`, the
-paragraph style, character styles, and every `w:basedOn` ancestor. Missing
-styles, based-on cycles, linked or otherwise unhandled style inheritance are
-unresolved findings and fail source/transformed conformance even when the
-direct carrier run has no `w:rPr`. Package entry names and relationship
-findings use only allowlisted standard labels, fixed classifications, or stable
-redacted IDs; relationship targets, types, URLs, and personal text are never
-returned.
+paragraph style, character styles, and every `w:basedOn` ancestor. Style
+definitions retain their `w:type` and `w:default` state; when an explicit
+paragraph or character style is absent, the one unambiguous matching default
+style is applied with the frozen precedence `docDefaults`, paragraph style,
+character style, then direct run properties. Ambiguous duplicate defaults,
+missing referenced styles, based-on cycles, linked styles, incompatible style types, and
+other unhandled inheritance are unresolved findings and fail
+source/transformed conformance even when the direct carrier run has no
+`w:rPr`. Package entry names and relationship findings use only allowlisted
+standard labels, fixed classifications, or stable redacted IDs; relationship
+targets, types, URLs, and personal text are never returned. Unknown OOXML run
+property labels are replaced by stable generic redacted IDs.
 
 Core `dc:creator` and `cp:lastModifiedBy` values are classified only as
 `absent`, `empty`, `synthetic_expected`, or `non_synthetic_redacted`. No raw
@@ -283,6 +295,68 @@ type ViewEvidence = Readonly<{
   carrierPresentation: CarrierPresentation;
   layoutDisturbance: LayoutDisturbance;
   notes: readonly string[];
+}>;
+type OOXMLTextLocation =
+  | "body"
+  | "header"
+  | "footer"
+  | "footnote"
+  | "endnote"
+  | "comments"
+  | "other";
+type DecodedFrame = Readonly<{
+  markerId: "alpha" | "beta";
+  bytes: readonly number[];
+  magic: readonly [0x47, 0x5a];
+  version: 1;
+  payloadLength: 8;
+  payloadHex: string;
+  checksum: number;
+  checksumValid: true;
+}>;
+type CarrierContext = "ordinary_body" | "non_ordinary";
+type CarrierAnchor = "alpha_frozen" | "beta_frozen" | "not_frozen";
+type DocxCarrierOccurrence = Readonly<{
+  markerId: ZeroWidthMarkerId | null;
+  partName: string;
+  location: OOXMLTextLocation;
+  paragraphIndex: number;
+  runIndices: readonly number[];
+  codePointIndexes: readonly number[];
+  codePointCount: number;
+  codePoints: readonly string[];
+  decodedFrame: DecodedFrame | null;
+  context: CarrierContext;
+  anchor: CarrierAnchor;
+  decodeError: string | null;
+}>;
+type CarrierRunInspection = Readonly<{
+  startCodePointIndex: number;
+  endCodePointIndexExclusive: number;
+  codePointCount: number;
+  codePoints: readonly string[];
+  decodedFrame: DecodedFrame | null;
+  error: string | null;
+}>;
+type CodePointOccurrence = Readonly<{
+  codePoint: string;
+  codePointIndex: number;
+}>;
+type ZeroWidthTextInspection = Readonly<{
+  candidateId: CandidateId;
+  validUtf8: true;
+  byteLength: number;
+  codePointLength: number;
+  normalization: Readonly<{
+    nfc: "unchanged" | "changed";
+    nfkc: "unchanged" | "changed";
+  }>;
+  candidateCodePoints: readonly CodePointOccurrence[];
+  unexpectedCandidateCodePoints: readonly CodePointOccurrence[];
+  carrierRuns: readonly CarrierRunInspection[];
+  markerPresence: Readonly<{ alpha: MarkerPresence; beta: MarkerPresence }>;
+  frameErrors: readonly string[];
+  visibleBodyParagraphs: readonly string[];
 }>;
 type InspectionEvidence = Readonly<{
   candidateId: CandidateId;

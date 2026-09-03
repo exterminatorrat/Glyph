@@ -548,7 +548,20 @@ const assertCarrierOccurrence = (
 ): DocxCarrierOccurrence => {
   const object = exactObject(
     value,
-    ["markerId", "partName", "location", "paragraphIndex", "runIndices", "codePointIndexes", "codePointCount", "codePoints", "decodedFrame"],
+    [
+      "markerId",
+      "partName",
+      "location",
+      "paragraphIndex",
+      "runIndices",
+      "codePointIndexes",
+      "codePointCount",
+      "codePoints",
+      "decodedFrame",
+      "context",
+      "anchor",
+      "decodeError",
+    ],
     path,
   );
   const runIndices = arrayAt(object.runIndices, `${path}.runIndices`).map((entry, index) =>
@@ -562,9 +575,41 @@ const assertCarrierOccurrence = (
   );
   const codePointCount = nonNegativeIntegerAt(object.codePointCount, `${path}.codePointCount`);
   ensure(codePointCount === codePoints.length && codePointCount === codePointIndexes.length, `${path}.codePointCount`, "must match the observed code points");
-  const markerId = enumAt(object.markerId, ["alpha", "beta"] as const, `${path}.markerId`);
-  const decodedFrame = assertDecodedFrame(object.decodedFrame, `${path}.decodedFrame`);
-  ensure(decodedFrame.markerId === markerId, `${path}.decodedFrame.markerId`, "must match markerId");
+  ensure(
+    codePointIndexes.every(
+      (index, position) => position === 0 || index === codePointIndexes[position - 1]! + 1,
+    ),
+    `${path}.codePointIndexes`,
+    "must be contiguous",
+  );
+  const markerId = object.markerId === null
+    ? null
+    : enumAt(object.markerId, ["alpha", "beta"] as const, `${path}.markerId`);
+  const decodedFrame = object.decodedFrame === null
+    ? null
+    : assertDecodedFrame(object.decodedFrame, `${path}.decodedFrame`);
+  ensure(
+    (markerId === null && decodedFrame === null) ||
+      (markerId !== null && decodedFrame !== null && decodedFrame.markerId === markerId),
+    `${path}.decodedFrame`,
+    "must match markerId",
+  );
+  const context = enumAt(
+    object.context,
+    ["ordinary_body", "non_ordinary"] as const,
+    `${path}.context`,
+  );
+  const anchor = enumAt(
+    object.anchor,
+    ["alpha_frozen", "beta_frozen", "not_frozen"] as const,
+    `${path}.anchor`,
+  );
+  const decodeError = nullableStringAt(object.decodeError, `${path}.decodeError`);
+  ensure(
+    decodedFrame === null ? decodeError !== null : decodeError === null,
+    `${path}.decodeError`,
+    "must match decodedFrame",
+  );
   return {
     markerId,
     partName: assertPartLabel(object.partName, `${path}.partName`),
@@ -579,6 +624,9 @@ const assertCarrierOccurrence = (
     codePointCount,
     codePoints,
     decodedFrame,
+    context,
+    anchor,
+    decodeError,
   };
 };
 
@@ -736,6 +784,11 @@ const assertTextCarrierRun = (
   );
   const codePointCount = nonNegativeIntegerAt(object.codePointCount, `${path}.codePointCount`);
   ensure(codePointCount === codePoints.length, `${path}.codePointCount`, "must match codePoints");
+  ensure(
+    endCodePointIndexExclusive === startCodePointIndex + codePointCount,
+    `${path}.endCodePointIndexExclusive`,
+    "must match the observed code-point count",
+  );
   const decodedFrame = object.decodedFrame === null
     ? null
     : assertDecodedFrame(object.decodedFrame, `${path}.decodedFrame`);
@@ -1125,30 +1178,69 @@ type FrameAndBodyEvidence = Readonly<{
   frameErrors: readonly string[];
   unexpectedCandidateCodePoints: readonly unknown[];
   visibleBodyParagraphs: readonly string[];
+  carrierOccurrences?: readonly DocxCarrierOccurrence[];
 }>;
 
-const exactFramesAndBody = (value: FrameAndBodyEvidence): boolean =>
+const expectedCodePointStart = (markerId: "alpha" | "beta"): number => {
+  const paragraph = VISIBLE_PARAGRAPHS[markerId === "alpha" ? 0 : 2];
+  return [...paragraph.slice(0, paragraph.indexOf(".") + 1)].length;
+};
+
+const expectedOccurrence = (
+  occurrence: DocxCarrierOccurrence,
+  candidateId: CandidateId,
+): boolean => {
+  if (
+    occurrence.markerId === null ||
+    occurrence.decodedFrame === null ||
+    occurrence.context !== "ordinary_body" ||
+    occurrence.anchor !== `${occurrence.markerId}_frozen` ||
+    occurrence.partName !== "word/document.xml" ||
+    occurrence.location !== "body" ||
+    occurrence.paragraphIndex !== (occurrence.markerId === "alpha" ? 0 : 2) ||
+    occurrence.codePointCount !== ZERO_WIDTH_CANDIDATES.find(({ id }) => id === candidateId)?.codePointsPerFrame ||
+    occurrence.codePointIndexes[0] !== expectedCodePointStart(occurrence.markerId)
+  ) {
+    return false;
+  }
+  return occurrence.runIndices.length > 0;
+};
+
+const exactFramesAndBody = (
+  value: FrameAndBodyEvidence,
+  candidateId?: CandidateId,
+): boolean =>
   value.markerPresence.alpha === "present" &&
   value.markerPresence.beta === "present" &&
   value.frameErrors.length === 0 &&
   value.unexpectedCandidateCodePoints.length === 0 &&
-  arraysEqual(value.visibleBodyParagraphs, VISIBLE_PARAGRAPHS);
+  arraysEqual(value.visibleBodyParagraphs, VISIBLE_PARAGRAPHS) &&
+  (value.carrierOccurrences === undefined ||
+    (candidateId !== undefined &&
+      value.carrierOccurrences.length === 2 &&
+      value.carrierOccurrences.every((occurrence) =>
+        expectedOccurrence(occurrence, candidateId),
+      )));
 
 const safetyPasses = (value: SafetyInspection): boolean =>
   Object.values(value).every((findings) => findings.length === 0);
 
 const expectedBodyPositionsPass = (
   occurrences: readonly DocxCarrierOccurrence[],
+  candidateId: CandidateId,
+  source = false,
 ): boolean =>
   occurrences.length === 2 &&
   occurrences[0]?.markerId === "alpha" &&
-  occurrences[0]?.partName === "word/document.xml" &&
-  occurrences[0]?.location === "body" &&
-  occurrences[0]?.paragraphIndex === 0 &&
   occurrences[1]?.markerId === "beta" &&
-  occurrences[1]?.partName === "word/document.xml" &&
-  occurrences[1]?.location === "body" &&
-  occurrences[1]?.paragraphIndex === 2;
+  expectedOccurrence(occurrences[0]!, candidateId) &&
+  expectedOccurrence(occurrences[1]!, candidateId) &&
+  (source
+    ? occurrences[0]!.runIndices.length === 1 &&
+      occurrences[0]!.runIndices[0] === 1 &&
+      occurrences[1]!.runIndices.length === 1 &&
+      occurrences[1]!.runIndices[0] === 1
+    : true);
 
 const expectedSourceCore = (
   value: InspectionEvidence,
@@ -1165,9 +1257,9 @@ const sourcePasses = (
   return (
     candidate !== undefined &&
     artifact.inspection.mode === "source" &&
-    exactFramesAndBody(artifact.inspection) &&
+    exactFramesAndBody(artifact.inspection, candidate.id) &&
     expectedSourceCore(artifact.inspection) &&
-    expectedBodyPositionsPass(artifact.inspection.carrierOccurrences) &&
+    expectedBodyPositionsPass(artifact.inspection.carrierOccurrences, candidate.id, true) &&
     artifact.inspection.carrierOccurrences.every(
       (occurrence) =>
         occurrence.runIndices.length === 1 &&
@@ -1187,8 +1279,8 @@ const docxPasses = (
   value.status === "completed" &&
   value.inspection.candidateId === candidateId &&
   value.inspection.mode === "transformed" &&
-  exactFramesAndBody(value.inspection) &&
-  expectedBodyPositionsPass(value.inspection.carrierOccurrences) &&
+  exactFramesAndBody(value.inspection, candidateId) &&
+  expectedBodyPositionsPass(value.inspection.carrierOccurrences, candidateId) &&
   value.inspection.forbiddenRunProperties.length === 0 &&
   safetyPasses(value.inspection.safety);
 
@@ -1199,15 +1291,15 @@ const copyPasses = (
   value.status === "completed" &&
   value.inspection.candidateId === candidateId &&
   value.inspection.validUtf8 &&
-  exactFramesAndBody(value.inspection);
+  exactFramesAndBody(value.inspection, candidateId);
 
 export const hasBoundedTransportEvidence = (
   candidate: CandidateRunEvidence,
 ): boolean =>
-  exactFramesAndBody(candidate.googleDocs.docxRoundtrip.inspection) ||
-  exactFramesAndBody(candidate.microsoftWord.docxRoundtrip.inspection) ||
-  exactFramesAndBody(candidate.googleDocs.plainTextCopy.inspection) ||
-  exactFramesAndBody(candidate.microsoftWord.plainTextCopy.inspection);
+  exactFramesAndBody(candidate.googleDocs.docxRoundtrip.inspection, candidate.candidateId) ||
+  exactFramesAndBody(candidate.microsoftWord.docxRoundtrip.inspection, candidate.candidateId) ||
+  exactFramesAndBody(candidate.googleDocs.plainTextCopy.inspection, candidate.candidateId) ||
+  exactFramesAndBody(candidate.microsoftWord.plainTextCopy.inspection, candidate.candidateId);
 
 export const criteriaSatisfied = (
   candidate: CandidateRunEvidence,

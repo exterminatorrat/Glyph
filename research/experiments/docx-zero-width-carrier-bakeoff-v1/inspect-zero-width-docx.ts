@@ -16,6 +16,7 @@ import {
 import {
   SYNTHETIC_CORE_AUTHOR,
   VISIBLE_PARAGRAPHS,
+  candidateDefinition,
   type CandidateId,
   type ZeroWidthMarkerId,
 } from "./fixture.ts";
@@ -70,6 +71,71 @@ const SAFE_ENUM_VALUES = new Set([
   "solid",
   "yellow",
 ]);
+const SAFE_PROPERTY_NAMES = new Set([
+  "bdr",
+  "bidi",
+  "caps",
+  "color",
+  "cs",
+  "eastAsianLayout",
+  "effect",
+  "emboss",
+  "fitText",
+  "highlight",
+  "i",
+  "iCs",
+  "imprint",
+  "kern",
+  "lang",
+  "noProof",
+  "outline",
+  "position",
+  "rFonts",
+  "rStyle",
+  "rtl",
+  "shadow",
+  "shd",
+  "smallCaps",
+  "snapToGrid",
+  "spacing",
+  "specVanish",
+  "sz",
+  "szCs",
+  "u",
+  "vanish",
+  "vertAlign",
+  "webHidden",
+  "w14:glow",
+  "w14:shadow",
+  "w14:reflection",
+]);
+const NON_ORDINARY_TEXT_ANCESTORS = new Set([
+  "AlternateContent",
+  "customXml",
+  "del",
+  "delText",
+  "drawing",
+  "fldChar",
+  "fldData",
+  "fldSimple",
+  "hyperlink",
+  "ins",
+  "instrText",
+  "moveFrom",
+  "moveFromRangeEnd",
+  "moveFromRangeStart",
+  "moveTo",
+  "moveToRangeEnd",
+  "moveToRangeStart",
+  "object",
+  "pict",
+  "ruby",
+  "sdt",
+  "sdtContent",
+  "smartTag",
+  "textbox",
+  "txbxContent",
+]);
 
 export type InspectionMode = "source" | "transformed";
 export type CoreMetadataClassification =
@@ -93,8 +159,10 @@ export type PackageCodePointOccurrence = Readonly<{
   runIndex: number;
   codePointIndex: number;
 }>;
+export type CarrierContext = "ordinary_body" | "non_ordinary";
+export type CarrierAnchor = "alpha_frozen" | "beta_frozen" | "not_frozen";
 export type DocxCarrierOccurrence = Readonly<{
-  markerId: ZeroWidthMarkerId;
+  markerId: ZeroWidthMarkerId | null;
   partName: string;
   location: OOXMLTextLocation;
   paragraphIndex: number;
@@ -102,7 +170,10 @@ export type DocxCarrierOccurrence = Readonly<{
   codePointIndexes: readonly number[];
   codePointCount: number;
   codePoints: readonly string[];
-  decodedFrame: DecodedFrame;
+  decodedFrame: DecodedFrame | null;
+  context: CarrierContext;
+  anchor: CarrierAnchor;
+  decodeError: string | null;
 }>;
 export type ForbiddenRunProperty = Readonly<{
   partName: string;
@@ -154,6 +225,7 @@ type TextCodePoint = Readonly<{
   value: string;
   codePoint: number;
   codePointIndex: number;
+  ordinary: boolean;
 }>;
 type RunInspection = Readonly<{
   element: XmlElement;
@@ -176,16 +248,27 @@ type CarrierSequence = Readonly<{
   runIndices: readonly number[];
   decodedFrame: DecodedFrame | null;
   error: string | null;
+  ordinary: boolean;
 }>;
+type StyleType = "character" | "paragraph" | "table" | "numbering" | "unknown";
 type StyleDefinition = Readonly<{
   id: string;
+  type: StyleType;
   basedOn: string | null;
   runProperties: XmlElement | undefined;
   unresolved: boolean;
+  isDefault: boolean;
 }>;
 type StyleContext = Readonly<{
   definitions: ReadonlyMap<string, StyleDefinition>;
   defaults: XmlElement | undefined;
+  implicitDefaults: Readonly<{
+    paragraph: string | null;
+    character: string | null;
+    paragraphUnresolved: boolean;
+    characterUnresolved: boolean;
+  }>;
+  defaultsUnresolved: boolean;
 }>;
 type EffectiveStyles = Readonly<{
   properties: ReadonlyMap<string, XmlElement>;
@@ -334,8 +417,30 @@ const unzipDocx = (bytes: Uint8Array): Unzipped => {
   return entries;
 };
 
-const textFromRun = (run: XmlElement): string => {
-  const chunks: string[] = [];
+type TextFragment = Readonly<{
+  text: string;
+  ordinary: boolean;
+}>;
+
+const isOrdinaryTextElement = (element: XmlElement): boolean => {
+  if (element.parentNode?.nodeType !== 1 || localNameOf(element.parentNode as XmlElement) !== "r") {
+    return false;
+  }
+  let current: XmlNode | null = element;
+  while (current) {
+    if (current.nodeType === 1 && NON_ORDINARY_TEXT_ANCESTORS.has(localNameOf(current as XmlElement))) {
+      return false;
+    }
+    current = current.parentNode;
+  }
+  return true;
+};
+
+const textFragmentsFromRun = (
+  run: XmlElement,
+  inField: boolean,
+): TextFragment[] => {
+  const chunks: TextFragment[] = [];
   const visit = (node: XmlNode): void => {
     for (let index = 0; index < node.childNodes.length; index += 1) {
       const child = node.childNodes.item(index);
@@ -347,26 +452,43 @@ const textFromRun = (run: XmlElement): string => {
       ) continue;
       const localName = localNameOf(element);
       if (localName === "t" || localName === "delText" || localName === "instrText") {
-        chunks.push(element.textContent ?? "");
+        chunks.push({
+          text: element.textContent ?? "",
+          ordinary: !inField && isOrdinaryTextElement(element),
+        });
       } else if (localName === "tab") {
-        chunks.push("\t");
+        chunks.push({
+          text: "\t",
+          ordinary: !inField && isOrdinaryTextElement(element),
+        });
       } else if (localName === "br" || localName === "cr") {
-        chunks.push("\n");
+        chunks.push({
+          text: "\n",
+          ordinary: !inField && isOrdinaryTextElement(element),
+        });
       } else {
         visit(element);
       }
     }
   };
   visit(run);
-  return chunks.join("");
+  return chunks;
 };
 
-const codePointEntries = (text: string, offset = 0): TextCodePoint[] =>
-  [...text].map((value, index) => ({
-    value,
-    codePoint: value.codePointAt(0) ?? -1,
-    codePointIndex: offset + index,
-  }));
+const codePointEntries = (
+  fragments: readonly TextFragment[],
+  offset = 0,
+): TextCodePoint[] => {
+  let codePointIndex = offset;
+  return fragments.flatMap(({ text, ordinary }) =>
+    [...text].map((value) => ({
+      value,
+      codePoint: value.codePointAt(0) ?? -1,
+      codePointIndex: codePointIndex++,
+      ordinary,
+    })),
+  );
+};
 
 const textPartsLocation = (entryName: string): OOXMLTextLocation => {
   if (entryName.toLowerCase() === "word/document.xml") return "body";
@@ -393,19 +515,51 @@ const paragraphInspections = (
   const location = textPartsLocation(partName);
   return descendantsByLocalName(document, "p", WORDPROCESSINGML_NAMESPACE).map(
     (paragraph, paragraphIndex) => {
+      let fieldDepth = 0;
       const runs = descendantsByLocalName(paragraph, "r", WORDPROCESSINGML_NAMESPACE).map(
         (run) => {
-          const text = textFromRun(run);
+          const fieldChars = descendantsByLocalName(
+            run,
+            "fldChar",
+            WORDPROCESSINGML_NAMESPACE,
+          );
+          const startsField = fieldChars.some(
+            (fieldChar) =>
+              attributeValue(fieldChar, "fldCharType")?.toLowerCase() === "begin",
+          );
+          const endsField = fieldChars.some(
+            (fieldChar) =>
+              attributeValue(fieldChar, "fldCharType")?.toLowerCase() === "end",
+          );
+          const fragments = textFragmentsFromRun(
+            run,
+            fieldDepth > 0 || startsField || endsField,
+          );
+          const text = fragments.map(({ text: value }) => value).join("");
+          if (startsField) fieldDepth += 1;
+          if (endsField) fieldDepth = Math.max(0, fieldDepth - 1);
           return {
             element: run,
             text,
-            codePoints: codePointEntries(text),
+            codePoints: codePointEntries(fragments),
           };
         },
       );
       let offset = 0;
       const normalizedRuns = runs.map((run) => {
-        const codePoints = codePointEntries(run.text, offset);
+        const fragments = run.codePoints.reduce<TextFragment[]>((entries, point) => {
+          const previous = entries.at(-1);
+          if (previous?.ordinary === point.ordinary) {
+            entries[entries.length - 1] = {
+              ...previous,
+              text: `${previous.text}${point.value}`,
+            };
+          } else {
+            entries.push({ text: point.value, ordinary: point.ordinary });
+          }
+          return entries;
+        }, []);
+        const codePoints = codePointEntries(fragments, offset);
         offset += codePoints.length;
         return { ...run, codePoints };
       });
@@ -437,36 +591,124 @@ const enabledValue = (element: XmlElement): boolean | null => {
   return null;
 };
 
+const styleTypeOf = (style: XmlElement): StyleType => {
+  const type = attributeValue(style, "type");
+  if (type === "character" || type === "paragraph" || type === "table" || type === "numbering") {
+    return type;
+  }
+  return "unknown";
+};
+
+const styleDefaultOf = (style: XmlElement): boolean | null => {
+  if (!hasAttribute(style, "default")) return false;
+  return enabledValue(style);
+};
+
 const parseStyles = (styles: XmlDocument | undefined): StyleContext => {
-  if (!styles) return { definitions: new Map(), defaults: undefined };
+  if (!styles) {
+    return {
+      definitions: new Map(),
+      defaults: undefined,
+      implicitDefaults: {
+        paragraph: null,
+        character: null,
+        paragraphUnresolved: false,
+        characterUnresolved: false,
+      },
+      defaultsUnresolved: false,
+    };
+  }
   const definitions = new Map<string, StyleDefinition>();
+  const defaultIds: Record<"paragraph" | "character", string[]> = {
+    paragraph: [],
+    character: [],
+  };
+  let defaultsUnresolved = false;
   for (const style of descendantsByLocalName(styles, "style", WORDPROCESSINGML_NAMESPACE)) {
     const id = attributeValue(style, "styleId");
     if (!id) continue;
+    const type = styleTypeOf(style);
+    const defaultValue = styleDefaultOf(style);
     const basedOnElement = directChild(style, WORDPROCESSINGML_NAMESPACE, "basedOn");
-    const type = attributeValue(style, "type");
     const linked = directChild(style, WORDPROCESSINGML_NAMESPACE, "link");
-    definitions.set(id, {
+    const definition: StyleDefinition = {
       id,
+      type,
       basedOn: attributeValue(basedOnElement, "val"),
       runProperties: directChild(style, WORDPROCESSINGML_NAMESPACE, "rPr"),
-      unresolved: linked !== undefined || (type !== null && !["character", "paragraph", "table", "numbering"].includes(type)),
-    });
+      unresolved:
+        linked !== undefined ||
+        type === "unknown" ||
+        defaultValue === null ||
+        (basedOnElement !== undefined && attributeValue(basedOnElement, "val") === null),
+      isDefault: defaultValue === true,
+    };
+    if (definitions.has(id)) {
+      const previous = definitions.get(id)!;
+      definitions.set(id, {
+        ...definition,
+        unresolved: true,
+      });
+      definitions.set(previous.id, {
+        ...previous,
+        unresolved: true,
+      });
+      defaultsUnresolved = true;
+    } else {
+      definitions.set(id, definition);
+    }
+    if (defaultValue === null) defaultsUnresolved = true;
+    if (defaultValue === true) {
+      if (type === "paragraph" || type === "character") {
+        defaultIds[type].push(id);
+      } else {
+        defaultsUnresolved = true;
+      }
+    }
   }
-  const defaults = directChild(
-    directChild(styles.documentElement, WORDPROCESSINGML_NAMESPACE, "docDefaults") ?? styles.documentElement,
+  const docDefaultsElements = descendantsByLocalName(
+    styles,
+    "docDefaults",
     WORDPROCESSINGML_NAMESPACE,
-    "rPrDefault",
   );
+  const docDefaults = docDefaultsElements[0];
+  if (docDefaultsElements.length > 1) defaultsUnresolved = true;
+  const rPrDefaults = docDefaults
+    ? childElements(docDefaults).filter(
+        (child) => isElement(child, WORDPROCESSINGML_NAMESPACE, "rPrDefault"),
+      )
+    : [];
+  if (rPrDefaults.length > 1) defaultsUnresolved = true;
+  const defaults = rPrDefaults[0];
+  const defaultRunProperties = defaults
+    ? childElements(defaults).filter(
+        (child) => isElement(child, WORDPROCESSINGML_NAMESPACE, "rPr"),
+      )
+    : [];
+  if (defaultRunProperties.length > 1) defaultsUnresolved = true;
+  const implicitDefault = (type: "paragraph" | "character") => ({
+    id: defaultIds[type].length === 1 ? defaultIds[type][0]! : null,
+    unresolved: defaultIds[type].length > 1,
+  });
+  const paragraphDefault = implicitDefault("paragraph");
+  const characterDefault = implicitDefault("character");
   return {
     definitions,
-    defaults: defaults ? directChild(defaults, WORDPROCESSINGML_NAMESPACE, "rPr") : undefined,
+    defaults: defaultRunProperties[0],
+    implicitDefaults: {
+      paragraph: paragraphDefault.id,
+      character: characterDefault.id,
+      paragraphUnresolved: paragraphDefault.unresolved,
+      characterUnresolved: characterDefault.unresolved,
+    },
+    defaultsUnresolved,
   };
 };
 
 const resolveStyle = (
   context: StyleContext,
   styleId: string,
+  expectedType: "paragraph" | "character",
   stack: readonly string[] = [],
 ): EffectiveStyles => {
   if (stack.includes(styleId)) {
@@ -476,10 +718,18 @@ const resolveStyle = (
   if (!definition) {
     return { properties: new Map(), unresolved: true };
   }
+  if (definition.type !== expectedType) {
+    return { properties: new Map(), unresolved: true };
+  }
   const properties = new Map<string, XmlElement>();
   let unresolved = definition.unresolved;
   if (definition.basedOn) {
-    const inherited = resolveStyle(context, definition.basedOn, [...stack, styleId]);
+    const inherited = resolveStyle(
+      context,
+      definition.basedOn,
+      expectedType,
+      [...stack, styleId],
+    );
     inherited.properties.forEach((value, key) => properties.set(key, value));
     unresolved ||= inherited.unresolved;
   }
@@ -489,22 +739,29 @@ const resolveStyle = (
   return { properties, unresolved };
 };
 
-const styleIdFromParagraph = (paragraph: XmlElement): string | null =>
-  attributeValue(
-    directChild(
-      directChild(paragraph, WORDPROCESSINGML_NAMESPACE, "pPr"),
-      WORDPROCESSINGML_NAMESPACE,
-      "pStyle",
-    ),
-    "val",
-  );
-
-const styleIdsFromRun = (run: XmlElement): string[] => {
+const styleIdsFromRun = (run: XmlElement): { ids: string[]; unresolved: boolean } => {
   const runProperties = directChild(run, WORDPROCESSINGML_NAMESPACE, "rPr");
-  return propertyChildren(runProperties)
-    .filter((property) => localNameOf(property) === "rStyle")
-    .map((property) => attributeValue(property, "val"))
-    .filter((value): value is string => value !== null);
+  const styles = propertyChildren(runProperties).filter(
+    (property) => localNameOf(property) === "rStyle",
+  );
+  return {
+    ids: styles
+      .map((property) => attributeValue(property, "val"))
+      .filter((value): value is string => value !== null),
+    unresolved:
+      styles.length > 1 || styles.some((property) => attributeValue(property, "val") === null),
+  };
+};
+
+const paragraphStyleReference = (
+  paragraph: XmlElement,
+): { id: string | null; unresolved: boolean } => {
+  const pPr = directChild(paragraph, WORDPROCESSINGML_NAMESPACE, "pPr");
+  const pStyle = directChild(pPr, WORDPROCESSINGML_NAMESPACE, "pStyle");
+  return {
+    id: attributeValue(pStyle, "val"),
+    unresolved: pStyle !== undefined && attributeValue(pStyle, "val") === null,
+  };
 };
 
 const effectiveRunProperties = (
@@ -513,20 +770,46 @@ const effectiveRunProperties = (
   run: XmlElement,
 ): EffectiveStyles => {
   const properties = new Map<string, XmlElement>();
-  let unresolved = false;
+  let unresolved = context.defaultsUnresolved;
   propertyChildren(context.defaults).forEach((property) =>
     properties.set(localNameOf(property), property),
   );
-  const paragraphStyleId = styleIdFromParagraph(paragraph);
-  if (paragraphStyleId) {
-    const inherited = resolveStyle(context, paragraphStyleId);
+  const paragraphStyle = paragraphStyleReference(paragraph);
+  if (paragraphStyle.id) {
+    const inherited = resolveStyle(context, paragraphStyle.id, "paragraph");
     inherited.properties.forEach((value, key) => properties.set(key, value));
-    unresolved ||= inherited.unresolved;
+    unresolved ||= paragraphStyle.unresolved || inherited.unresolved;
+  } else {
+    unresolved ||= paragraphStyle.unresolved || context.implicitDefaults.paragraphUnresolved;
+    if (context.implicitDefaults.paragraph) {
+      const inherited = resolveStyle(
+        context,
+        context.implicitDefaults.paragraph,
+        "paragraph",
+      );
+      inherited.properties.forEach((value, key) => properties.set(key, value));
+      unresolved ||= inherited.unresolved;
+    }
   }
-  for (const styleId of styleIdsFromRun(run)) {
-    const inherited = resolveStyle(context, styleId);
-    inherited.properties.forEach((value, key) => properties.set(key, value));
-    unresolved ||= inherited.unresolved;
+  const runStyles = styleIdsFromRun(run);
+  unresolved ||= runStyles.unresolved;
+  if (runStyles.ids.length > 0) {
+    for (const styleId of runStyles.ids) {
+      const inherited = resolveStyle(context, styleId, "character");
+      inherited.properties.forEach((value, key) => properties.set(key, value));
+      unresolved ||= inherited.unresolved;
+    }
+  } else {
+    unresolved ||= context.implicitDefaults.characterUnresolved;
+    if (context.implicitDefaults.character) {
+      const inherited = resolveStyle(
+        context,
+        context.implicitDefaults.character,
+        "character",
+      );
+      inherited.properties.forEach((value, key) => properties.set(key, value));
+      unresolved ||= inherited.unresolved;
+    }
   }
   propertyChildren(directChild(run, WORDPROCESSINGML_NAMESPACE, "rPr")).forEach(
     (property) => properties.set(localNameOf(property), property),
@@ -560,7 +843,12 @@ const propertyEvidence = (
   runIndex: number,
   property: XmlElement,
 ): CarrierRunProperty => {
-  const name = localNameOf(property);
+  const localName = localNameOf(property);
+  const name = SAFE_PROPERTY_NAMES.has(localName)
+    ? localName
+    : `property-redacted-${safeHash(
+        `${property.namespaceURI ?? ""}:${property.nodeName}`,
+      )}`;
   if (!hasAttribute(property, "val") && property.attributes.length === 0) {
     return {
       partName: safePartName(partName),
@@ -625,7 +913,17 @@ const processSequences = (
     } catch (caught: unknown) {
       error = caught instanceof Error ? caught.message : `Candidate ${candidateId}: frame decode failed`;
     }
-    sequences.push({ paragraph, start, end: index, points, runIndices, decodedFrame, error });
+    sequences.push({
+      paragraph,
+      start,
+      end: index,
+      points,
+      runIndices,
+      decodedFrame,
+      error,
+      ordinary:
+        paragraph.location === "body" && points.every(({ ordinary }) => ordinary),
+    });
   }
   return sequences;
 };
@@ -715,15 +1013,23 @@ const classifyCoreValue = (
   return "non_synthetic_redacted";
 };
 
-const coreValue = (
+const coreValues = (
   document: XmlDocument | undefined,
   localName: string,
   namespaceURI: string,
-): string | null => {
-  const element = document
-    ? descendantsByLocalName(document, localName, namespaceURI)[0]
-    : undefined;
-  return element ? element.textContent ?? "" : null;
+): string[] =>
+  document
+    ? descendantsByLocalName(document, localName, namespaceURI).map(
+        (element) => element.textContent ?? "",
+      )
+    : [];
+
+const classifyCoreValues = (
+  values: readonly string[],
+): CoreMetadataClassification => {
+  if (values.length === 0) return "absent";
+  if (values.length !== 1) return "non_synthetic_redacted";
+  return classifyCoreValue(values[0]!);
 };
 
 const safeVisibleBodyParagraphs = (
@@ -734,6 +1040,84 @@ const safeVisibleBodyParagraphs = (
       ? paragraph
       : "redacted-visible-body",
   );
+
+const frozenAnchorParts = (markerId: ZeroWidthMarkerId): {
+  paragraphIndex: number;
+  prefix: string;
+  suffix: string;
+} => {
+  const paragraphIndex = markerId === "alpha" ? 0 : 2;
+  const paragraph = VISIBLE_PARAGRAPHS[paragraphIndex];
+  const periodIndex = paragraph.indexOf(".");
+  return {
+    paragraphIndex,
+    prefix: paragraph.slice(0, periodIndex + 1),
+    suffix: paragraph.slice(periodIndex + 1),
+  };
+};
+
+const sequenceRunContainsOnlyCarrier = (
+  sequence: CarrierSequence,
+): boolean => {
+  const sequenceIndexes = new Set(
+    sequence.points.map(({ codePointIndex }) => codePointIndex),
+  );
+  const runHasOnlyText = (run: XmlElement): boolean =>
+    descendants(run).every((element) => {
+      if (element === run) return true;
+      let ancestor = element.parentNode;
+      while (ancestor && ancestor !== run) {
+        if (
+          ancestor.nodeType === 1 &&
+          localNameOf(ancestor as XmlElement) === "rPr"
+        ) {
+          return true;
+        }
+        ancestor = ancestor.parentNode;
+      }
+      return ["t", "delText", "instrText", "tab", "br", "cr"].includes(
+        localNameOf(element),
+      );
+    });
+  return sequence.runIndices.every((runIndex) => {
+    const run = sequence.paragraph.runs[runIndex];
+    if (!run || run.codePoints.length === 0) return false;
+    return (
+      runHasOnlyText(run.element) &&
+      run.codePoints.every(({ codePointIndex }) => sequenceIndexes.has(codePointIndex))
+    );
+  });
+};
+
+const frozenAnchorFor = (
+  sequence: CarrierSequence,
+  candidateId: CandidateId,
+): CarrierAnchor => {
+  const decoded = sequence.decodedFrame;
+  if (!decoded || !sequence.ordinary || !sequenceRunContainsOnlyCarrier(sequence)) {
+    return "not_frozen";
+  }
+  const anchor = frozenAnchorParts(decoded.markerId);
+  if (
+    sequence.paragraph.partName !== "word/document.xml" ||
+    sequence.paragraph.location !== "body" ||
+    sequence.paragraph.paragraphIndex !== anchor.paragraphIndex ||
+    sequence.points.length !== candidateDefinition(candidateId).codePointsPerFrame
+  ) {
+    return "not_frozen";
+  }
+  const prefix = sequence.paragraph.codePoints
+    .slice(0, sequence.start)
+    .map(({ value }) => value)
+    .join("");
+  const suffix = sequence.paragraph.codePoints
+    .slice(sequence.end)
+    .map(({ value }) => value)
+    .join("");
+  return prefix === anchor.prefix && suffix === anchor.suffix
+    ? `${decoded.markerId}_frozen`
+    : "not_frozen";
+};
 
 const standaloneSequences = (
   document: XmlDocument,
@@ -746,7 +1130,7 @@ const standaloneSequences = (
   const root = document.documentElement;
   if (!root) return { sequences: [], unexpected: [] };
   const text = root.textContent ?? "";
-  const points = codePointEntries(text);
+  const points = codePointEntries([{ text, ordinary: false }]);
   const paragraph = {
     element: root,
     paragraphIndex: 0,
@@ -800,16 +1184,36 @@ export function inspectZeroWidthDocx(
   const styles = parseStyles(documents.get("word/styles.xml"));
 
   const addSequence = (sequence: CarrierSequence): void => {
-    if (sequence.error) frameErrors.push(sequence.error);
-    if (!sequence.decodedFrame) return;
-    const { decodedFrame, paragraph, points, runIndices } = sequence;
-    if (markerSet.has(decodedFrame.markerId)) {
-      frameErrors.push(`Candidate ${candidateId}: duplicate ${decodedFrame.markerId} frame`);
-    } else {
-      markerSet.add(decodedFrame.markerId);
+    const { paragraph, points, runIndices } = sequence;
+    const context: CarrierContext = sequence.ordinary
+      ? "ordinary_body"
+      : "non_ordinary";
+    const carrierOnly = sequenceRunContainsOnlyCarrier(sequence);
+    const decodedFrame = sequence.ordinary ? sequence.decodedFrame : null;
+    const anchor = frozenAnchorFor(
+      { ...sequence, decodedFrame },
+      candidateId,
+    );
+    const decodeError = sequence.error ??
+      (sequence.decodedFrame && !sequence.ordinary
+        ? `Candidate ${candidateId}: non-ordinary carrier context`
+        : null);
+    if (decodeError) frameErrors.push(decodeError);
+    if (decodedFrame) {
+      if (markerSet.has(decodedFrame.markerId)) {
+        frameErrors.push(`Candidate ${candidateId}: duplicate ${decodedFrame.markerId} frame`);
+      } else {
+        markerSet.add(decodedFrame.markerId);
+      }
+      if (!carrierOnly) {
+        frameErrors.push(`Candidate ${candidateId}: mixed carrier run`);
+      }
+      if (anchor === "not_frozen") {
+        frameErrors.push(`Candidate ${candidateId}: carrier anchor is not frozen`);
+      }
     }
     carrierOccurrences.push({
-      markerId: decodedFrame.markerId,
+      markerId: decodedFrame?.markerId ?? null,
       partName: safePartName(paragraph.partName),
       location: paragraph.location,
       paragraphIndex: paragraph.paragraphIndex,
@@ -818,8 +1222,11 @@ export function inspectZeroWidthDocx(
       codePointCount: points.length,
       codePoints: points.map(({ codePoint }) => codePointLabel(codePoint)),
       decodedFrame,
+      context,
+      anchor,
+      decodeError,
     });
-    if (paragraph.location === "body" && paragraph.partName === "word/document.xml") {
+    if (decodedFrame && sequence.ordinary && carrierOnly && paragraph.location === "body" && paragraph.partName === "word/document.xml") {
       points.forEach(({ codePointIndex }) =>
         removableBodyIndexes.add(
           `${paragraph.partName}:${paragraph.paragraphIndex}:${codePointIndex}`,
@@ -933,11 +1340,9 @@ export function inspectZeroWidthDocx(
     carrierRunProperties,
     forbiddenRunProperties,
     coreMetadata: {
-      creator: classifyCoreValue(
-        coreValue(core, "creator", DC_NAMESPACE),
-      ),
-      lastModifiedBy: classifyCoreValue(
-        coreValue(core, "lastModifiedBy", CORE_PROPERTIES_NAMESPACE),
+      creator: classifyCoreValues(coreValues(core, "creator", DC_NAMESPACE)),
+      lastModifiedBy: classifyCoreValues(
+        coreValues(core, "lastModifiedBy", CORE_PROPERTIES_NAMESPACE),
       ),
     },
     safety: collectSafety(entries, documents),

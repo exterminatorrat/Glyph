@@ -169,6 +169,37 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     expect(inspection.forbiddenRunProperties.some(({ property }) => property === "vanish")).toBe(true);
   });
 
+  test.each([
+    ["implicit paragraph default", (source: Uint8Array) => mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace("</w:styles>", '<w:style w:type="paragraph" w:default="1" w:styleId="HiddenDefaultPara"><w:rPr><w:vanish/></w:rPr></w:style></w:styles>'),
+    )],
+    ["implicit character default", (source: Uint8Array) => mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace("</w:styles>", '<w:style w:type="character" w:default="1" w:styleId="HiddenDefaultChar"><w:rPr><w:vanish/></w:rPr></w:style></w:styles>'),
+    )],
+  ] as const)("resolves hidden state through %s when explicit style is absent", async (_label, makeBytes) => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const inspection = inspectZeroWidthDocx(makeBytes(source), CANDIDATE_A.id, "source");
+    expect(inspection.forbiddenRunProperties.some(({ property }) => property === "vanish")).toBe(true);
+  });
+
+  test("flags ambiguous and incompatible implicit defaults as unresolved", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const ambiguous = mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace("</w:styles>", '<w:style w:type="character" w:default="1" w:styleId="DefaultOne"><w:rPr/></w:style><w:style w:type="character" w:default="1" w:styleId="DefaultTwo"><w:rPr/></w:style></w:styles>'),
+    );
+    expect(inspectZeroWidthDocx(ambiguous, CANDIDATE_A.id, "source").forbiddenRunProperties).toEqual([
+      expect.objectContaining({ property: "unresolved-style-inheritance" }),
+      expect.objectContaining({ property: "unresolved-style-inheritance" }),
+    ]);
+    const incompatible = mutateEntry(source, "word/styles.xml", (xml) =>
+      xml.replace("</w:styles>", '<w:style w:type="character" w:styleId="CharacterBase"><w:rPr><w:vanish/></w:rPr></w:style><w:style w:type="paragraph" w:default="1" w:styleId="ParagraphDefault"><w:basedOn w:val="CharacterBase"/></w:style></w:styles>'),
+    );
+    expect(inspectZeroWidthDocx(incompatible, CANDIDATE_A.id, "source").forbiddenRunProperties).toEqual([
+      expect.objectContaining({ property: "unresolved-style-inheritance" }),
+      expect.objectContaining({ property: "unresolved-style-inheritance" }),
+    ]);
+  });
+
   test("reports missing and cyclic style inheritance as unresolved", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const missing = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>
@@ -253,6 +284,47 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     const damagedInspection = inspectZeroWidthDocx(damaged, CANDIDATE_A.id, "transformed");
     expect(damagedInspection.frameErrors.length).toBeGreaterThan(0);
     expect(damagedInspection.markerPresence.alpha).toBe("absent");
+    expect(damagedInspection.carrierOccurrences).toHaveLength(2);
+    expect(damagedInspection.carrierOccurrences[0]?.decodedFrame).toBeNull();
+  });
+
+  test("records a relocated or mixed carrier with a non-frozen anchor", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const relocated = mutateEntry(source, "word/document.xml", (xml) => {
+      const firstParagraphEnd = xml.indexOf("</w:p>");
+      const alphaIndex = xml.indexOf(alpha);
+      const runStart = xml.lastIndexOf("<w:r>", alphaIndex);
+      const runEnd = xml.indexOf("</w:r>", alphaIndex) + "</w:r>".length;
+      if (firstParagraphEnd < 0 || runStart < 0 || runEnd < 0) throw new Error("Missing test anchor");
+      const run = xml.slice(runStart, runEnd);
+      return `${xml.slice(0, runStart)}${xml.slice(runEnd, firstParagraphEnd)}${run}${xml.slice(firstParagraphEnd)}`;
+    });
+    const relocatedInspection = inspectZeroWidthDocx(relocated, CANDIDATE_A.id, "transformed");
+    expect(JSON.stringify(relocatedInspection.carrierOccurrences[0])).toContain("not_frozen");
+
+    const mixed = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>
+      run.replace("</w:t>", "X</w:t>"),
+    );
+    const mixedInspection = inspectZeroWidthDocx(mixed, CANDIDATE_A.id, "transformed");
+    expect(mixedInspection.carrierOccurrences).toHaveLength(2);
+    expect(JSON.stringify(mixedInspection.carrierOccurrences[0])).toContain("not_frozen");
+    expect(mixedInspection.visibleBodyParagraphs[0]).toBe("redacted-visible-body");
+  });
+
+  test.each([
+    ["field", (run: string) => `<w:fldSimple w:instr="PAGE">${run}</w:fldSimple>`],
+    ["deletion", (run: string) => `<w:del w:id="1">${run}</w:del>`],
+    ["text box", (run: string) => `<w:txbxContent>${run}</w:txbxContent>`],
+    ["instruction text", (run: string) => run.replace(/<w:t(.*?)>/, "<w:instrText$1>").replace("</w:t>", "</w:instrText>")],
+  ] as const)("does not accept %s text as ordinary carrier context", async (_label, wrap) => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const mutated = carrierRunMutation(source, CANDIDATE_A.id, "alpha", wrap);
+    const inspection = inspectZeroWidthDocx(mutated, CANDIDATE_A.id, "transformed");
+    expect(inspection.markerPresence.alpha).toBe("absent");
+    expect(inspection.frameErrors.length).toBeGreaterThan(0);
+    expect(inspection.carrierOccurrences).toHaveLength(2);
+    expect(inspection.carrierOccurrences[0]?.decodedFrame).toBeNull();
   });
 
   test("rejects a visible character inserted into a carrier", async () => {
@@ -280,6 +352,16 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     expect(serialized).not.toContain("sentinel.invalid");
     expect(serialized).not.toContain("private/url");
     expect(serialized).not.toContain("private/type");
+  });
+
+  test("redacts attacker-chosen OOXML property names", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const mutated = carrierRunMutation(source, CANDIDATE_A.id, "alpha", (run) =>
+      run.replace("<w:t", "<w:rPr><w:PersonalNameSentinel/></w:rPr><w:t"),
+    );
+    const inspection = inspectZeroWidthDocx(mutated, CANDIDATE_A.id, "transformed");
+    expect(JSON.stringify(inspection)).not.toContain("PersonalNameSentinel");
+    expect(inspection.carrierRunProperties[0]?.property).toMatch(/^property-redacted-/);
   });
 
   test("classifies active package content without exposing entry names", async () => {
@@ -313,6 +395,20 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     const expectedClass = expected === "absent" ? "absent" : expected === "empty" ? "empty" : "non_synthetic_redacted";
     expect(inspection.coreMetadata.creator).toBe(expectedClass);
     expect(JSON.stringify(inspection)).not.toContain("PERSONAL SENTINEL");
+  });
+
+  test.each([
+    ["duplicate first", (source: Uint8Array) => mutateEntry(source, "docProps/core.xml", (xml) =>
+      xml.replace(/<dc:creator>[^<]*<\/dc:creator>/, "<dc:creator>PERSONAL FIRST SENTINEL</dc:creator><dc:creator>Glyph synthetic research fixture</dc:creator>"),
+    )],
+    ["duplicate last", (source: Uint8Array) => mutateEntry(source, "docProps/core.xml", (xml) =>
+      xml.replace(/<dc:creator>[^<]*<\/dc:creator>/, "<dc:creator>Glyph synthetic research fixture</dc:creator><dc:creator>PERSONAL LAST SENTINEL</dc:creator>"),
+    )],
+  ] as const)("classifies %s core metadata conservatively", async (_label, mutate) => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const inspection = inspectZeroWidthDocx(mutate(source), CANDIDATE_A.id, "transformed");
+    expect(inspection.coreMetadata.creator).toBe("non_synthetic_redacted");
+    expect(JSON.stringify(inspection)).not.toContain("PERSONAL");
   });
 
   test("rejects malformed ZIP and XML packages", async () => {

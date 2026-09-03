@@ -63,6 +63,27 @@ apply to Tasks 1–5:
   targets, type strings, URLs, paths, and personal text never enter inspection
   objects, command output, errors, or records.
 
+## Pre-generation hardening rulings
+
+The following review findings were resolved before any canonical artifact was
+generated. Where an earlier illustrative type or predicate in this plan is less
+strict, the frozen protocol and implemented validator govern:
+
+- Every candidate-alphabet sequence is retained as safe `U+...` evidence even
+  when it is damaged or undecodable. DOCX occurrences include nullable decoded
+  frames, a decode error, ordinary/non-ordinary context, and an exact frozen
+  anchor classification.
+- Fields, revisions, deleted or instruction text, text boxes, and other
+  non-ordinary OOXML constructs cannot satisfy body transport. Canonical source
+  carrier runs contain only the carrier frame, and source/transformed evidence
+  must preserve the exact paragraph prefix/frame/suffix anchor.
+- Effective hidden state includes unambiguous implicit default paragraph and
+  character styles. Duplicate defaults, incompatible style inheritance,
+  cycles, missing references, and linked styles are unresolved failures.
+- All repeated core-metadata values are considered; duplicates or any
+  unexpected value are conservatively `non_synthetic_redacted`. Unknown OOXML
+  property names are represented only by stable redacted IDs.
+
 ## File Map
 
 | File | Responsibility |
