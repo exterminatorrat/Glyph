@@ -1,0 +1,353 @@
+{
+  "experimentId": "glyph-exp-a-docx-semantic-white-carrier-qualification-v1-001",
+  "experimentSchemaVersion": 1,
+  "date": "2026-09-03",
+  "qualificationProfile": "docx-semantic-white-carrier-qualification-v1",
+  "candidateId": "matching-color-body-v2",
+  "documentProfile": "docx-matching-color-body-v2",
+  "fingerprintStrategy": null,
+  "fingerprintStrategyVersion": null,
+  "matchingProfile": null,
+  "fixedMarkers": {
+    "alpha": "GLYPH TEST MARKER ALPHA",
+    "beta": "GLYPH TEST MARKER BETA"
+  },
+  "visibleFixture": {
+    "id": "synthetic-library-hours-v1",
+    "sourcePath": "research/experiments/docx-hidden-run-v1/fixture.ts"
+  },
+  "sourceGenerator": {
+    "path": "src/documents/docx/docx-matching-color-body-v2.ts",
+    "gitCommit": "4b5e5d14526c901dc7d922c9a7237c45e3f3ccad",
+    "nodeVersion": "v26.3.0",
+    "pnpmVersion": "11.19.0",
+    "docxVersion": "9.7.1"
+  },
+  "canonicalArtifact": {
+    "path": "research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2.docx",
+    "sha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+    "markerPresence": {
+      "alpha": "present",
+      "beta": "present"
+    },
+    "visibleBodyParagraphs": [
+      "Read the passage below. Then summarize its main idea in two sentences.",
+      "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+      "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+    ],
+    "markerMechanisms": [
+      {
+        "markerId": "alpha",
+        "partName": "word/document.xml",
+        "location": "body",
+        "paragraphIndex": 0,
+        "runIndex": 1,
+        "directColorValue": "FFFFFF",
+        "themeColor": null,
+        "themeTint": null,
+        "themeShade": null,
+        "hidden": false,
+        "sizeHalfPoints": null,
+        "sizeComplexScriptHalfPoints": null,
+        "shadingFill": null,
+        "highlight": null,
+        "semanticDirectWhite": true,
+        "forbiddenProperties": []
+      },
+      {
+        "markerId": "beta",
+        "partName": "word/document.xml",
+        "location": "body",
+        "paragraphIndex": 2,
+        "runIndex": 1,
+        "directColorValue": "FFFFFF",
+        "themeColor": null,
+        "themeTint": null,
+        "themeShade": null,
+        "hidden": false,
+        "sizeHalfPoints": null,
+        "sizeComplexScriptHalfPoints": null,
+        "shadingFill": null,
+        "highlight": null,
+        "semanticDirectWhite": true,
+        "forbiddenProperties": []
+      }
+    ],
+    "safety": {
+      "externalRelationships": [],
+      "unresolvedRelationshipTargets": [],
+      "activeContentEntries": [],
+      "activeRelationshipTypes": [],
+      "macroContentTypes": []
+    }
+  },
+  "googleDocs": {
+    "application": {
+      "name": "Google Docs",
+      "version": null
+    },
+    "browser": {
+      "name": "Google Chrome",
+      "version": "152.0.7977.75"
+    },
+    "platform": {
+      "name": "macOS",
+      "version": "26.2",
+      "build": "25C56"
+    },
+    "documentRule": "one new unshared document",
+    "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+    "defaultView": {
+      "zoomPercent": 100,
+      "ordinaryVisibility": "not_visible",
+      "layoutDisturbance": "material",
+      "visibleBody": "preserved",
+      "notes": [
+        "Observed at 100% in the default paginated white-page view before selection; both markers were not visible as marker text and the three visible paragraphs remained in order.",
+        "Marker positions created conspicuous internal blank gaps in the first and third paragraphs, and the third paragraph wrapped around the occupied marker width."
+      ]
+    },
+    "darkView": "not_assessable",
+    "docxRoundtrip": {
+      "status": "completed",
+      "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2-google-docs-roundtrip.docx",
+        "sha256": "55345adb43e30b8b886ce65da632bddd4c9fe6622958a9fce93aed455960baa0"
+      },
+      "markerPresence": {
+        "alpha": "present",
+        "beta": "present"
+      },
+      "visibleBody": "preserved",
+      "visibleBodyParagraphs": [
+        "Read the passage below. Then summarize its main idea in two sentences.",
+        "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+        "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+      ],
+      "markerMechanisms": [
+        {
+          "markerId": "alpha",
+          "partName": "word/document.xml",
+          "location": "body",
+          "paragraphIndex": 0,
+          "runIndex": 1,
+          "directColorValue": "ffffff",
+          "themeColor": null,
+          "themeTint": null,
+          "themeShade": null,
+          "hidden": false,
+          "sizeHalfPoints": null,
+          "sizeComplexScriptHalfPoints": null,
+          "shadingFill": null,
+          "highlight": null,
+          "semanticDirectWhite": true,
+          "forbiddenProperties": []
+        },
+        {
+          "markerId": "beta",
+          "partName": "word/document.xml",
+          "location": "body",
+          "paragraphIndex": 2,
+          "runIndex": 1,
+          "directColorValue": "ffffff",
+          "themeColor": null,
+          "themeTint": null,
+          "themeShade": null,
+          "hidden": false,
+          "sizeHalfPoints": null,
+          "sizeComplexScriptHalfPoints": null,
+          "shadingFill": null,
+          "highlight": null,
+          "semanticDirectWhite": true,
+          "forbiddenProperties": []
+        }
+      ],
+      "safety": {
+        "externalRelationships": [],
+        "unresolvedRelationshipTargets": [],
+        "activeContentEntries": [],
+        "activeRelationshipTypes": [],
+        "macroContentTypes": []
+      },
+      "protocolDeviation": null,
+      "notes": [
+        "Independent Google Docs export inspection found both markers in the frozen body locations with direct color normalized to lowercase ffffff; semantic direct white remained true and all safety findings were empty."
+      ]
+    },
+    "plainTextCopy": {
+      "status": "completed",
+      "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2-google-docs-copy-plain-text.txt",
+        "sha256": "43cdba6faefe5de823562c0b5c2b6bfe5dc3989b19e57106402e8eb56bdd4493"
+      },
+      "markerPresence": {
+        "alpha": "present",
+        "beta": "present"
+      },
+      "visibleBody": "preserved",
+      "visibleBodyParagraphs": [
+        "Read the passage below. Then summarize its main idea in two sentences.",
+        "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+        "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+      ],
+      "protocolDeviation": null,
+      "notes": [
+        "One copied body produced UTF-8-compatible ASCII text with both markers and the frozen visible body preserved after marker removal."
+      ]
+    },
+    "selectionReveal": "revealed",
+    "screenReader": "not_assessable",
+    "limitations": [
+      "Google Docs dark-page appearance and screen-reader behavior are not_assessable in this transport-only run."
+    ]
+  },
+  "microsoftWord": {
+    "application": {
+      "name": "Microsoft Word",
+      "version": "16.112.3 (16.112.26083020)"
+    },
+    "platform": {
+      "name": "macOS",
+      "version": "26.2",
+      "build": "25C56"
+    },
+    "documentRule": "open canonical source independently",
+    "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+    "lightView": {
+      "zoomPercent": 100,
+      "ordinaryVisibility": "not_visible",
+      "layoutDisturbance": "material",
+      "visibleBody": "preserved",
+      "notes": [
+        "Observed at 100% in Word light-page Print Layout before selection; both markers were not visible as marker text and the three visible paragraphs remained in order.",
+        "Marker positions occupied conspicuous blank horizontal space and the third paragraph wrapped around the Beta width."
+      ]
+    },
+    "darkView": {
+      "zoomPercent": 100,
+      "ordinaryVisibility": "not_visible",
+      "layoutDisturbance": "material",
+      "visibleBody": "preserved",
+      "notes": [
+        "Observed at 100% in Word built-in dark-page Print Layout before selection; both markers were not visible as marker text and the three visible paragraphs remained in order.",
+        "Marker positions occupied conspicuous blank horizontal space and the third paragraph wrapped around the Beta width."
+      ]
+    },
+    "docxRoundtrip": {
+      "status": "completed",
+      "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2-microsoft-word-roundtrip.docx",
+        "sha256": "3c33aa107d269accfa6fff5859f18dec11c709c6b7427e08c57981e60431b70f"
+      },
+      "markerPresence": {
+        "alpha": "present",
+        "beta": "present"
+      },
+      "visibleBody": "preserved",
+      "visibleBodyParagraphs": [
+        "Read the passage below. Then summarize its main idea in two sentences.",
+        "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+        "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+      ],
+      "markerMechanisms": [
+        {
+          "markerId": "alpha",
+          "partName": "word/document.xml",
+          "location": "body",
+          "paragraphIndex": 0,
+          "runIndex": 1,
+          "directColorValue": "FFFFFF",
+          "themeColor": null,
+          "themeTint": null,
+          "themeShade": null,
+          "hidden": false,
+          "sizeHalfPoints": null,
+          "sizeComplexScriptHalfPoints": null,
+          "shadingFill": null,
+          "highlight": null,
+          "semanticDirectWhite": true,
+          "forbiddenProperties": []
+        },
+        {
+          "markerId": "beta",
+          "partName": "word/document.xml",
+          "location": "body",
+          "paragraphIndex": 2,
+          "runIndex": 1,
+          "directColorValue": "FFFFFF",
+          "themeColor": null,
+          "themeTint": null,
+          "themeShade": null,
+          "hidden": false,
+          "sizeHalfPoints": null,
+          "sizeComplexScriptHalfPoints": null,
+          "shadingFill": null,
+          "highlight": null,
+          "semanticDirectWhite": true,
+          "forbiddenProperties": []
+        }
+      ],
+      "safety": {
+        "externalRelationships": [],
+        "unresolvedRelationshipTargets": [],
+        "activeContentEntries": [],
+        "activeRelationshipTypes": [],
+        "macroContentTypes": []
+      },
+      "protocolDeviation": null,
+      "notes": [
+        "Independent Microsoft Word export inspection found both markers in the frozen body locations with direct FFFFFF color; semantic direct white remained true and all safety findings were empty."
+      ]
+    },
+    "plainTextCopy": {
+      "status": "completed",
+      "sourceArtifactSha256": "9959c6b1d9e8f988e7c512e98a92f77eadab146b0fc8c6e34c2580fa1094282e",
+      "resultArtifact": {
+        "path": "research/artifacts/docx-semantic-white-carrier-qualification-v1/matching-color-body-v2-microsoft-word-copy-plain-text.txt",
+        "sha256": "43cdba6faefe5de823562c0b5c2b6bfe5dc3989b19e57106402e8eb56bdd4493"
+      },
+      "markerPresence": {
+        "alpha": "present",
+        "beta": "present"
+      },
+      "visibleBody": "preserved",
+      "visibleBodyParagraphs": [
+        "Read the passage below. Then summarize its main idea in two sentences.",
+        "A neighborhood library extended its weekend hours so more residents could use its study rooms and book collection.",
+        "Explain one possible benefit of the schedule change. Then explain one possible drawback."
+      ],
+      "protocolDeviation": null,
+      "notes": [
+        "One copied body produced UTF-8-compatible ASCII text with both markers and the frozen visible body preserved after marker removal."
+      ]
+    },
+    "selectionReveal": "not_revealed",
+    "accessibilityAssistant": {
+      "status": "completed",
+      "findings": [
+        "Hard-to-read text contrast issue selected GLYPH TEST MARKER ALPHA.",
+        "Hard-to-read text contrast issue selected GLYPH TEST MARKER BETA."
+      ],
+      "limitations": []
+    },
+    "screenReader": "not_assessable",
+    "limitations": [
+      "Word screen-reader behavior is not_assessable in this transport-only run."
+    ]
+  },
+  "gateDecision": "REVISE_CARRIER",
+  "gateRationale": [
+    "The canonical source and both independent DOCX round trips preserve both markers in the frozen body paragraphs with semantic direct-white mechanisms and empty package-safety findings.",
+    "Both independent plain-text copies preserve both markers and the frozen visible body after marker removal.",
+    "Google Docs default view and Microsoft Word light and dark views keep both markers not visible, but each required view has material layout disturbance.",
+    "The mechanical gate is REVISE_CARRIER because PROCEED fails on material layout disturbance while bounded DOCX and clipboard survival remains."
+  ],
+  "limitations": [
+    "Google Docs dark-page appearance and both editors' screen-reader behavior are not_assessable in this transport-only qualification.",
+    "Word Accessibility Assistant findings are retained as evidence and do not determine the transport gate.",
+    "This qualification does not establish accessibility safety, production readiness, AI ingestion, authorship, intent, cheating, or misconduct."
+  ]
+}
