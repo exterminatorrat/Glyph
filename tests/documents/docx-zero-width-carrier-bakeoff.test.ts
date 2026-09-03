@@ -490,6 +490,35 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     );
   });
 
+  test("records carrier text in a non-Word XML part without an invented paragraph", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const inCoreProperties = mutateEntry(source, "docProps/core.xml", (xml) =>
+      xml.replace(
+        /<dc:creator>[\s\S]*?<\/dc:creator>/,
+        `<dc:creator>${alpha}</dc:creator>`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(
+      inCoreProperties,
+      CANDIDATE_A.id,
+      "transformed",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(inspection.carrierOccurrences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markerId: null,
+          partName: "docProps/core.xml",
+          location: "other",
+          paragraphIndex: -1,
+          runIndices: [],
+          codePointCount: 120,
+        }),
+      ]),
+    );
+  });
+
   test("rejects moved, duplicate, non-body, and damaged carrier frames", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");

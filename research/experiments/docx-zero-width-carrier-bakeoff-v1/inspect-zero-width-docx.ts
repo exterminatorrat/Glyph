@@ -1286,7 +1286,7 @@ const standaloneSequences = (
   const points = codePointEntries([{ text, ordinary: false }]);
   const paragraph = {
     element: root,
-    paragraphIndex: 0,
+    paragraphIndex: -1,
     runs: [],
     codePoints: points,
     unhandledCodePointGroups: [],
@@ -1303,7 +1303,7 @@ const standaloneSequences = (
       codePoint: codePointLabel(codePoint),
       partName: safePartName(partName),
       location: "other" as const,
-      paragraphIndex: 0,
+      paragraphIndex: -1,
       runIndex: -1,
       codePointIndex,
     }));
