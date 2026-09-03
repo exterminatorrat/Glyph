@@ -371,6 +371,101 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     );
   });
 
+  test("counts a nested text-box paragraph carrier exactly once", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const nested = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        "</w:p>",
+        `<w:r><w:txbxContent><w:p><w:r><w:t>${alpha}</w:t></w:r></w:p></w:txbxContent></w:r></w:p>`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(nested, CANDIDATE_A.id, "transformed");
+    const nonOrdinary = inspection.carrierOccurrences.filter(
+      ({ context }) => context === "non_ordinary",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(nonOrdinary).toHaveLength(1);
+    expect(nonOrdinary[0]).toMatchObject({
+      markerId: null,
+      location: "body",
+      paragraphIndex: 1,
+      runIndices: [0],
+      codePointCount: 120,
+    });
+  });
+
+  test("retains the owning run index for carrier text inside run properties", async () => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const inRunProperties = mutateEntry(source, "word/document.xml", (xml) =>
+      xml.replace(
+        "<w:r><w:t xml:space=\"preserve\">",
+        `<w:r><w:rPr><w:custom>${alpha}</w:custom></w:rPr><w:t xml:space="preserve">`,
+      ),
+    );
+    const inspection = inspectZeroWidthDocx(
+      inRunProperties,
+      CANDIDATE_A.id,
+      "transformed",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(inspection.carrierOccurrences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markerId: null,
+          context: "non_ordinary",
+          location: "body",
+          paragraphIndex: 0,
+          runIndices: [0],
+          codePointCount: 120,
+        }),
+      ]),
+    );
+  });
+
+  test.each([
+    [
+      "inside the document body",
+      "body",
+      (xml: string, alpha: string) => xml.replace("</w:body>", `${alpha}</w:body>`),
+    ],
+    [
+      "outside the document body",
+      "other",
+      (xml: string, alpha: string) =>
+        xml.replace(/(<w:document[^>]*>)/, `$1${alpha}`),
+    ],
+  ] as const)("records carrier text %s without invented paragraph or run indexes", async (
+    _label,
+    location,
+    mutate,
+  ) => {
+    const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
+    const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
+    const outsideParagraph = mutateEntry(source, "word/document.xml", (xml) =>
+      mutate(xml, alpha),
+    );
+    const inspection = inspectZeroWidthDocx(
+      outsideParagraph,
+      CANDIDATE_A.id,
+      "transformed",
+    );
+    expect(inspection.carrierOccurrences).toHaveLength(3);
+    expect(inspection.carrierOccurrences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markerId: null,
+          context: "non_ordinary",
+          location,
+          paragraphIndex: -1,
+          runIndices: [],
+          codePointCount: 120,
+        }),
+      ]),
+    );
+  });
+
   test("rejects moved, duplicate, non-body, and damaged carrier frames", async () => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");

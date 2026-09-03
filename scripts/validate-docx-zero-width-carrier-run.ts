@@ -661,7 +661,7 @@ const assertPackageOccurrence = (
       ["body", "header", "footer", "footnote", "endnote", "comments", "other"] as const,
       `${path}.location`,
     ),
-    paragraphIndex: nonNegativeIntegerAt(object.paragraphIndex, `${path}.paragraphIndex`),
+    paragraphIndex: runIndexAt(object.paragraphIndex, `${path}.paragraphIndex`),
     runIndex: runIndexAt(object.runIndex, `${path}.runIndex`),
     codePointIndex: nonNegativeIntegerAt(object.codePointIndex, `${path}.codePointIndex`),
   };
@@ -795,7 +795,7 @@ const assertCarrierOccurrence = (
       ["body", "header", "footer", "footnote", "endnote", "comments", "other"] as const,
       `${path}.location`,
     ),
-    paragraphIndex: nonNegativeIntegerAt(object.paragraphIndex, `${path}.paragraphIndex`),
+    paragraphIndex: runIndexAt(object.paragraphIndex, `${path}.paragraphIndex`),
     runIndices,
     codePointIndexes,
     codePointCount,

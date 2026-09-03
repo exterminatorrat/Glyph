@@ -232,12 +232,16 @@ type RunInspection = Readonly<{
   text: string;
   codePoints: readonly TextCodePoint[];
 }>;
+type UnhandledCodePointGroup = Readonly<{
+  points: readonly TextCodePoint[];
+  runIndex: number | null;
+}>;
 type ParagraphInspection = Readonly<{
   element: XmlElement;
   paragraphIndex: number;
   runs: readonly RunInspection[];
   codePoints: readonly TextCodePoint[];
-  unhandledCodePointGroups: readonly (readonly TextCodePoint[])[];
+  unhandledCodePointGroups: readonly UnhandledCodePointGroup[];
   location: OOXMLTextLocation;
   partName: string;
 }>;
@@ -289,6 +293,25 @@ const isElement = (
   node?.nodeType === 1 &&
   (node as XmlElement).namespaceURI === namespaceURI &&
   localNameOf(node as XmlElement) === localName;
+
+const nearestAncestor = (
+  node: XmlNode,
+  namespaceURI: string,
+  localName: string,
+): XmlElement | null => {
+  let current = node.parentNode;
+  while (current) {
+    if (isElement(current, namespaceURI, localName)) return current;
+    current = current.parentNode;
+  }
+  return null;
+};
+
+const hasAncestor = (
+  node: XmlNode,
+  namespaceURI: string,
+  localName: string,
+): boolean => nearestAncestor(node, namespaceURI, localName) !== null;
 
 const childElements = (node: XmlNode | null | undefined): XmlElement[] => {
   const elements: XmlElement[] = [];
@@ -462,6 +485,10 @@ const textFragmentsFromRun = (
       const element = child as XmlElement;
       if (
         element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
+        localNameOf(element) === "p"
+      ) continue;
+      if (
+        element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
         localNameOf(element) === "rPr"
       ) continue;
       const localName = localNameOf(element);
@@ -512,10 +539,15 @@ const codePointEntries = (
 
 const unhandledParagraphCodePointGroups = (
   paragraph: XmlElement,
-): TextCodePoint[][] => {
-  const groups: TextCodePoint[][] = [];
+  runs: readonly RunInspection[],
+): UnhandledCodePointGroup[] => {
+  const groups: UnhandledCodePointGroup[] = [];
   let rawIndex = 0;
-  const visit = (node: XmlNode, inRun: boolean, inRunProperties: boolean): void => {
+  const visit = (
+    node: XmlNode,
+    runIndex: number | null,
+    inRunProperties: boolean,
+  ): void => {
     for (let index = 0; index < node.childNodes.length; index += 1) {
       const child = node.childNodes.item(index);
       if (!child) continue;
@@ -523,35 +555,45 @@ const unhandledParagraphCodePointGroups = (
         const points: TextCodePoint[] = [];
         for (const value of [...(child.nodeValue ?? "")]) {
           const codePoint = value.codePointAt(0) ?? -1;
-          if ((!inRun || inRunProperties) && isAnyCandidateCodePoint(codePoint)) {
+          if ((runIndex === null || inRunProperties) && isAnyCandidateCodePoint(codePoint)) {
             points.push({ value, codePoint, codePointIndex: rawIndex, ordinary: false });
           }
           rawIndex += 1;
         }
-        if (points.length > 0) groups.push(points);
+        if (points.length > 0) groups.push({ points, runIndex });
         continue;
       }
       if (child.nodeType !== 1) continue;
       const element = child as XmlElement;
-      const nextInRun = inRun || isElement(element, WORDPROCESSINGML_NAMESPACE, "r");
+      if (isElement(element, WORDPROCESSINGML_NAMESPACE, "p")) continue;
+      const ownedRunIndex = isElement(element, WORDPROCESSINGML_NAMESPACE, "r")
+        ? runs.findIndex(({ element: run }) => run === element)
+        : -1;
+      const nextRunIndex = ownedRunIndex >= 0 ? ownedRunIndex : runIndex;
       const nextInRunProperties =
         inRunProperties ||
-        (nextInRun && isElement(element, WORDPROCESSINGML_NAMESPACE, "rPr"));
-      visit(element, nextInRun, nextInRunProperties);
+        (nextRunIndex !== null && isElement(element, WORDPROCESSINGML_NAMESPACE, "rPr"));
+      visit(element, nextRunIndex, nextInRunProperties);
     }
   };
-  visit(paragraph, false, false);
+  visit(paragraph, null, false);
   return groups;
 };
 
+type UnhandledPartCodePointGroup = Readonly<{
+  points: readonly TextCodePoint[];
+  location: OOXMLTextLocation;
+}>;
+
 const unhandledPartCodePointGroups = (
   document: XmlDocument,
-): TextCodePoint[][] => {
+  partName: string,
+): UnhandledPartCodePointGroup[] => {
   const root = document.documentElement;
   if (!root) return [];
-  const groups: TextCodePoint[][] = [];
+  const groups: UnhandledPartCodePointGroup[] = [];
   let rawIndex = 0;
-  const visit = (node: XmlNode, inParagraph: boolean): void => {
+  const visit = (node: XmlNode): void => {
     for (let index = 0; index < node.childNodes.length; index += 1) {
       const child = node.childNodes.item(index);
       if (!child) continue;
@@ -559,23 +601,26 @@ const unhandledPartCodePointGroups = (
         const points: TextCodePoint[] = [];
         for (const value of [...(child.nodeValue ?? "")]) {
           const codePoint = value.codePointAt(0) ?? -1;
-          if (!inParagraph && isAnyCandidateCodePoint(codePoint)) {
+          if (isAnyCandidateCodePoint(codePoint)) {
             points.push({ value, codePoint, codePointIndex: rawIndex, ordinary: false });
           }
           rawIndex += 1;
         }
-        if (points.length > 0) groups.push(points);
+        if (points.length > 0) {
+          const location = partName.toLowerCase() === "word/document.xml"
+            ? (hasAncestor(child, WORDPROCESSINGML_NAMESPACE, "body") ? "body" : "other")
+            : textPartsLocation(partName);
+          groups.push({ points, location });
+        }
         continue;
       }
       if (child.nodeType !== 1) continue;
       const element = child as XmlElement;
-      visit(
-        element,
-        inParagraph || isElement(element, WORDPROCESSINGML_NAMESPACE, "p"),
-      );
+      if (isElement(element, WORDPROCESSINGML_NAMESPACE, "p")) continue;
+      visit(element);
     }
   };
-  visit(root, false);
+  visit(root);
   return groups;
 };
 
@@ -601,11 +646,17 @@ const paragraphInspections = (
   document: XmlDocument,
   partName: string,
 ): ParagraphInspection[] => {
-  const location = textPartsLocation(partName);
   return descendantsByLocalName(document, "p", WORDPROCESSINGML_NAMESPACE).map(
     (paragraph, paragraphIndex) => {
       let fieldDepth = 0;
-      const runs = descendantsByLocalName(paragraph, "r", WORDPROCESSINGML_NAMESPACE).map(
+      const ownedRunElements = descendantsByLocalName(
+        paragraph,
+        "r",
+        WORDPROCESSINGML_NAMESPACE,
+      ).filter(
+        (run) => nearestAncestor(run, WORDPROCESSINGML_NAMESPACE, "p") === paragraph,
+      );
+      const runs = ownedRunElements.map(
         (run) => {
           const fieldChars = descendantsByLocalName(
             run,
@@ -657,8 +708,10 @@ const paragraphInspections = (
         paragraphIndex,
         runs: normalizedRuns,
         codePoints: normalizedRuns.flatMap((run) => run.codePoints),
-        unhandledCodePointGroups: unhandledParagraphCodePointGroups(paragraph),
-        location,
+        unhandledCodePointGroups: unhandledParagraphCodePointGroups(paragraph, normalizedRuns),
+        location: partName.toLowerCase() === "word/document.xml"
+          ? (hasAncestor(paragraph, WORDPROCESSINGML_NAMESPACE, "body") ? "body" : "other")
+          : textPartsLocation(partName),
         partName,
       };
     },
@@ -1350,17 +1403,20 @@ export function inspectZeroWidthDocx(
     for (const paragraph of paragraphs) {
       allText.push(
         paragraph.codePoints.map(({ value }) => value).join(""),
-        ...paragraph.unhandledCodePointGroups.map((group) =>
-          group.map(({ value }) => value).join(""),
+        ...paragraph.unhandledCodePointGroups.map(({ points }) =>
+          points.map(({ value }) => value).join(""),
         ),
       );
       const sequences = [
         ...processSequences(paragraph, candidateId),
-        ...paragraph.unhandledCodePointGroups.flatMap((codePoints) =>
+        ...paragraph.unhandledCodePointGroups.flatMap(({ points, runIndex }) =>
           processSequences(
-            { ...paragraph, runs: [], codePoints, unhandledCodePointGroups: [] },
+            { ...paragraph, runs: [], codePoints: points, unhandledCodePointGroups: [] },
             candidateId,
-          ),
+          ).map((sequence) => ({
+            ...sequence,
+            runIndices: runIndex === null ? [] : [runIndex],
+          })),
         ),
       ];
       sequences.forEach((sequence) => {
@@ -1394,7 +1450,7 @@ export function inspectZeroWidthDocx(
         }
         addSequence(sequence);
       });
-      [...paragraph.codePoints, ...paragraph.unhandledCodePointGroups.flat()].forEach(({ codePoint, codePointIndex }) => {
+      paragraph.codePoints.forEach(({ codePoint, codePointIndex }) => {
         if (
           isAnyCandidateCodePoint(codePoint) &&
           !isCandidateCodePoint(candidateId, codePoint)
@@ -1412,6 +1468,23 @@ export function inspectZeroWidthDocx(
           });
         }
       });
+      paragraph.unhandledCodePointGroups.forEach(({ points, runIndex }) => {
+        points.forEach(({ codePoint, codePointIndex }) => {
+          if (
+            isAnyCandidateCodePoint(codePoint) &&
+            !isCandidateCodePoint(candidateId, codePoint)
+          ) {
+            unexpectedCandidateCodePoints.push({
+              codePoint: codePointLabel(codePoint),
+              partName: safePartName(partName),
+              location: paragraph.location,
+              paragraphIndex: paragraph.paragraphIndex,
+              runIndex: runIndex ?? -1,
+              codePointIndex,
+            });
+          }
+        });
+      });
       if (paragraph.location === "body" && partName === "word/document.xml") {
         const visible = paragraph.codePoints
           .filter(
@@ -1425,19 +1498,19 @@ export function inspectZeroWidthDocx(
         bodyParagraphs.push(visible);
       }
     }
-    for (const codePoints of unhandledPartCodePointGroups(document)) {
+    for (const { points, location } of unhandledPartCodePointGroups(document, partName)) {
       const paragraph: ParagraphInspection = {
         element: document.documentElement!,
-        paragraphIndex: 0,
+        paragraphIndex: -1,
         runs: [],
-        codePoints,
+        codePoints: points,
         unhandledCodePointGroups: [],
-        location: textPartsLocation(partName),
+        location,
         partName,
       };
-      allText.push(codePoints.map(({ value }) => value).join(""));
+      allText.push(points.map(({ value }) => value).join(""));
       processSequences(paragraph, candidateId).forEach(addSequence);
-      codePoints.forEach(({ codePoint, codePointIndex }) => {
+      points.forEach(({ codePoint, codePointIndex }) => {
         if (
           isAnyCandidateCodePoint(codePoint) &&
           !isCandidateCodePoint(candidateId, codePoint)
@@ -1446,7 +1519,7 @@ export function inspectZeroWidthDocx(
             codePoint: codePointLabel(codePoint),
             partName: safePartName(partName),
             location: paragraph.location,
-            paragraphIndex: 0,
+            paragraphIndex: -1,
             runIndex: -1,
             codePointIndex,
           });

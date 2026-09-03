@@ -310,6 +310,12 @@ type PackageCodePointOccurrence = Readonly<{
   runIndex: number;
   codePointIndex: number;
 }>;
+
+`paragraphIndex: -1` means the observed code point is outside every
+WordprocessingML paragraph. `runIndex: -1` and an empty `runIndices` array mean
+the corresponding observation is outside every WordprocessingML run. These
+sentinels preserve exact structural evidence instead of assigning an invented
+paragraph or run.
 type CarrierRunProperty = Readonly<{
   partName: string;
   paragraphIndex: number;
