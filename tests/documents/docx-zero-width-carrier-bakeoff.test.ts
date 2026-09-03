@@ -331,14 +331,24 @@ describe("zero-width carrier DOCX generator and inspector", () => {
     );
   });
 
-  test("records an added foreign-namespace duplicate alongside intact valid frames", async () => {
+  test.each([
+    [
+      "arbitrary foreign element",
+      (xml: string, alpha: string) =>
+        xml.replace(
+          "</w:p>",
+          `<w:r><x:carrier xmlns:x="urn:glyph:foreign-test">${alpha}</x:carrier></w:r></w:p>`,
+        ),
+    ],
+    [
+      "direct paragraph text",
+      (xml: string, alpha: string) => xml.replace("</w:p>", `${alpha}</w:p>`),
+    ],
+  ] as const)("records an added %s duplicate alongside intact valid frames", async (_label, mutate) => {
     const source = await generateZeroWidthCarrierDocx(ZERO_WIDTH_FIXTURE, CANDIDATE_A.id);
     const alpha = encodeCarrier(CANDIDATE_A.id, "alpha");
     const foreignDuplicate = mutateEntry(source, "word/document.xml", (xml) =>
-      xml.replace(
-        "</w:p>",
-        `<w:r><x:t xmlns:x="urn:glyph:foreign-test">${alpha}</x:t></w:r></w:p>`,
-      ),
+      mutate(xml, alpha),
     );
     const inspection = inspectZeroWidthDocx(
       foreignDuplicate,

@@ -237,6 +237,7 @@ type ParagraphInspection = Readonly<{
   paragraphIndex: number;
   runs: readonly RunInspection[];
   codePoints: readonly TextCodePoint[];
+  unhandledCodePointGroups: readonly (readonly TextCodePoint[])[];
   location: OOXMLTextLocation;
   partName: string;
 }>;
@@ -449,7 +450,15 @@ const textFragmentsFromRun = (
   const visit = (node: XmlNode): void => {
     for (let index = 0; index < node.childNodes.length; index += 1) {
       const child = node.childNodes.item(index);
-      if (!child || child.nodeType !== 1) continue;
+      if (!child) continue;
+      if (child.nodeType === 3) {
+        const carrierText = [...(child.nodeValue ?? "")]
+          .filter((value) => isAnyCandidateCodePoint(value.codePointAt(0) ?? -1))
+          .join("");
+        if (carrierText) chunks.push({ text: carrierText, ordinary: false });
+        continue;
+      }
+      if (child.nodeType !== 1) continue;
       const element = child as XmlElement;
       if (
         element.namespaceURI === WORDPROCESSINGML_NAMESPACE &&
@@ -463,11 +472,6 @@ const textFragmentsFromRun = (
         chunks.push({
           text: element.textContent ?? "",
           ordinary: !inField && isOrdinaryTextElement(element),
-        });
-      } else if (["t", "delText", "instrText"].includes(localName)) {
-        chunks.push({
-          text: element.textContent ?? "",
-          ordinary: false,
         });
       } else if (element.namespaceURI === WORDPROCESSINGML_NAMESPACE && localName === "tab") {
         chunks.push({
@@ -504,6 +508,75 @@ const codePointEntries = (
       ordinary,
     })),
   );
+};
+
+const unhandledParagraphCodePointGroups = (
+  paragraph: XmlElement,
+): TextCodePoint[][] => {
+  const groups: TextCodePoint[][] = [];
+  let rawIndex = 0;
+  const visit = (node: XmlNode, inRun: boolean, inRunProperties: boolean): void => {
+    for (let index = 0; index < node.childNodes.length; index += 1) {
+      const child = node.childNodes.item(index);
+      if (!child) continue;
+      if (child.nodeType === 3) {
+        const points: TextCodePoint[] = [];
+        for (const value of [...(child.nodeValue ?? "")]) {
+          const codePoint = value.codePointAt(0) ?? -1;
+          if ((!inRun || inRunProperties) && isAnyCandidateCodePoint(codePoint)) {
+            points.push({ value, codePoint, codePointIndex: rawIndex, ordinary: false });
+          }
+          rawIndex += 1;
+        }
+        if (points.length > 0) groups.push(points);
+        continue;
+      }
+      if (child.nodeType !== 1) continue;
+      const element = child as XmlElement;
+      const nextInRun = inRun || isElement(element, WORDPROCESSINGML_NAMESPACE, "r");
+      const nextInRunProperties =
+        inRunProperties ||
+        (nextInRun && isElement(element, WORDPROCESSINGML_NAMESPACE, "rPr"));
+      visit(element, nextInRun, nextInRunProperties);
+    }
+  };
+  visit(paragraph, false, false);
+  return groups;
+};
+
+const unhandledPartCodePointGroups = (
+  document: XmlDocument,
+): TextCodePoint[][] => {
+  const root = document.documentElement;
+  if (!root) return [];
+  const groups: TextCodePoint[][] = [];
+  let rawIndex = 0;
+  const visit = (node: XmlNode, inParagraph: boolean): void => {
+    for (let index = 0; index < node.childNodes.length; index += 1) {
+      const child = node.childNodes.item(index);
+      if (!child) continue;
+      if (child.nodeType === 3) {
+        const points: TextCodePoint[] = [];
+        for (const value of [...(child.nodeValue ?? "")]) {
+          const codePoint = value.codePointAt(0) ?? -1;
+          if (!inParagraph && isAnyCandidateCodePoint(codePoint)) {
+            points.push({ value, codePoint, codePointIndex: rawIndex, ordinary: false });
+          }
+          rawIndex += 1;
+        }
+        if (points.length > 0) groups.push(points);
+        continue;
+      }
+      if (child.nodeType !== 1) continue;
+      const element = child as XmlElement;
+      visit(
+        element,
+        inParagraph || isElement(element, WORDPROCESSINGML_NAMESPACE, "p"),
+      );
+    }
+  };
+  visit(root, false);
+  return groups;
 };
 
 const textPartsLocation = (entryName: string): OOXMLTextLocation => {
@@ -584,6 +657,7 @@ const paragraphInspections = (
         paragraphIndex,
         runs: normalizedRuns,
         codePoints: normalizedRuns.flatMap((run) => run.codePoints),
+        unhandledCodePointGroups: unhandledParagraphCodePointGroups(paragraph),
         location,
         partName,
       };
@@ -1162,6 +1236,7 @@ const standaloneSequences = (
     paragraphIndex: 0,
     runs: [],
     codePoints: points,
+    unhandledCodePointGroups: [],
     location: "other" as const,
     partName,
   };
@@ -1273,8 +1348,21 @@ export function inspectZeroWidthDocx(
     }
     const paragraphs = paragraphInspections(document, partName);
     for (const paragraph of paragraphs) {
-      allText.push(paragraph.codePoints.map(({ value }) => value).join(""));
-      const sequences = processSequences(paragraph, candidateId);
+      allText.push(
+        paragraph.codePoints.map(({ value }) => value).join(""),
+        ...paragraph.unhandledCodePointGroups.map((group) =>
+          group.map(({ value }) => value).join(""),
+        ),
+      );
+      const sequences = [
+        ...processSequences(paragraph, candidateId),
+        ...paragraph.unhandledCodePointGroups.flatMap((codePoints) =>
+          processSequences(
+            { ...paragraph, runs: [], codePoints, unhandledCodePointGroups: [] },
+            candidateId,
+          ),
+        ),
+      ];
       sequences.forEach((sequence) => {
         for (const runIndex of sequence.runIndices) {
           const run = paragraph.runs[runIndex];
@@ -1306,7 +1394,7 @@ export function inspectZeroWidthDocx(
         }
         addSequence(sequence);
       });
-      paragraph.codePoints.forEach(({ codePoint, codePointIndex }) => {
+      [...paragraph.codePoints, ...paragraph.unhandledCodePointGroups.flat()].forEach(({ codePoint, codePointIndex }) => {
         if (
           isAnyCandidateCodePoint(codePoint) &&
           !isCandidateCodePoint(candidateId, codePoint)
@@ -1336,6 +1424,34 @@ export function inspectZeroWidthDocx(
           .join("");
         bodyParagraphs.push(visible);
       }
+    }
+    for (const codePoints of unhandledPartCodePointGroups(document)) {
+      const paragraph: ParagraphInspection = {
+        element: document.documentElement!,
+        paragraphIndex: 0,
+        runs: [],
+        codePoints,
+        unhandledCodePointGroups: [],
+        location: textPartsLocation(partName),
+        partName,
+      };
+      allText.push(codePoints.map(({ value }) => value).join(""));
+      processSequences(paragraph, candidateId).forEach(addSequence);
+      codePoints.forEach(({ codePoint, codePointIndex }) => {
+        if (
+          isAnyCandidateCodePoint(codePoint) &&
+          !isCandidateCodePoint(candidateId, codePoint)
+        ) {
+          unexpectedCandidateCodePoints.push({
+            codePoint: codePointLabel(codePoint),
+            partName: safePartName(partName),
+            location: paragraph.location,
+            paragraphIndex: 0,
+            runIndex: -1,
+            codePointIndex,
+          });
+        }
+      });
     }
   }
 
