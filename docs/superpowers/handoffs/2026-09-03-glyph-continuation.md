@@ -139,19 +139,19 @@ production or pilot readiness.
 
 ## Live Git and verification snapshot
 
-Snapshot time: 2026-09-03 before the first Milestone 2E documentation commit.
+Snapshot time: 2026-09-03 after the approved-design commit and before the
+migration-prompt checkpoint.
 
 - working directory: `/Users/harryjin/Glyph`
 - branch: `codex/milestone-2e-join-control-qualification`
-- base and current HEAD:
-  `caea053ef133d33b44a45b7d9907519b5d1688a2`
+- base: `caea053ef133d33b44a45b7d9907519b5d1688a2`
+- latest committed HEAD before this handoff update:
+  `462cd7f` (`docs: design join-control accessibility qualification`)
 - upstream: not configured yet
 - divergence: not applicable until the branch is pushed
-- tracked status: clean
-- untracked in-scope files: this handoff and the approved Milestone 2E design
+- pending tracked state at this snapshot: only this handoff prompt update
 - canonical Milestone 2E artifacts: none generated
-- Milestone 2E executable verification: not started because this is the design
-  checkpoint
+- Milestone 2E implementation plan and executable verification: not started
 - documentation checks: placeholder scan and `git diff --check` pass
 - independent design review: initial science and scope reviews found mechanical
   gate, per-operation evidence, NVDA reproducibility, print/PDF, PDF privacy,
@@ -220,10 +220,59 @@ When the user explicitly asks to move this work to a new task/model:
 5. Wait for the new task to confirm repository state before it mutates files.
 6. Keep the old task available until the new task confirms a safe takeover.
 
+## Copy-paste migration prompt
+
+```text
+Resume the Glyph project from its durable Milestone 2E checkpoint.
+
+Repository: /Users/harryjin/Glyph
+Expected branch: codex/milestone-2e-join-control-qualification
+
+First read AGENTS.md and this complete handoff file:
+docs/superpowers/handoffs/2026-09-03-glyph-continuation.md
+
+Then read every file listed in the handoff's "Authoritative reading order,"
+including the approved Milestone 2E design, every Milestone 2E plan/protocol/
+progress file that exists, and the immutable Milestone 2D run record. Treat the
+latest committed handoff/progress snapshot as authoritative if a value below
+has advanced.
+
+Glyph is a local research prototype that embeds assignment-specific markers in
+a teacher's generated DOCX and later measures exact marker presence in a
+response. It is not an AI-writing detector and does not prove AI ingestion,
+authorship, prompt reuse, intent, cheating, or misconduct. Do not rebrand or
+restructure it.
+
+Completed carrier research selected Candidate A, join-control-binary-v1, with
+document profile docx-zero-width-join-control-v1 for transport through Google
+Docs and Microsoft Word. That is transport evidence only. The active work is
+Milestone 2E: strict accessibility and international-text qualification of the
+unchanged selected profile across the four frozen synthetic cases, Google Docs,
+Word, print/PDF evidence, and NVDA 2026.2 on Windows. Missing reliable required
+evidence is BLOCKED; a completed run mechanically yields QUALIFY_PROFILE or
+REJECT_PROFILE.
+
+Continue from the handoff's exact next action without re-planning settled work.
+Use one serial mutating implementer, red-first tests, minimal surgical changes,
+and parallel read-only reviews at the planned gates. Preserve all old
+experiments and ignored canonical artifacts. Stop on any frozen hash mismatch.
+Do not begin Milestone 3, model testing, FingerprintEngine, ExactCanary,
+Supabase, Protect, Analyze, authentication, UI, or deployment unless Milestone
+2E first completes with QUALIFY_PROFILE and the user separately authorizes the
+next milestone.
+
+Before editing, verify cwd, branch, HEAD/upstream/divergence, status, recent
+history, tool versions, artifact inventory, and every recorded hash. Report any
+discrepancy instead of guessing. Continue committing and pushing coherent
+verified checkpoints, but do not merge or open a pull request without explicit
+authorization.
+```
+
 ## Exact next action at this checkpoint
 
-Complete the independent review and self-review of the Milestone 2E design,
-commit the approved design and this handoff, then use the Superpowers
-`writing-plans` workflow to create the implementation plan. Do not generate a
-canonical Milestone 2E artifact until the protocol, fixture, schema, gate,
-tooling, tests, and pre-generation reviews are frozen and green.
+Use the Superpowers `writing-plans` workflow to create the Milestone 2E
+implementation plan from the approved design. The design and handoff reviews
+already pass; do not redesign or repeat brainstorming. After plan self-review,
+execute it with one serial mutation owner and parallel read-only review gates.
+Do not generate a canonical Milestone 2E artifact until the protocol, fixture,
+schema, gate, tooling, tests, and pre-generation reviews are frozen and green.
