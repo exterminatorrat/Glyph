@@ -229,6 +229,15 @@ and `w:specVanish`. Explicitly disabled hidden properties are evidence but are
 not forbidden. Other editor-added direct properties are recorded with
 privacy-safe classifications; arbitrary literal values are redacted.
 
+Effective hidden state resolves direct run properties, `docDefaults`, the
+paragraph style, character styles, and every `w:basedOn` ancestor. Missing
+styles, based-on cycles, linked or otherwise unhandled style inheritance are
+unresolved findings and fail source/transformed conformance even when the
+direct carrier run has no `w:rPr`. Package entry names and relationship
+findings use only allowlisted standard labels, fixed classifications, or stable
+redacted IDs; relationship targets, types, URLs, and personal text are never
+returned.
+
 Core `dc:creator` and `cp:lastModifiedBy` values are classified only as
 `absent`, `empty`, `synthetic_expected`, or `non_synthetic_redacted`. No raw
 personal value enters an error, log, output, fixture, record, or documentation.

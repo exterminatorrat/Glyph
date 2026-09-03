@@ -128,8 +128,8 @@ export function inspectZeroWidthText(
         frameErrors.push(error);
       } else {
         decodedMarkers.add(decodedFrame.markerId);
-        runEntries.forEach(({ codePointIndex }) => removableIndexes.add(codePointIndex));
       }
+      runEntries.forEach(({ codePointIndex }) => removableIndexes.add(codePointIndex));
     } catch (caught: unknown) {
       error = errorMessage(caught);
       frameErrors.push(error);
