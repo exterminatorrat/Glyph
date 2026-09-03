@@ -71,6 +71,29 @@ authorship, prompt reuse, intent, cheating, or misconduct. Generation and
 inspection tests use disposable copied repositories or temporary artifacts and
 do not write the canonical artifact in the development checkout.
 
+## Milestone 2D zero-width carrier bake-off commands
+
+The versioned commands are authoritative for
+`docx-zero-width-carrier-bakeoff-v1` and accept only the frozen candidate IDs:
+`join-control-binary-v1`, `invisible-operator-binary-v1`, and
+`variation-selector-byte-v1`.
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm research:carrier:zero-width:generate -- join-control-binary-v1` (repeat with the other two frozen IDs) | One named canonical source DOCX was created once under `research/artifacts/docx-zero-width-carrier-bakeoff-v1/`; candidate ID, document profile, path, and lowercase SHA-256 are reported. Existing files, symlinks, and directory escapes are rejected. |
+| `pnpm research:carrier:zero-width:inspect-docx -- join-control-binary-v1 source research/artifacts/docx-zero-width-carrier-bakeoff-v1/join-control-binary-v1.docx` | One repository-relative DOCX was read-only inspected for exact frames, body placement, visible body, effective hidden properties, metadata classifications, and package safety. Use `transformed` for each editor DOCX. |
+| `pnpm research:carrier:zero-width:inspect-text -- join-control-binary-v1 research/artifacts/docx-zero-width-carrier-bakeoff-v1/join-control-binary-v1-google-docs-copy-plain-text.txt` | One repository-relative UTF-8 clipboard artifact was read-only inspected for exact frames, visible body, normalization observations, and unexpected candidate code points. |
+
+Repeat inspection with the matching frozen candidate ID and exact paths for
+`invisible-operator-binary-v1` and `variation-selector-byte-v1`, in `source` or
+`transformed` mode as appropriate. Readable negative evidence such as missing,
+damaged, duplicate, or unsafe frames/packages is emitted as safe JSON with exit
+status zero so it can be recorded as `REVISE_ZERO_WIDTH_CARRIER` or
+`ABANDON_ZERO_WIDTH_CARRIER`. Usage, path, read, malformed ZIP/XML, and invalid
+UTF-8 errors exit nonzero. These commands prove local structural evidence only;
+they do not prove editor behavior, accessibility, production readiness, or AI
+behavior. Generated DOCX/TXT files remain ignored and are never committed.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.
