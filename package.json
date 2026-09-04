@@ -25,7 +25,8 @@
     "research:carrier:join-control-qualification:inspect-docx": "node scripts/inspect-docx-join-control-qualification.ts",
     "research:carrier:join-control-qualification:inspect-text": "node scripts/inspect-text-join-control-qualification.ts",
     "research:carrier:join-control-qualification:inspect-pdf": "node scripts/inspect-pdf-join-control-qualification.ts",
-    "research:carrier:join-control-qualification:render-pdf": "node scripts/render-pdf-join-control-qualification.ts"
+    "research:carrier:join-control-qualification:render-pdf": "node scripts/render-pdf-join-control-qualification.ts",
+    "research:carrier:join-control-qualification:validate": "node scripts/validate-docx-join-control-qualification-run.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {

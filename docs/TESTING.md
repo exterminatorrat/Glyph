@@ -108,10 +108,10 @@ repository-relative and confined to the ignored M2E artifact directory.
 | `pnpm research:carrier:join-control-qualification:inspect-text -- <case-id> <path>` | One UTF-8 clipboard artifact was read-only inspected for exact rows, frames, allowlisted join controls, normalization, and segmentation evidence. |
 | `pnpm research:carrier:join-control-qualification:inspect-pdf -- <case-id> <path>` | One PDF was read-only inspected with the frozen `uv`/`pypdf` versions for encryption, page/text/placeholder state, unsafe content, bounded object traversal, and redacted metadata. |
 | `pnpm research:carrier:join-control-qualification:render-pdf -- <pdf-path> <png-path>` | One PDF was rendered with the frozen Poppler version at 144 DPI to exactly one create-only, non-empty ignored PNG. This proves renderability only, not visual parity. |
+| `pnpm research:carrier:join-control-qualification:validate` | The exact tracked `run-001.json` schema, provenance, complete artifact matrix, hashes, source lineage, independent DOCX/TXT/PDF reinspections, fixed evidence codes, and mechanically derived binary gate all match. Missing or unreliable evidence exits nonzero as operationally blocked. |
 
-The sixth command, `research:carrier:join-control-qualification:validate`, is
-added only with the Task 5 record validator so the authoritative command table
-never advertises an unimplemented validator. None of the commands above proves
+The validator never invokes the create-only PDF renderer and never creates a
+record for incomplete evidence. None of the commands above proves
 editor parity, NVDA behavior, universal accessibility, production readiness,
 AI ingestion, model compliance, authorship, prompt reuse, intent, cheating, or
 misconduct.
