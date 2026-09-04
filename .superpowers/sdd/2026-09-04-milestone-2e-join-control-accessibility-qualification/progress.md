@@ -54,7 +54,10 @@ Completed experiment tree fingerprints use
 - Task 1 documentation-only protocol freeze: complete.
 - Task 1 science/protocol review: PASS.
 - Task 1 implementation/schema review: PASS.
-- Tasks 2–11: not started; Task 1 approval barrier cleared.
+- Task 2 fixture/generator/DOCX/TXT inspectors and artifact I/O: complete.
+- Task 2 independent code/privacy review: PASS (`ship`).
+- Task 2 focused suite: 58 tests passed.
+- Tasks 3–11: not started.
 
 ## Frozen scientific state
 
@@ -74,6 +77,6 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Run the Task 1 checkpoint verification and commit the frozen protocol. Then
-begin Task 2 by adding the exact fixture module and red-first tests, without
-creating canonical artifacts or changing any frozen carrier or protocol value.
+Run the Task 2 checkpoint verification and commit the reviewed fixture,
+generator, DOCX/TXT inspectors, artifact I/O, and tests. Then begin Task 3 with
+red-first PDF inspector and renderer tests. Do not create canonical artifacts.
