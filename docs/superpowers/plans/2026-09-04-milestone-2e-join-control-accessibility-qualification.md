@@ -105,9 +105,17 @@ The exact ordered failure vocabulary is:
 
 Zero codes derives `QUALIFY_PROFILE` / `all-mandatory-criteria-passed`; one or more derives `REJECT_PROFILE` / `mandatory-criteria-failed`.
 
-## Frozen record shape
+## Withdrawn illustrative record sketch (non-normative)
 
-The protocol expands these aliases into recursively closed objects and exact fixed enums; the implementation may not add optional catch-all fields:
+The sole normative record schema is the exact, recursively closed schema in
+`research/experiments/docx-join-control-accessibility-qualification-v1/protocol.md`
+under **Recursively closed record schema**. That protocol schema controls every
+field name, nesting level, enum, tuple cardinality, conditional invariant, and
+derivation rule. The older TypeScript sketch retained below is withdrawn and
+must not be used for implementation; where it differs from the protocol, the
+protocol is authoritative. No implementation-time schema choices are permitted.
+
+The withdrawn sketch is retained only as historical planning context:
 
 ```typescript
 type QualificationRunRecord = Readonly<{
@@ -200,7 +208,7 @@ type DocxArtifactEvidence = Readonly<{
     normalizationState: "stable" | "mismatch";
     segmentationState: "expected" | "mismatch";
     packageSafetyState: "safe" | "unsafe";
-    coreMetadata: MetadataClassifications;
+    coreMetadata: DocxCoreMetadataClassifications;
     findings: readonly QualificationFailureCode[];
   }>;
 }>;
@@ -210,6 +218,7 @@ type TextArtifactEvidence = Readonly<{
   lineEndings: "lf" | "crlf";
   frameState: "exact" | "missing" | "damaged" | "duplicate" | "mixed";
   visibleTextState: "exact" | "mismatch";
+  defaultIgnorableState: "allowlisted-only" | "unexpected";
   normalizationState: "stable" | "mismatch";
   segmentationState: "expected" | "mismatch";
   findings: readonly QualificationFailureCode[];
@@ -217,18 +226,22 @@ type TextArtifactEvidence = Readonly<{
 
 type PdfArtifactEvidence = Readonly<{
   path: string; sha256: string; sourceCanonicalSha256: string;
-  encrypted: boolean; pageCount: number;
-  visibleTextState: "exact-order" | "mismatch";
-  placeholderState: "absent" | "present";
-  safetyState: "safe" | "unsafe";
-  metadata: MetadataClassifications;
-  render: "rendered-one-page" | "failed";
-  visualParity: "parity" | "mismatch";
+  encrypted: boolean; pageCount: number | null;
+  visibleTextState: "exact-order" | "mismatch" | "not-inspectable-encrypted";
+  placeholderState: "absent" | "present" | "not-inspectable-encrypted";
+  safetyState: "safe" | "unsafe" | "not-inspectable-encrypted";
+  metadata: PdfMetadataClassifications | "not-inspectable-encrypted";
+  render: "rendered-one-page" | "failed" | "not-run-encrypted";
+  visualParity: "parity" | "mismatch" | "not-observed-render-failed" | "not-observed-encrypted";
   findings: readonly QualificationFailureCode[];
 }>;
 
 type MetadataClassification = "absent" | "empty" | "synthetic_expected" | "non_synthetic_redacted";
-type MetadataClassifications = Readonly<{
+type DocxCoreMetadataClassifications = Readonly<{
+  creator: MetadataClassification; lastModifiedBy: MetadataClassification;
+  otherCore: MetadataClassification;
+}>;
+type PdfMetadataClassifications = Readonly<{
   author: MetadataClassification; creator: MetadataClassification;
   producer: MetadataClassification; title: MetadataClassification;
   subject: MetadataClassification; keywords: MetadataClassification;
@@ -250,6 +263,7 @@ type PrimaryObservationCodes = Readonly<{
   layout: "parity" | "mismatch"; bidiOrder: "parity" | "mismatch";
   navigation: "parity" | "mismatch"; search: "both-rows-found" | "mismatch";
   clipboardSelection: "body-only" | "mismatch";
+  selectionPresentation: "absent" | "present";
 }>;
 
 type SpecializedViewObservationCodes = Readonly<{
@@ -272,9 +286,9 @@ type NvdaObservationCodes = Readonly<{
 }>;
 ```
 
-Every `path` is repository-relative and every hash/revision is lowercase hexadecimal with an exact validated length. The twelve mutations are ordered insert, backspace, forward-delete, each in `control-alpha`, `marked-alpha`, `control-beta`, `marked-beta` order. `ProtocolDeviationCode` is exactly `pdf-metadata-redacted` or `accessibility-assistant-unavailable`. Required limitations are exactly `tested-configurations-only`, `voiceover-not-assessed`, `other-screen-readers-not-assessed`, `no-universal-accessibility-claim`, `no-production-readiness-claim`, `no-pilot-readiness-claim`, `no-ai-ingestion-claim`, `no-model-compliance-claim`, `no-authorship-claim`, `no-prompt-reuse-claim`, `no-intent-claim`, `no-cheating-claim`, and `no-misconduct-claim`; PDF metadata may additionally require `pdf-metadata-requires-privacy-review`.
+Every artifact `path` is repository-relative, confined to the M2E artifact root, and every hash/revision is lowercase hexadecimal with an exact validated length; the four provenance paths exact-match their non-artifact literals. The twelve mutations are ordered insert, backspace, forward-delete, each in `control-alpha`, `marked-alpha`, `control-beta`, `marked-beta` order. `ProtocolDeviationCode` is exactly `docx-core-metadata-redacted`, `pdf-metadata-redacted`, or `accessibility-assistant-unavailable`. Required limitations are exactly `tested-configurations-only`, `voiceover-not-assessed`, `other-screen-readers-not-assessed`, `no-universal-accessibility-claim`, `no-production-readiness-claim`, `no-pilot-readiness-claim`, `no-ai-ingestion-claim`, `no-model-compliance-claim`, `no-authorship-claim`, `no-prompt-reuse-claim`, `no-intent-claim`, `no-cheating-claim`, and `no-misconduct-claim`; non-synthetic DOCX/PDF metadata additionally requires its matching `docx-core-metadata-requires-privacy-review` or `pdf-metadata-requires-privacy-review` limitation.
 
-Task 1 is a documentation-only specification subphase. Execution must stop after Task 1 until two independent read-only reviews confirm that `protocol.md` fully expands every alias above into an exact recursively closed schema and makes no new scientific choice. This review is the approval barrier for Tasks 2–11 and does not require another manual user prompt unless it discovers a material scope conflict.
+Task 1 is a documentation-only specification subphase. Execution must stop after Task 1 until two independent read-only reviews confirm that `protocol.md` contains the sole exact recursively closed schema and makes no new scientific choice. This review is the approval barrier for Tasks 2–11 and does not require another manual user prompt unless it discovers a material scope conflict.
 
 ## File map
 
@@ -304,7 +318,7 @@ Task 1 is a documentation-only specification subphase. Execution must stop after
 
 ### Task 1: Freeze the protocol, ledger, and milestone boundary before coding
 
-**Files:** Create `protocol.md` and the progress ledger; modify `.gitignore`, `AGENTS.md`, `docs/MVP_SPEC.md`, `docs/EXPERIMENTS.md`, and `docs/TESTING.md`. Do not create `fixture.ts` yet.
+**Files:** Create `protocol.md` and the progress ledger; modify `.gitignore`, `AGENTS.md`, `docs/MVP_SPEC.md`, and `docs/EXPERIMENTS.md`. Do not create `fixture.ts` or document uninstalled commands in `docs/TESTING.md` yet.
 
 - [ ] Write the protocol with every fixture, operation, artifact, schema, evidence enum, failure code, gate, and stop rule fixed in the tables above. No scientific choice remains delegated to implementation.
 - [ ] Freeze checkpoint IDs as `canonical`, `roundtrip`, plus the exact target-qualified insert/backspace/forward-delete result and restored forms defined above. Freeze the closed `QualificationMutationTarget` union and finite checkpoint list in the protocol.
@@ -398,7 +412,7 @@ Task 1 is a documentation-only specification subphase. Execution must stop after
 - [ ] Run paragraph/word/character navigation, fixed cross-anchor searches, paired spellcheck observation, one ordinary-body copy, and UTF-8 plain-text paste.
 - [ ] On a separate fresh canonical import/open for each of the four target rows, run insert/undo/redo/restored, backspace/result/restored, and forward-delete/result/restored operations. Export every target-qualified DOCX checkpoint.
 - [ ] Run Word Show/Hide and Google Docs non-printing-character display only after primary observations. Run Word Accessibility Assistant last. Record fixed codes only.
-- [ ] Open print preview and export one PDF from each independent editor/case. Inspect and render with the frozen PDF command, then visually compare paired rows and record fixed codes.
+- [ ] From a dedicated fresh canonical import/open for each editor/case, open print preview and export one PDF. Inspect and render with the frozen PDF commands, then visually compare paired rows and record fixed codes.
 - [ ] Compute hashes and structurally inspect all DOCX, TXT, and PDF outputs. Record deviations and privacy-safe metadata classifications.
 - [ ] If automation cannot make any observation reliable, use `BLOCKED`; do not fabricate or silently substitute evidence.
 

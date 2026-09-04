@@ -61,13 +61,18 @@ Only `PROCEED` authorizes Milestone 3 under this specification. A revision requi
 ### Approved carrier successors
 
 Milestone 2C ended with `REVISE_CARRIER` after its separately versioned
-semantic-white qualification. The approved Milestone 2D design,
-`docs/superpowers/specs/2026-09-03-milestone-2d-zero-width-carrier-bakeoff-design.md`,
-is the current specification revision for the zero-width carrier successor
-bake-off. It qualifies transport and ordinary presentation only; any selected
-document profile still requires separate accessibility and international-text
-qualification. Milestone 3 and all product workflows remain unauthorized until
-that successor gate and its later qualification are complete.
+semantic-white qualification. Milestone 2D then selected
+`join-control-binary-v1` / `docx-zero-width-join-control-v1` with `SELECT_A`.
+That decision establishes transport and ordinary-presentation evidence only.
+
+The approved Milestone 2E design,
+`docs/superpowers/specs/2026-09-03-milestone-2e-join-control-accessibility-qualification-design.md`,
+and frozen protocol,
+`research/experiments/docx-join-control-accessibility-qualification-v1/protocol.md`,
+qualify the unchanged selected profile across the declared accessibility,
+international-text, editing, and print/PDF boundary. Milestone 3 and all
+product workflows remain unauthorized until Milestone 2E records
+`QUALIFY_PROFILE` and a separate later authorization begins Milestone 3.
 
 ## 5. Fingerprint requirements
 

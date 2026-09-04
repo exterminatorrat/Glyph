@@ -84,14 +84,20 @@ A failed carrier result cannot be rationalized by application investment because
 ### Versioned carrier successors
 
 Milestone 2C recorded `REVISE_CARRIER` for its semantic-white qualification.
-Milestone 2D is the current, separately versioned zero-width carrier
-bake-off, frozen in the [Milestone 2D protocol](../research/experiments/docx-zero-width-carrier-bakeoff-v1/protocol.md).
-It asks whether fixed checksum-protected zero-width frames survive independent
-Google Docs and Microsoft Word DOCX round trips and ordinary plain-text copy
-while remaining absent from required ordinary views. The result is transport
-evidence only: a selected profile advances to separate accessibility and
-international-text qualification and does not change the interpretation ladder
-or authorize Milestone 3/product claims.
+Milestone 2D then selected `join-control-binary-v1` with `SELECT_A` under the
+[Milestone 2D protocol](../research/experiments/docx-zero-width-carrier-bakeoff-v1/protocol.md).
+That result proves only the recorded Google Docs and Microsoft Word transport
+and ordinary-presentation behavior.
+
+Milestone 2E is the current separately versioned qualification, frozen in the
+[Milestone 2E protocol](../research/experiments/docx-join-control-accessibility-qualification-v1/protocol.md).
+It tests the unchanged selected profile against paired Latin,
+Arabic/Persian, Devanagari/emoji, and mixed-bidirectional fixtures; ordinary
+editing and print/PDF workflows in Google Docs and Word; and the required NVDA
+2026.2 workflows on Windows 11. A complete result is `QUALIFY_PROFILE` or
+`REJECT_PROFILE`; missing or unreliable mandatory evidence is operationally
+`BLOCKED` outside the run record. Even qualification does not change the
+interpretation ladder or independently authorize Milestone 3 or product work.
 
 ## Experiment B — model compliance
 
