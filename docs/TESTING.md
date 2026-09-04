@@ -95,6 +95,27 @@ UTF-8 errors exit nonzero. These commands prove local structural evidence only;
 they do not prove editor behavior, accessibility, production readiness, or AI
 behavior. Generated DOCX/TXT files remain ignored and are never committed.
 
+## Milestone 2E join-control qualification commands
+
+The current Milestone 2E command surface operates only on the frozen
+`docx-zero-width-join-control-qualification-v1` research profile. Paths are
+repository-relative and confined to the ignored M2E artifact directory.
+
+| Command | What success proves |
+| --- | --- |
+| `pnpm research:carrier:join-control-qualification:generate -- <case-id>` | One named frozen synthetic canonical DOCX was created once and its fixed identifiers, path, and lowercase SHA-256 were reported. Existing files, symlinks, and directory escapes are rejected. |
+| `pnpm research:carrier:join-control-qualification:inspect-docx -- <case-id> <checkpoint-id> <source\|transformed> <path>` | One M2E DOCX was read-only inspected against the exact case/checkpoint state for frame, anchor, visible text, Unicode, property, metadata, package, and relationship evidence. |
+| `pnpm research:carrier:join-control-qualification:inspect-text -- <case-id> <path>` | One UTF-8 clipboard artifact was read-only inspected for exact rows, frames, allowlisted join controls, normalization, and segmentation evidence. |
+| `pnpm research:carrier:join-control-qualification:inspect-pdf -- <case-id> <path>` | One PDF was read-only inspected with the frozen `uv`/`pypdf` versions for encryption, page/text/placeholder state, unsafe content, bounded object traversal, and redacted metadata. |
+| `pnpm research:carrier:join-control-qualification:render-pdf -- <pdf-path> <png-path>` | One PDF was rendered with the frozen Poppler version at 144 DPI to exactly one create-only, non-empty ignored PNG. This proves renderability only, not visual parity. |
+
+The sixth command, `research:carrier:join-control-qualification:validate`, is
+added only with the Task 5 record validator so the authoritative command table
+never advertises an unimplemented validator. None of the commands above proves
+editor parity, NVDA behavior, universal accessibility, production readiness,
+AI ingestion, model compliance, authorship, prompt reuse, intent, cheating, or
+misconduct.
+
 ## Development discipline
 
 Behavioral implementation begins with a failing test that demonstrates the requirement, followed by the minimum implementation that passes it. Tests should exercise module interfaces and observable outcomes rather than internal arrangement.

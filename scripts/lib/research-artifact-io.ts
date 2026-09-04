@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { lstat, open, realpath } from "node:fs/promises";
+import { lstat, mkdir, open, realpath } from "node:fs/promises";
 import { isAbsolute, join, normalize, relative, sep } from "node:path";
 
 type RepositoryPathInput = Readonly<{
@@ -131,5 +131,26 @@ export async function assertNewRepositoryArtifactPath(
     throw new Error("Research artifact already exists");
   } catch (error) {
     if (!isNodeError(error) || error.code !== "ENOENT") throw error;
+  }
+}
+
+export async function ensureRepositoryArtifactRoot(
+  repositoryRoot: string,
+  allowedRoot: string,
+): Promise<void> {
+  validateRelativePath(allowedRoot);
+  const repository = await realpath(repositoryRoot).catch(() => unsafePath());
+  let current = repository;
+  for (const component of allowedRoot.split("/")) {
+    current = join(current, component);
+    try {
+      await mkdir(current, { mode: 0o700 });
+    } catch (error) {
+      if (!isNodeError(error) || error.code !== "EEXIST") unsafePath();
+    }
+    const status = await lstat(current).catch(() => unsafePath());
+    if (status.isSymbolicLink() || !status.isDirectory()) unsafePath();
+    const resolved = await realpath(current).catch(() => unsafePath());
+    if (resolved !== current || !isContained(repository, resolved)) unsafePath();
   }
 }

@@ -4,7 +4,17 @@ import { fileURLToPath } from "node:url";
 import {
   qualificationCase,
   type QualificationCaseId,
-} from "../research/experiments/docx-join-control-accessibility-qualification-v1/fixture";
+} from "../research/experiments/docx-join-control-accessibility-qualification-v1/fixture.ts";
+import {
+  commandArguments,
+  directExecution,
+  failCommand,
+  JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
+  parseCaseId,
+  repositoryRootFor,
+  sha256,
+} from "./lib/join-control-qualification-command.ts";
+import { readRepositoryRegularFile } from "./lib/research-artifact-io.ts";
 
 const EXPECTED_UV_VERSION = "0.12.9";
 const EXPECTED_PYPDF_VERSION = "6.10.0";
@@ -271,3 +281,31 @@ export async function inspectJoinControlQualificationPdf(
   if (envelope.pypdfVersion !== EXPECTED_PYPDF_VERSION) blocked();
   return validateQualificationPdfInspection(envelope.inspection, caseId);
 }
+
+const USAGE =
+  "Usage: pnpm research:carrier:join-control-qualification:inspect-pdf -- <case-id> <repository-relative-pdf-path>";
+
+const main = async (): Promise<void> => {
+  const args = commandArguments();
+  const caseId = args.length === 2 ? parseCaseId(args[0]) : null;
+  const artifactPath = args[1];
+  if (caseId === null || !artifactPath) {
+    failCommand(USAGE);
+    return;
+  }
+  try {
+    const bytes = await readRepositoryRegularFile({
+      repositoryRoot: repositoryRootFor(import.meta.url),
+      allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
+      relativePath: artifactPath,
+    });
+    const inspection = await inspectJoinControlQualificationPdf(bytes, caseId);
+    process.stdout.write(
+      `${JSON.stringify({ artifactPath, sha256: sha256(bytes), ...inspection })}\n`,
+    );
+  } catch {
+    failCommand("Unable to inspect qualification PDF.");
+  }
+};
+
+if (directExecution(import.meta.url)) void main();

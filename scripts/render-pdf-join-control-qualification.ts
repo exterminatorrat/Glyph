@@ -5,8 +5,17 @@ import { join } from "node:path";
 
 import {
   assertNewRepositoryArtifactPath,
+  readRepositoryRegularFile,
   writeNewRepositoryArtifact,
-} from "./lib/research-artifact-io";
+} from "./lib/research-artifact-io.ts";
+import {
+  commandArguments,
+  directExecution,
+  failCommand,
+  JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
+  repositoryRootFor,
+  sha256,
+} from "./lib/join-control-qualification-command.ts";
 
 const ARTIFACT_ROOT =
   "research/artifacts/docx-join-control-accessibility-qualification-v1";
@@ -88,3 +97,48 @@ export async function renderJoinControlQualificationPdf(
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
 }
+
+const USAGE =
+  "Usage: pnpm research:carrier:join-control-qualification:render-pdf -- <repository-relative-pdf-path> <repository-relative-png-path>";
+
+const main = async (): Promise<void> => {
+  const args = commandArguments();
+  const inputPath = args[0];
+  const outputPath = args[1];
+  if (args.length !== 2 || !inputPath || !outputPath) {
+    failCommand(USAGE);
+    return;
+  }
+  const repositoryRoot = repositoryRootFor(import.meta.url);
+  try {
+    const pdfBytes = await readRepositoryRegularFile({
+      repositoryRoot,
+      allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
+      relativePath: inputPath,
+    });
+    const render = await renderJoinControlQualificationPdf({
+      repositoryRoot,
+      pdfBytes,
+      outputRelativePath: outputPath,
+    });
+    const pngBytes = await readRepositoryRegularFile({
+      repositoryRoot,
+      allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
+      relativePath: outputPath,
+    });
+    process.stdout.write(
+      `${JSON.stringify({
+        inputPath,
+        inputSha256: sha256(pdfBytes),
+        outputPath,
+        outputSha256: sha256(pngBytes),
+        rendererVersion: render.rendererVersion,
+        pageCount: render.pageCount,
+      })}\n`,
+    );
+  } catch {
+    failCommand("Unable to render qualification PDF.");
+  }
+};
+
+if (directExecution(import.meta.url)) void main();

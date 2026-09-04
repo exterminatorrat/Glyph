@@ -68,7 +68,14 @@ Completed experiment tree fingerprints use
   16-file/332-test full suite, and production build passed; completed
   experiment fingerprints remained unchanged; no M2E canonical artifact was
   generated.
-- Tasks 4–11: not started.
+- Task 4 safe generation, DOCX/TXT/PDF inspection, and PDF-render command
+  surface: complete; 9 focused command-safety tests passed.
+- Task 4 remains open only for the sixth `validate` package entrypoint, which
+  lands with its real Task 5 validator rather than pointing at an absent or
+  placeholder implementation.
+- Task 4 checkpoint verification: frozen-lockfile install, lint, typecheck,
+  17-file/341-test full suite, and production build passed.
+- Tasks 5–11: not started.
 
 ## Frozen scientific state
 
@@ -88,5 +95,6 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Begin Task 4 with red-first safe command-surface tests and add the six exact
-M2E package commands. Do not create canonical artifacts.
+Begin Task 5 with red-first recursively closed run-record and mechanical-gate
+tests. Add the sixth `validate` package command with the real validator. Do not
+create canonical artifacts.

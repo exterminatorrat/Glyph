@@ -20,7 +20,12 @@
     "research:carrier:zero-width:generate": "node scripts/generate-docx-zero-width-carrier.ts",
     "research:carrier:zero-width:inspect-docx": "node scripts/inspect-docx-zero-width-carrier.ts",
     "research:carrier:zero-width:inspect-text": "node scripts/inspect-zero-width-plain-text.ts",
-    "research:carrier:zero-width:validate": "node scripts/validate-docx-zero-width-carrier-run.ts"
+    "research:carrier:zero-width:validate": "node scripts/validate-docx-zero-width-carrier-run.ts",
+    "research:carrier:join-control-qualification:generate": "node scripts/generate-docx-join-control-qualification.ts",
+    "research:carrier:join-control-qualification:inspect-docx": "node scripts/inspect-docx-join-control-qualification.ts",
+    "research:carrier:join-control-qualification:inspect-text": "node scripts/inspect-text-join-control-qualification.ts",
+    "research:carrier:join-control-qualification:inspect-pdf": "node scripts/inspect-pdf-join-control-qualification.ts",
+    "research:carrier:join-control-qualification:render-pdf": "node scripts/render-pdf-join-control-qualification.ts"
   },
   "packageManager": "pnpm@11.19.0",
   "dependencies": {
