@@ -57,7 +57,18 @@ Completed experiment tree fingerprints use
 - Task 2 fixture/generator/DOCX/TXT inspectors and artifact I/O: complete.
 - Task 2 independent code/privacy review: PASS (`ship`).
 - Task 2 focused suite: 58 tests passed.
-- Tasks 3–11: not started.
+- 2026-09-04 primary-agent spec/plan self-review: `QUALIFIED_FOR_IMPLEMENTATION`.
+  The verdict confirms that the approved design, frozen protocol, and reviewed
+  implementation plan are complete enough to execute without changing the
+  carrier or making an early scientific qualification claim.
+- Task 3 privacy-safe PDF inspector and create-only renderer: complete.
+- Task 3 primary-agent code/privacy self-review: PASS.
+- Task 3 focused suite: 14 tests passed.
+- Task 3 checkpoint verification: frozen-lockfile install, lint, typecheck,
+  16-file/332-test full suite, and production build passed; completed
+  experiment fingerprints remained unchanged; no M2E canonical artifact was
+  generated.
+- Tasks 4–11: not started.
 
 ## Frozen scientific state
 
@@ -77,6 +88,5 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Run the Task 2 checkpoint verification and commit the reviewed fixture,
-generator, DOCX/TXT inspectors, artifact I/O, and tests. Then begin Task 3 with
-red-first PDF inspector and renderer tests. Do not create canonical artifacts.
+Begin Task 4 with red-first safe command-surface tests and add the six exact
+M2E package commands. Do not create canonical artifacts.

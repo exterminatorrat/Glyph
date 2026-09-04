@@ -120,3 +120,16 @@ export async function writeNewRepositoryArtifact(
     await handle.close();
   }
 }
+
+export async function assertNewRepositoryArtifactPath(
+  input: RepositoryPathInput,
+): Promise<void> {
+  const { candidate } = await resolveInput(input);
+  try {
+    const status = await lstat(candidate);
+    if (status.isSymbolicLink()) unsafePath();
+    throw new Error("Research artifact already exists");
+  } catch (error) {
+    if (!isNodeError(error) || error.code !== "ENOENT") throw error;
+  }
+}
