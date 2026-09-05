@@ -947,3 +947,33 @@ file is pending output, not accepted clipboard evidence.
 No mutation, specialized view, print workflow or Google Docs import has begun.
 No run record or final scientific gate has been created. All earlier frozen
 canonical hashes were verified unchanged during this recovery.
+
+
+## Task 8 continuation: desktop isolation constraint (2026-09-05)
+
+The user reserves Desktops 1 and 2, especially Desktop 2, for their own use.
+Agent computer interaction is restricted to Desktops 3 and 4. Native input
+has been paused because the available computer-control interface does not
+provide reliable Space-targeted input isolation. Do not resume native input
+while the user is working in Desktops 1 or 2 without first establishing that
+it cannot interfere with those desktops.
+
+TextEdit recovered sufficiently to open and inspect the pending clipboard
+file: the document was empty. It was closed without editing. The empty
+aborted output was preserved at
+`task8-save-diagnostics/latin-clipboard-aborted-attempt-1.txt`, and a new
+empty destination was reserved at the original clipboard path for a fresh
+trial. Neither file is accepted evidence. No additional Copy or Paste has
+been invoked. The last Word picker observation explicitly selected the Latin
+canonical; Return was then invoked, but successful loading was not established
+before the desktop restriction arrived. Reinspect the actual window before
+resuming; do not assume a fresh canonical is open.
+
+Filesystem verification confirms the Latin canonical remains
+`ead38b8f846102e593dece481a0f5a47e4368362fcc5b94446731fa3834863c5`
+and the accepted round-trip remains
+`3b71ff311f1ce36d492e80d24a0c2fcb039480c361f529049ed4c64ca224c931`.
+The recorded navigation mismatch is unchanged. Task 8 remains incomplete and
+operationally `BLOCKED`; no complete run record or scientific gate was created.
+This continuation supersedes the earlier immediate next action: reliable
+computer-input isolation must be established before more native editor work.

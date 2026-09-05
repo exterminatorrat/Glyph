@@ -1,3 +1,5 @@
+> Current migration/resume state: [2026-09-05 Mac Mini checkpoint](2026-09-05-mac-mini-migration.md). Its snapshot and next action supersede this older handoff.
+
 # Glyph Continuation and Milestone 2E Handoff
 
 Last updated: 2026-09-03
