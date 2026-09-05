@@ -83,7 +83,26 @@ Completed experiment tree fingerprints use
   18-file/348-test full suite, and production build passed; completed
   experiment fingerprints remained unchanged and the M2E artifact directory
   remained absent.
-- Tasks 6–11: not started.
+- Task 6 pre-generation freeze review: complete.
+- Task 6 implementation provenance commit:
+  `d00a2d3526d15f94968ccdb15af10c612d9732ae`.
+- Task 6 final protocol/science review: PASS (`ship`).
+- Task 6 final code/security/privacy review: PASS (`ship`).
+- Task 6 final verification: frozen-lockfile install, lint, typecheck,
+  18-file/358-test full suite, and production build passed. Focused completed
+  Milestone 2–2D regressions passed (13 files, 259 tests).
+- Task 6 immutable-history audit: all four completed experiment tree
+  fingerprints remain unchanged from the completed transport base; the M2E
+  artifact root remains absent; no tracked DOCX/PDF/PNG files, lockfile drift,
+  generated artifacts, secrets, or milestone leakage were found.
+- Frozen implementation hashes at `d00a2d3526d15f94968ccdb15af10c612d9732ae`:
+  protocol `7e18d881bfc222508104b801480fd4315bdf0e37ba101a67463084da6389b882`;
+  fixture `6c34b6672d5ceccef6c719e83e653ce487e83a5b956fe0fa68515dd27e68d11d`;
+  generator `73d34dd53d7807f0011e51b619a767c0d28368ffb6a3511c1666cdc3e96f4746`;
+  validator `a83351e28d27afb26a3438ddad30ff720d9b626d7ea191152f176a3d6c60eaba`;
+  package `a5b9bb22197a5a54abcbce70a577a6ece43988a5911f563f373298da0adc9027`;
+  lockfile `83f234738c6a6f31f7a5429eedd0a479b4d739d2222fb291e7e1fbf9213ab0e3`.
+- Tasks 7–11: not started.
 
 ## Frozen scientific state
 
@@ -103,6 +122,8 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Begin Task 6 pre-generation freeze review. Do not create canonical artifacts
-until the full verification and review barrier passes and its stable
-implementation provenance is committed.
+Begin Task 7 from implementation provenance commit
+`d00a2d3526d15f94968ccdb15af10c612d9732ae`: generate each of the four
+canonicals exactly once, freeze its hash, structurally inspect it in source
+mode, and render its one-page preview. Do not change the frozen implementation
+or begin editor/NVDA workflows during Task 7.
