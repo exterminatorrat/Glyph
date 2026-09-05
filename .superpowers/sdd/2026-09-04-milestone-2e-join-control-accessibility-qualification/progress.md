@@ -10,7 +10,7 @@
 - Qualification profile: `docx-zero-width-join-control-qualification-v1`
 - Candidate/document profile: `join-control-binary-v1` / `docx-zero-width-join-control-v1`
 - Canonical artifacts: four generated once; hashes frozen; source inspections passed; original and supplemental one-page previews preserved
-- Editor workflows: Task 8 started; Word control recovered; first Latin roundtrip export is empty and uninspectable
+- Editor workflows: Task 8 in progress; valid Latin Word roundtrip and navigation mismatch recorded; clipboard completion unverified
 - NVDA workflows: not started
 - Run record: absent
 - Gate: pending; incomplete or unreliable evidence is operationally `BLOCKED`
@@ -106,10 +106,10 @@ Completed experiment tree fingerprints use
   inspections and one-page visual verification passed. The preview blocker
   recorded at `f2adddd` was resolved by explicit renderer font configuration;
   original evidence remains preserved alongside verified supplemental previews.
-- Task 8: partial Word Latin observations preserved. Reopened Word responded
-  on retry, but its first roundtrip DOCX export is zero bytes despite a saved
-  UI status. Operationally `BLOCKED` on uninspectable exported evidence;
-  navigation/proofing and the remaining matrix are incomplete.
+- Task 8: original Word Latin roundtrip eventually completed and passed
+  inspection. Word Alpha character/word navigation mismatch observed.
+  Clipboard workflow pending after TextEdit control timeouts; user foreground
+  assistance requested. Remaining editor matrix and proofing are incomplete.
 - Tasks 9–11: not started.
 
 ## Frozen scientific state
@@ -130,13 +130,13 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Diagnose why Word's native Save As produced a zero-byte Latin roundtrip DOCX
-while reporting success. Preserve the empty export and all hash-frozen
-canonicals. Do not overwrite the failed export, regenerate a canonical, change
-frozen implementation or infer a scientific result. A reliable export path and
-an explicit evidence-preserving recovery procedure are needed before resuming
-the remaining Task 8 observations. Tasks 8–11 and the Milestone 2E gate remain
-pending; no completed run record exists.
+Inspect the existing TextEdit clipboard-evidence window after the user brings
+it to the foreground on Desktop 4. Determine whether the already-invoked paste
+completed before any further paste action. Preserve its exact contents and
+inspect the completed UTF-8 file with the frozen command. Continue the Task 8
+matrix with active-desktop control and stable-file checks; do not repeat the
+completed Word roundtrip export or alter the navigation-mismatch observation.
+No carrier fix or scientific gate is implied. Tasks 8–11 remain incomplete.
 
 ## Task 7 canonical evidence — 2026-09-05
 
@@ -808,3 +808,142 @@ repair, second export, or mutation was attempted after confirmation.
 All four canonical hashes remain unchanged. Only this ledger changes in Git;
 the failed export remains ignored. Google Docs, copy/mutation/print workflows,
 NVDA and complete run-record creation were not started in this retry.
+
+## Task 8 foreground-control recovery and partial evidence — 2026-09-05
+
+The user authorized environment recovery and completing Task 8. During the
+separate Save As diagnostic attempt, the original roundtrip completed writing
+without an agent overwrite or repair. The earlier empty-file observations
+remain accurate historical observations of incomplete output, not a final
+artifact hash. The resulting 14,075-byte file passed the frozen inspector.
+The diagnostic Save As was cancelled; no diagnostic DOCX was created.
+
+The user confirmed Desktop 4 was active and keyboard/mouse control was yielded.
+Keyboard selections then became observable. This supports requiring foreground
+interaction and inspectable file completion; the exact cause of the delayed
+write is not proven. Future saves require stable non-empty file checks and
+successful inspection rather than relying on the editor's saved-status label.
+
+### Completed Latin Word roundtrip inspection
+
+```json
+{
+  "artifactPath": "research/artifacts/docx-join-control-accessibility-qualification-v1/latin-operations-v1-microsoft-word-roundtrip.docx",
+  "sha256": "3b71ff311f1ce36d492e80d24a0c2fcb039480c361f529049ed4c64ca224c931",
+  "mode": "transformed",
+  "caseId": "latin-operations-v1",
+  "checkpointId": "roundtrip",
+  "frameState": "exact",
+  "occurrences": [
+    {
+      "markerId": "alpha",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 1,
+      "runIndices": [
+        0
+      ],
+      "startCodePointIndex": 41,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    },
+    {
+      "markerId": "beta",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 3,
+      "runIndices": [
+        0
+      ],
+      "startCodePointIndex": 46,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    }
+  ],
+  "visibleTextState": "exact",
+  "hiddenPropertyState": "absent",
+  "defaultIgnorableState": "allowlisted-only",
+  "nfcState": "stable",
+  "nfkcState": "stable",
+  "segmentationState": "expected",
+  "segmentation": [
+    {
+      "rowIndex": 0,
+      "locale": "en-US",
+      "graphemeCount": 69,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 1,
+      "locale": "en-US",
+      "graphemeCount": 69,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 2,
+      "locale": "en-US",
+      "graphemeCount": 77,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 3,
+      "locale": "en-US",
+      "graphemeCount": 77,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    }
+  ],
+  "nodeVersion": "26.3.0",
+  "icuVersion": "78.3",
+  "unicodeVersion": "17.0",
+  "packageSafetyState": "safe",
+  "relationshipSafetyState": "safe",
+  "macroOrActiveContent": "absent",
+  "coreMetadata": {
+    "creator": "synthetic_expected",
+    "lastModifiedBy": "non_synthetic_redacted",
+    "otherCore": "non_synthetic_redacted"
+  },
+  "findings": []
+}
+```
+
+### Verified additional observations
+
+- Paragraph-navigation selections traversed all four Latin rows, retaining
+  complete row boundaries; paired paragraph navigation: `parity`.
+- At the control Alpha first-sentence boundary, Shift-Right selected one
+  ordinary space; Option-Shift-Right selected that space and the next word.
+- At the corresponding marked Alpha boundary, Shift-Right selected one
+  join-control character; Option-Shift-Right selected 120 join-control
+  characters and no next visible word. Character/word navigation: `mismatch`.
+  This supports the frozen `navigation-mismatch` failure family; it is not an
+  operational timeout and must not be repaired or waived.
+- With no selection, the Editor panel again reported zero spelling/grammar
+  issues. Functional paired spellchecking remains unverified; no pass is
+  inferred merely from the zero count. No suggestion was accepted.
+- Ordinary Select All was executed once in the body; the selection contained
+  the four rows only (`body-only`) and presented no visible carrier
+  (`absent`), with paired layout `parity`. Copy was invoked once.
+
+### Clipboard workflow pending
+
+A new empty plain-text destination was created and opened in TextEdit through
+Finder, then one Paste and Save sequence was attempted. It timed out. Further
+TextEdit state/screenshot reads timed out, and a window Raise request reported
+`elementHasNoFrame`. No second paste was issued. The destination was still
+zero bytes at the subsequent filesystem check. The user has been asked to
+bring this exact TextEdit window forward without editing so its current state
+can be inspected before deciding whether the pending paste completed. This
+file is pending output, not accepted clipboard evidence.
+
+No mutation, specialized view, print workflow or Google Docs import has begun.
+No run record or final scientific gate has been created. All earlier frozen
+canonical hashes were verified unchanged during this recovery.
