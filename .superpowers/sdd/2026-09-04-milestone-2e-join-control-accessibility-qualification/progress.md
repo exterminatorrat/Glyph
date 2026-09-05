@@ -9,7 +9,7 @@
 - Reviewers: parallel read-only protocol/science and code/privacy lanes
 - Qualification profile: `docx-zero-width-join-control-qualification-v1`
 - Candidate/document profile: `join-control-binary-v1` / `docx-zero-width-join-control-v1`
-- Canonical artifacts: four generated once; hashes frozen; source inspections passed; four one-page previews preserved
+- Canonical artifacts: four generated once; hashes frozen; source inspections passed; original and supplemental one-page previews preserved
 - Editor workflows: not started
 - NVDA workflows: not started
 - Run record: absent
@@ -102,9 +102,10 @@ Completed experiment tree fingerprints use
   validator `a83351e28d27afb26a3438ddad30ff720d9b626d7ea191152f176a3d6c60eaba`;
   package `a5b9bb22197a5a54abcbce70a577a6ece43988a5911f563f373298da0adc9027`;
   lockfile `83f234738c6a6f31f7a5429eedd0a479b4d739d2222fb291e7e1fbf9213ab0e3`.
-- Task 7: canonical generation, replacement refusal checks, source inspections, and
-  one-page rendering complete; visual evidence `BLOCKED` because the family
-  emoji is absent from both rows in the Devanagari/emoji preview.
+- Task 7: complete. Canonical generation, replacement refusal checks, source
+  inspections and one-page visual verification passed. The preview blocker
+  recorded at `f2adddd` was resolved by explicit renderer font configuration;
+  original evidence remains preserved alongside verified supplemental previews.
 - Tasks 8–11: not started.
 
 ## Frozen scientific state
@@ -125,12 +126,12 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Resolve the Task 7 canonical-preview evidence blocker before Task 8. The
-preserved `devanagari-emoji-graphemes-v1-canonical-page-1.png` omits the family
-emoji from both Beta rows, so grapheme preservation cannot be reliably
-observed with this preview. Do not regenerate or modify any canonical, replace
-any preserved preview, change frozen implementation, or start editor/NVDA
-workflows. No run record or scientific decision is created.
+Begin Task 8 using the four existing hash-frozen canonicals. Verify the primary
+editor environments and follow the frozen Google Docs/Chrome and Word for Mac
+workflows. Never regenerate any canonical or substitute these supplemental
+LibreOffice previews for primary-editor or NVDA evidence. Tasks 8–11 remain
+outstanding; Milestone 2E is incomplete and its scientific gate remains pending
+(operationally `BLOCKED`). No run record may be created yet.
 
 ## Task 7 canonical evidence — 2026-09-05
 
@@ -570,3 +571,81 @@ record was attempted after observing this blocker.
 - Only this ledger is changed. No implementation tests were added or rerun for
   this evidence-only checkpoint; executed generation, refusal, source
   reinspection, rendering and artifact-scope checks are recorded above.
+
+## Task 7 renderer blocker resolution — 2026-09-05
+
+The user authorized proceeding with the renderer investigation after the
+`f2adddd` checkpoint. Scope remained ignored diagnostic artifacts and this
+ledger. Earlier blocker observations above describe that preserved checkpoint;
+they are superseded for current Task 7 status by the verification below.
+
+### Cause and controlled check
+
+The same documents-skill renderer, same source DOCX and same 144 DPI setting
+reproduced the original PNG byte-for-byte with default font configuration.
+The resulting diagnostic PDF had zero complete family sequences, zero family
+person code points, and no images. The loss therefore occurred before PNG
+conversion. A default fontconfig probe returned no system-font matches, even
+though the system emoji font exists.
+
+The only renderer-input change was setting the process-local `FONTCONFIG_FILE`
+to the bundled LibreOffice font configuration:
+
+```text
+/Users/harryjin/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/libreoffice-headless/libreoffice/LibreOfficeDev.app/Contents/Resources/fontconfig/fonts.conf
+```
+
+No installed runtime file, system preference, repository implementation or
+canonical DOCX was edited. LibreOffice version was
+`26.8.0.0.alpha0` (`2c87e51eeaa2b413ff4ae097b2705eea1995d8e5`).
+The skill renderer remained bundle `26.903.11726`, with bundled Python and
+144 DPI. The explicit configuration restored both complete family sequences
+(eight family person code points total) in the one-page diagnostic PDF. Both
+family glyphs were visible in its PNG. A second render with this configuration
+produced a byte-identical emoji-case PNG.
+
+This establishes a renderer font-discovery/configuration problem for the
+observed omission. It does not establish editor accessibility or carrier
+qualification. No scientific failure was repaired or waived.
+
+### Supplemental source-preview verification
+
+All four canonicals were rendered with the explicit configuration to fresh,
+create-only directories under ignored
+`task7-render-diagnostics/verified-fontconfig/<case>/page-1.png`.
+All four full-page PNGs were visually inspected. The original fixed-name
+previews and both diagnostic PDF/PNG pairs remain unchanged for audit. These
+additional files are supplemental renderer evidence, outside the mandatory
+editor artifact matrix; none will be represented as editor exports or new
+canonical documents in a run record.
+
+| Case | Pages | Paired visual parity | Paired layout parity | Carrier presented |
+| --- | --- | --- | --- | --- |
+| `latin-operations-v1` | 1 | `parity` | `parity` | `absent` |
+| `arabic-persian-joining-v1` | 1 | `parity` | `parity` | `absent` |
+| `devanagari-emoji-graphemes-v1` | 1 | `parity` | `parity` | `absent` |
+| `mixed-bidi-v1` | 1 | `parity` | `parity` | `absent` |
+
+### Supplemental preview SHA-256 values
+
+- `arabic-persian-joining-v1`: `e8398ece0ca635561abc541b51dfc9024bc84d00a8b0500a31dc1b306c5f7cd8`
+- `devanagari-emoji-graphemes-v1`: `3c16d7afa020fee9c636a8b1a5e706c68a53c8abe3558797526dc8f10296a4ff`
+- `latin-operations-v1`: `5e4fe776cd6b61d0b5abeec43d8292f2c75451130326ebea4ac09c8caea3323c`
+- `mixed-bidi-v1`: `eb6f6bd8083fdc904db9f429cdc27fcecddc1e3099c49f6eb67ca7adf2cf7bb0`
+
+Renderer SHA-256: `4ef8a050a3abda560ff6bd7f3761aa63881593a358dcd1eebdaa55551efa9a89`.
+Font configuration SHA-256: `2798bd808c36ebb391f3ddf7c80c6d9151d9a9380d58463675b5f7cd6ba357e3`.
+
+### Resolution checkpoint verification
+
+- Read-only PDF assertions confirmed baseline count 0 and configured count 2
+  for the complete family sequence; repeated configured PNG bytes match.
+- All four complete source-inspection objects and frozen canonical hashes
+  still match the Task 7 generation checkpoint exactly.
+- All four original preview hashes remain unchanged.
+- Frozen implementation and completed experiment trees are unchanged from
+  implementation provenance; only this ledger changes in Git.
+- All diagnostic outputs remain ignored and no symlinks were introduced.
+- Editor and NVDA workflows remain unstarted; run record absent, gate pending.
+- No application code changed; focused renderer, visual, source-reinspection,
+  hash and artifact-boundary checks were used for this checkpoint.
