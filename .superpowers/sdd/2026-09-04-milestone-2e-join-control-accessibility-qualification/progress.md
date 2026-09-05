@@ -106,7 +106,9 @@ Completed experiment tree fingerprints use
   inspections and one-page visual verification passed. The preview blocker
   recorded at `f2adddd` was resolved by explicit renderer font configuration;
   original evidence remains preserved alongside verified supplemental previews.
-- Tasks 8–11: not started.
+- Task 8: execution plan and source preflight complete; editor evidence not
+  started. Desktop 4 placement requested by the user is not yet verified.
+- Tasks 9–11: not started.
 
 ## Frozen scientific state
 
@@ -649,3 +651,56 @@ Font configuration SHA-256: `2798bd808c36ebb391f3ddf7c80c6d9151d9a9380d58463675b
 - Editor and NVDA workflows remain unstarted; run record absent, gate pending.
 - No application code changed; focused renderer, visual, source-reinspection,
   hash and artifact-boundary checks were used for this checkpoint.
+
+## Task 8 execution preflight — 2026-09-05
+
+Starting commit: `132158b`; designated branch clean. The user authorized Task 8
+execution and then requested that computer interaction stay on Desktop 4.
+The existing reviewed Task 8 plan remains authoritative; no new implementation
+or protocol changes are needed.
+
+### Serial execution plan
+
+1. Verify all four canonical hashes and complete source-inspection objects
+   against Task 7, and verify editor versions and Desktop 4 placement.
+2. For each case/editor, independently open/import the canonical. Verify Google
+   Docs is native and unshared; verify Word Print Layout. At 100%, collect
+   primary unselected visual evidence before any selection or special mode.
+3. Collect paragraph/word/character navigation, exact cross-anchor searches,
+   spellcheck, ordinary body selection/copy, and the unchanged roundtrip export.
+   Hash and inspect DOCX/TXT outputs using the frozen commands.
+4. Execute insert, backspace and forward-delete in frozen target order. Every
+   target/operation uses a fresh canonical import/open. Save result and restored
+   checkpoints under the exact protocol filenames; inspect every output.
+5. Collect specialized display observations only after primary observations;
+   run Word Accessibility Assistant last without applying suggestions.
+6. Use separate fresh canonical opens for print preview and PDF export. Run
+   frozen pure PDF inspection, create-only rendering and visual comparison.
+7. Record fixed codes, hashes and privacy-safe inspection evidence in this
+   ledger. Preserve incomplete evidence without creating a run record. Stop
+   on unreliable required observations; do not repair or infer results.
+
+### Verified preflight
+
+- macOS: `26.2` (`25C56`).
+- Word for Mac: `16.112.3`, bundle build `16.112.26083020`; native app opened.
+- Chrome: `152.0.7977.77`.
+- All four canonical hashes and complete source-inspection objects match Task 7.
+- Google Docs access, native import and sharing state are not yet verified.
+- No canonical was imported, edited or saved by an editor during preflight;
+  no Task 8 evidence export or observation code was produced.
+
+### Desktop placement blocker
+
+macOS has four desktop spaces. Computer-control Mission Control access timed
+out; direct Control-4 is disabled in the observed shortcut configuration, and
+Control-Right attempts did not produce a verified move away from Desktop 1.
+The tool does not accept the `fn` modifier. No shortcut preference was changed.
+The Google Docs tab-creation attempt timed out and left a blank Chrome tab;
+no document was imported through that attempt.
+
+Before UI evidence collection, the Task 8 Chrome and Word windows need to be
+placed on Desktop 4. The agent cannot currently verify or perform that move
+with the available computer-control surface. This is an operational workspace
+blocker, not a carrier finding. Editor and NVDA evidence remain absent and the
+Milestone 2E gate remains pending.
