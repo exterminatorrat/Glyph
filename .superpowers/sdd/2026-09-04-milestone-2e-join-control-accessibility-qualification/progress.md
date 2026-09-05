@@ -10,7 +10,7 @@
 - Qualification profile: `docx-zero-width-join-control-qualification-v1`
 - Candidate/document profile: `join-control-binary-v1` / `docx-zero-width-join-control-v1`
 - Canonical artifacts: four generated once; hashes frozen; source inspections passed; original and supplemental one-page previews preserved
-- Editor workflows: not started
+- Editor workflows: Task 8 started; partial Word Latin observations; blocked on computer-control timeouts
 - NVDA workflows: not started
 - Run record: absent
 - Gate: pending; incomplete or unreliable evidence is operationally `BLOCKED`
@@ -106,8 +106,9 @@ Completed experiment tree fingerprints use
   inspections and one-page visual verification passed. The preview blocker
   recorded at `f2adddd` was resolved by explicit renderer font configuration;
   original evidence remains preserved alongside verified supplemental previews.
-- Task 8: execution plan and source preflight complete; editor evidence not
-  started. Desktop 4 placement requested by the user is not yet verified.
+- Task 8: started after user-confirmed Desktop 4 placement. Word Latin
+  visual/search observations collected; navigation/proofing incomplete.
+  Operationally `BLOCKED` on persistent Word computer-control timeouts.
 - Tasks 9–11: not started.
 
 ## Frozen scientific state
@@ -128,12 +129,13 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Begin Task 8 using the four existing hash-frozen canonicals. Verify the primary
-editor environments and follow the frozen Google Docs/Chrome and Word for Mac
-workflows. Never regenerate any canonical or substitute these supplemental
-LibreOffice previews for primary-editor or NVDA evidence. Tasks 8–11 remain
-outstanding; Milestone 2E is incomplete and its scientific gate remains pending
-(operationally `BLOCKED`). No run record may be created yet.
+Restore reliable Word computer control on user-designated Desktop 4, inspect
+and dismiss any remaining Language dialog without applying changes, and repeat
+the Latin case primary workflow from a fresh open of its unchanged canonical.
+Do not mark navigation or spelling as passing from the interrupted attempt.
+Continue the existing Task 8 plan only when observations are reliable. No
+canonical regeneration, frozen-code change or run record is authorized by this
+operational recovery step. Tasks 8–11 and the Milestone 2E gate remain pending.
 
 ## Task 7 canonical evidence — 2026-09-05
 
@@ -704,3 +706,62 @@ placed on Desktop 4. The agent cannot currently verify or perform that move
 with the available computer-control surface. This is an operational workspace
 blocker, not a carrier finding. Editor and NVDA evidence remain absent and the
 Milestone 2E gate remains pending.
+
+## Task 8 interrupted Word Latin session — 2026-09-05
+
+The user confirmed that the Task 8 windows had been placed on Desktop 4.
+That resolves the user-placement prerequisite recorded at `7433d78`; it does
+not establish that the computer-control tool can guarantee background desktop
+isolation. Only Word was used in this session.
+
+The existing Latin canonical was opened through Word's native Open dialog
+using its exact local path. Before navigation/search/proofing, the native
+window and screenshot showed Print Layout, 100% zoom, one page, formatting
+marks off, four visible rows and no visible carrier glyph or placeholder.
+
+### Verified partial observations
+
+| Case/editor | Observation | Code |
+| --- | --- | --- |
+| `latin-operations-v1` / `microsoft-word` | Unselected visible paired rows | `parity` |
+| `latin-operations-v1` / `microsoft-word` | Paired layout | `parity` |
+| `latin-operations-v1` / `microsoft-word` | Ordinary carrier presentation | `absent` |
+| `latin-operations-v1` / `microsoft-word` | Alpha frozen cross-anchor search | `both-rows-found` |
+| `latin-operations-v1` / `microsoft-word` | Beta frozen cross-anchor search | `both-rows-found` |
+
+The Find UI showed a total of two matches for each frozen search. No raw
+carrier sequences, document metadata, account data or transcripts are retained
+in this ledger. These partial codes are not a completed editor evidence row.
+
+### Unverified observations and interruption
+
+An initial document-body coordinate interaction failed with
+`noWindowsAvailable`; reconnecting and accessibility-element focus recovered
+control. Paragraph navigation keys were attempted, but the exposed state did
+not establish caret movement reliably. No navigation pass was recorded.
+
+Word's Editor panel subsequently showed zero spelling and grammar findings.
+That observation alone does not prove functional paired spellchecking for the
+intentional Latin Beta misspelling. A read-only Language-dialog inspection
+showed spelling suppression unchecked and automatic language detection checked.
+No language or proofing setting was intentionally changed and no correction
+was accepted. The attempt to Cancel the dialog and clear the Find selection
+timed out, so its completion and final caret/dialog state are unverified.
+
+Repeated Word state reads and app reconnections returned
+`Computer Use server error -10005: timeoutReached`, including after a complete
+computer-control session reset. Word's process still exists; no claim is made
+that the application itself crashed or that the protocol failed scientifically.
+
+Task 8 is operationally `BLOCKED` on reliable computer interaction and required
+navigation/proofing observation. The session stopped without mutations,
+ordinary-body copy, roundtrip export, specialized-display workflow, print/PDF
+export or Google Docs import. The automatic Accessibility status visible in
+Word was not counted as an Accessibility Assistant assessment.
+
+### Checkpoint preservation
+
+All four canonical SHA-256 values were recomputed after the interruption and
+match the frozen Task 7 values. No source or frozen protocol changed. No
+Task 8 artifact export or `run-001.json` was created. Prior completed experiment
+history and the pending Milestone 2E gate remain unchanged.
