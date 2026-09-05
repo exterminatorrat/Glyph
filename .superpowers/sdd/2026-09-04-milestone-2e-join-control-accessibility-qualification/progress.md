@@ -977,3 +977,179 @@ The recorded navigation mismatch is unchanged. Task 8 remains incomplete and
 operationally `BLOCKED`; no complete run record or scientific gate was created.
 This continuation supersedes the earlier immediate next action: reliable
 computer-input isolation must be established before more native editor work.
+
+
+## Mac Mini restore and Task 8 provenance checkpoint — 2026-09-05
+
+The user authorized migration setup and Task 8 continuation on this Mini,
+using the installed astra-efficient-coding workflow. The transfer package at
+`/Users/harryjin/Glyph` remains untouched. A new independent checkout was
+restored at `/Users/harryjin/Glyph-restored` from `Glyph.bundle` on
+`codex/milestone-2e-join-control-qualification`, HEAD
+`15b7b8e2028ac2103cb9fc10373dde1e350d8d37`.
+
+### Transfer and host verification
+
+- Package SHA256SUMS: all 52 entries passed.
+- All 48 research artifact files restored and byte/hash-compared successfully.
+- Git object integrity (`git fsck --full`) passed; initial restored status clean.
+- The four canonical hashes and accepted Latin Word roundtrip hash still
+  exactly match the migration checkpoint. No M2E canonical generation occurred
+  during restore.
+- Read-only remote branch lookup matched the migration HEAD. Origin is
+  `https://github.com/exterminatorrat/Glyph.git`.
+- Actual computer: Mac mini, Mac16,10, Apple M4, arm64, 24 GB.
+- Destination macOS: 26.6.2 (25G83); Chrome: 152.0.7977.76.
+- Arial and Apple Color Emoji font files are present in the system font tree.
+  This is font availability only, not rendering or shaping evidence.
+- CUA discovery and native Finder/Installer controls worked on this Mini.
+  Chrome Google Docs access reached its signed-in home page. No document was
+  imported or edited, and the setup-check tab was closed.
+- The requested installed astra-efficient-coding skill is present and was used.
+  It differs from the bundled reference; neither copy was overwritten.
+- Codex's existing saved Glyph project still points to the transfer folder,
+  not the restored checkout. No callable project-add/update tool is exposed;
+  Codex UI control is unavailable. Add the restored checkout through the app
+  project picker before starting a future task there. This task uses explicit
+  restored-checkout working directories for every repository operation.
+
+### Cross-host evidence blocker
+
+A separate read-only protocol review confirmed the frozen v1 schema contains
+one `environments.macos` object, no per-artifact/trial host identity, and exact
+artifact paths for each single case/editor output set. The accepted MacBook
+Latin Word roundtrip already occupies its frozen path. The handoff forbids
+replacing accepted outputs and requires retaining the measured navigation
+mismatch.
+
+The Mini differs from the observed MacBook macOS and Chrome versions. Filling
+remaining v1 filenames would mix hosts in a record that cannot express that
+provenance. Replacing or moving the accepted output is prohibited; arbitrary
+trial filenames do not satisfy the frozen validator. Therefore no new accepted
+v1 editor evidence was collected and no v1 output path was consumed.
+
+Task 8 remains operationally BLOCKED on a protocol/version decision. The
+recommended continuation is a separately versioned Mini trial, preserving v1
+and all MacBook evidence unchanged, byte-copying the four canonicals with
+identical hashes (never regenerating them), retaining the same scientific
+criteria, and rerunning the complete macOS matrix on the Mini. The historical
+navigation mismatch remains evidence even if Mini observations differ. This
+recommendation has not been implemented or treated as approved.
+
+The protocol stop rule requires stopping when the frozen protocol would need
+revision. No run-001.json, scientific gate, Task 9 observation, or Milestone 3
+work was created. Windows 11 / NVDA 2026.2 remains a separate requirement.
+
+### Word setup boundary
+
+The individual Word package was obtained from Microsoft's official Office for
+Mac update history at
+`https://learn.microsoft.com/en-us/officeupdates/update-history-office-for-mac`.
+It is ready at
+`/Users/harryjin/Downloads/Microsoft_Word_16.112.26083020_Updater.pkg`.
+
+- Version: 16.112.3; build: 16.112.26083020.
+- Bytes: 1,398,098,975.
+- SHA-256: `293c88d9dc871d524cd87828dd33d9cae48ca1c0b07d51fc1d7dcc681798684f`.
+- Verified signature: Developer ID Installer, Microsoft Corporation
+  (UBF8T346G9), trusted timestamp and Apple notarization.
+- Package metadata requires root authentication and targets only Microsoft
+  Word.app in /Applications. No unrelated Office suite was installed.
+- Installer opened successfully through Finder and reached Software License
+  Agreement. The user was asked to complete license acceptance/admin steps.
+  Installation, activation, and foreground Word document control remain
+  unverified until those steps finish. No installer scripts were bypassed.
+
+### Word setup completed and host verification passed
+
+The user subsequently confirmed installation and sign-in. CUA reached the
+signed-in Word home screen, and installed Info.plist values confirmed 16.112.3
+/ 16.112.26083020. A new disposable blank document accepted keyboard input,
+showed Print Layout at 100%, and saved through On My Mac to:
+
+`research/artifacts/docx-join-control-accessibility-qualification-v1/mac-mini-setup-diagnostics/word-setup-check.docx`
+
+The saved file is 13,448 bytes with SHA-256
+`4200f3e57f04990f0a26725fdc3468ee9c630953e5e6dbdf64532bf108b09b0c`.
+ZIP integrity, document XML parsing, and the expected synthetic setup sentence
+passed. The document was closed successfully. This establishes basic native
+Word input and local-save functionality; it is explicitly setup diagnostics,
+not a canonical-based Task 8 observation or carrier result. No real document
+from the account was opened.
+
+The isolated frozen runtimes at
+`/Users/harryjin/.cache/glyph-task8-runtime` were qualified:
+Node 26.3.0 / ICU 78.3 / Unicode 17.0; pnpm 11.19.0; uv 0.12.9;
+Python 3.14.7 / Unicode 16.0.0; pypdf 6.10.0; pdftoppm 26.05.0.
+Official Node and uv archive checksums were verified. No global runtime
+selection was changed.
+
+From absent node_modules, `pnpm install --frozen-lockfile` passed (436 packages).
+Lint, typecheck, 18-file / 358-test full suite, and optimized production build
+passed. All four canonical source inspections and the accepted Latin Word
+roundtrip transformed inspection returned no findings and exact expected
+hashes. Package and lockfile were unchanged. A final full artifact audit then
+found the historical-file side effect recorded below; the initial runtime-lane
+report of no artifact generation was not sufficient.
+
+### Reusable runtime activation and next action
+
+```sh
+cd /Users/harryjin/Glyph-restored
+source /Users/harryjin/.cache/glyph-task8-runtime/activate.sh
+```
+
+The activation script selects task-local binaries without editing global
+shell configuration. Its `bin/pnpm` shim executes the pinned Node explicitly;
+the pre-existing Codex pnpm wrapper otherwise selects a different Node.
+`pnpm --version` and `pnpm exec node --version` verified 11.19.0 and v26.3.0.
+The version-only log is
+`/Users/harryjin/.cache/glyph-task8-runtime/logs/runtime-activation-verification.log`.
+Earlier install/suite/inspection outputs were streamed, not persisted as log
+files. The full suite was not repeated for this shell helper.
+
+Next accepted-evidence action requires explicit approval for a separately
+versioned Mini trial with unchanged scientific criteria, byte-identical
+canonical inputs, a fresh complete macOS matrix, and preserved v1 history.
+Prepare and independently review that version before editing its command
+surface or collecting accepted measurements. Do not append Mini results to
+v1's missing cells, overwrite the accepted MacBook export, or generate a v1
+run record. Setup is ready; the remaining scientific boundary is deliberate.
+
+### Final artifact-audit correction: historical test writes
+
+The full 48-file comparison after verification detected changes to the three
+M2B canonical DOCX files. The earlier runtime-lane statement that no artifacts
+were generated was incorrect. `tests/research/carrier-bakeoff-command-safety.test.ts`
+uses the live repository root: lines 110–132 generate/remove matching-color,
+and lines 172–177 run the real generator for all three candidates.
+`scripts/generate-docx-alternative-carrier.ts:128` writes with ordinary
+`writeFile`, replacing existing ignored files. The changed DOCX core timestamps
+are 2026-09-05T10:10:25Z, matching this test invocation. The explicit M2E
+inspection commands did not cause the writes.
+
+All three changed variants were preserved create-only under
+`research/artifacts/docx-join-control-accessibility-qualification-v1/mac-mini-setup-diagnostics/test-generated-m2b-files/`:
+
+| File | Test-generated SHA-256 |
+| --- | --- |
+| matching-color-body-v1.docx | 3423c9c647821ebd0c51df86999d310b898c4da391732a60414cb6e1757f1a43 |
+| sub-legible-body-1pt-v1.docx | 4bbe316dd6058cf2240283a089b45aa9972dac7110529bf91d0434fc6d9919fd |
+| docx-header-text-v1.docx | 02a1bc9c702f8be7f0239c82adf3094910f1df9fd09bc6fd74efc17cb48b8e95 |
+
+This was an accidental M2B immutability breach and triggered the protocol stop
+condition. The changed outputs were contained as diagnostics. The exact
+original migration-package bytes were then copied back to the three restored
+evidence paths. Byte equality restores content but does not erase this
+provenance incident or waive the protocol stop condition. This was byte
+restoration from the untouched package,
+not regeneration or acceptance of a test output. A fresh complete comparison
+verified all 48 transferred research files byte-for-byte equal again. No M2E
+canonical or accepted Word export changed. All test-generated variants are
+setup diagnostics only and must not be used as historical research evidence.
+
+Do not run the full test suite in this evidence-bearing checkout again. Until
+a separately authorized test-isolation fix, run the full suite in a disposable
+clone without the ignored research artifacts. The suite passed 358 tests but
+is not side-effect-free; the artifact audit was required to discover this.
+The frozen implementation and historical tests were not edited in this setup.
