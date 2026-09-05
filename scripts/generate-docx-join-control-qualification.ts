@@ -20,14 +20,15 @@ import {
 const USAGE =
   "Usage: pnpm research:carrier:join-control-qualification:generate -- <case-id>";
 
-const main = async (): Promise<void> => {
-  const args = commandArguments();
+export const runGenerateJoinControlQualificationCommand = async (
+  repositoryRoot: string,
+  args: readonly string[],
+): Promise<void> => {
   const caseId = args.length === 1 ? parseCaseId(args[0]) : null;
   if (caseId === null) {
     failCommand(USAGE);
     return;
   }
-  const repositoryRoot = repositoryRootFor(import.meta.url);
   const artifactPath = `${JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT}/${caseId}.docx`;
   try {
     await ensureRepositoryArtifactRoot(
@@ -58,4 +59,9 @@ const main = async (): Promise<void> => {
   }
 };
 
-if (directExecution(import.meta.url)) void main();
+if (directExecution(import.meta.url)) {
+  void runGenerateJoinControlQualificationCommand(
+    repositoryRootFor(import.meta.url),
+    commandArguments(),
+  );
+}

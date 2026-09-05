@@ -433,6 +433,31 @@ describe("join-control qualification PDF inspector", () => {
     expect(JSON.stringify(inspection)).not.toContain("private-");
   });
 
+  test("classifies nested XMP text and metadata attributes without returning values", async () => {
+    const xmp = [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">",
+      "<rdf:RDF><rdf:Description rdf:about=\"private-subject\"><dc:creator><rdf:Seq><rdf:li>private-author</rdf:li></rdf:Seq></dc:creator><dc:title><rdf:Alt><rdf:li>private-title</rdf:li></rdf:Alt></dc:title></rdf:Description></rdf:RDF>",
+      "</x:xmpmeta>",
+    ].join("");
+    const inspection = await inspectJoinControlQualificationPdf(
+      syntheticPdf({
+        catalogEntries: "/Metadata 6 0 R",
+        extraObjects: [
+          `<< /Type /Metadata /Subtype /XML /Length ${Buffer.byteLength(xmp)} >>\nstream\n${xmp}\nendstream`,
+        ],
+      }),
+      "latin-operations-v1",
+    );
+
+    expect(inspection.metadata).toMatchObject({
+      author: "non_synthetic_redacted",
+      title: "non_synthetic_redacted",
+      otherXmp: "non_synthetic_redacted",
+    });
+    expect(JSON.stringify(inspection)).not.toContain("private-");
+  });
+
   test("fails closed with a fixed error for malformed PDFs and traversal-limit exhaustion", async () => {
     await expect(
       inspectJoinControlQualificationPdf(

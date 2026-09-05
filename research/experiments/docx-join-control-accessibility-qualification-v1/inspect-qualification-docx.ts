@@ -7,6 +7,7 @@ import {
 import { strFromU8, unzipSync } from "fflate";
 import {
   expectedCaseState,
+  expectedCarrierRows,
   qualificationCase,
   type QualificationCaseId,
   type QualificationCheckpointId,
@@ -301,6 +302,23 @@ const sequenceOccurrence = (
   }
 };
 
+const mixedOccurrence = (
+  point: Point,
+  paragraphIndex: number,
+  context: "ordinary-body" | "non-ordinary",
+): MutableOccurrence => ({
+  markerId: null,
+  checksumValid: false,
+  context,
+  part: context === "ordinary-body" ? "word/document.xml" : "other-redacted",
+  paragraphIndex,
+  runIndices: [point.runIndex],
+  startCodePointIndex: point.codePointIndex,
+  codePointCount: 1,
+  anchor: "unexpected",
+  finding: "mixed",
+});
+
 const isAllowlistedVisibleGroup = (
   fixtureCase: ReturnType<typeof qualificationCase>,
   paragraphIndex: number,
@@ -339,6 +357,7 @@ const inspectBody = (
   checkpointId: QualificationCheckpointId,
 ): {
   occurrences: MutableOccurrence[];
+  rawRows: string[];
   visibleRows: string[];
   unexpectedDefaultIgnorable: boolean;
   mixedAlphabet: boolean;
@@ -349,6 +368,7 @@ const inspectBody = (
   const paragraphs = childElements(body, WORDPROCESSINGML_NAMESPACE, "p");
   const fixtureCase = qualificationCase(caseId);
   const occurrences: MutableOccurrence[] = [];
+  const rawRows: string[] = [];
   const visibleRows: string[] = [];
   let unexpectedDefaultIgnorable = false;
   let mixedAlphabet = false;
@@ -374,6 +394,7 @@ const inspectBody = (
 
   paragraphs.forEach((paragraph, paragraphIndex) => {
     const points = paragraphPoints(paragraph);
+    rawRows.push(points.map((point) => point.value).join(""));
     const removable = new Set<number>();
     for (const group of carrierGroups(points)) {
       if (isAllowlistedVisibleGroup(fixtureCase, paragraphIndex, group)) continue;
@@ -416,6 +437,7 @@ const inspectBody = (
       ) {
         mixedAlphabet = true;
         unexpectedDefaultIgnorable = true;
+        occurrences.push(mixedOccurrence(point, paragraphIndex, "ordinary-body"));
       }
       if (
         DEFAULT_IGNORABLE.test(point.value) &&
@@ -434,6 +456,7 @@ const inspectBody = (
   });
   return {
     occurrences,
+    rawRows,
     visibleRows,
     unexpectedDefaultIgnorable,
     mixedAlphabet,
@@ -474,6 +497,7 @@ const inspectNonOrdinary = (
           !isCandidateCodePoint(CANDIDATE_A.id, point.codePoint)
         ) {
           mixedAlphabet = true;
+          occurrences.push(mixedOccurrence(point, -1, "non-ordinary"));
         }
         if (DEFAULT_IGNORABLE.test(point.value)) {
           unexpectedDefaultIgnorable = true;
@@ -754,20 +778,6 @@ export function inspectJoinControlQualificationDocx(
   const body = inspectBody(document, caseId, checkpointId);
   const nonOrdinary = inspectNonOrdinary(documents, caseId, checkpointId);
   const occurrences = [...body.occurrences, ...nonOrdinary.occurrences];
-  if (body.mixedAlphabet || nonOrdinary.mixedAlphabet) {
-    occurrences.push({
-      markerId: null,
-      checksumValid: false,
-      context: "ordinary-body",
-      part: "word/document.xml",
-      paragraphIndex: -1,
-      runIndices: [],
-      startCodePointIndex: -1,
-      codePointCount: 1,
-      anchor: "unexpected",
-      finding: "mixed",
-    });
-  }
 
   const markerCounts = {
     alpha: occurrences.filter(({ markerId }) => markerId === "alpha").length,
@@ -839,11 +849,23 @@ export function inspectJoinControlQualificationDocx(
     nonOrdinary.mixedAlphabet
     ? "unexpected"
     : "allowlisted-only";
-  const allVisible = body.visibleRows.join("\n");
-  const nfcState = allVisible.normalize("NFC") === allVisible ? "stable" : "mismatch";
-  const nfkcState = allVisible.normalize("NFKC") === allVisible ? "stable" : "mismatch";
-  const segmentation = segmentationFor(body.visibleRows, caseId);
-  const segmentationState = visibleTextState === "exact" ? "expected" : "mismatch";
+  const allRaw = body.rawRows.join("\n");
+  const nfcState = allRaw.normalize("NFC") === allRaw ? "stable" : "mismatch";
+  const nfkcState = allRaw.normalize("NFKC") === allRaw ? "stable" : "mismatch";
+  const segmentation = segmentationFor(body.rawRows, caseId);
+  const expectedSegmentation = segmentationFor(
+    expectedCarrierRows(caseId, checkpointId),
+    caseId,
+  );
+  const segmentationState = segmentation.every((row, index) => {
+    const expectedRow = expectedSegmentation[index];
+    return expectedRow !== undefined &&
+      row.graphemeCount === expectedRow.graphemeCount &&
+      row.wordLikeCount === expectedRow.wordLikeCount &&
+      row.paragraphCount === expectedRow.paragraphCount;
+  })
+    ? "expected"
+    : "mismatch";
   const packageSafetyState =
     old.safety.activeContentEntries.length === 0 &&
     old.safety.activeRelationshipTypes.length === 0 &&

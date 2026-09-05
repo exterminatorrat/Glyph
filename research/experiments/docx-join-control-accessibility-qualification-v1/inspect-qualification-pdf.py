@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.12"
+# requires-python = "==3.14.7"
 # dependencies = ["pypdf==6.10.0"]
 # ///
 
@@ -113,18 +113,25 @@ def metadata_classifications(reader: PdfReader) -> dict[str, str]:
     }
     other_values = []
     structural_names = {"RDF", "Description", "Alt", "Bag", "Seq", "li", "xmpmeta"}
-    for element in xml_root.iter():
+
+    def visit_xmp(element: ET.Element, inherited_field: str | None = None) -> None:
         local_name = element.tag.rsplit("}", 1)[-1]
+        field = xmp_mapping.get(local_name, inherited_field)
         value_class = classify(element.text)
-        field = xmp_mapping.get(local_name)
         if field is not None:
             result[field] = combine((result[field], value_class))
         elif local_name not in structural_names and value_class != "absent":
             other_values.append(value_class)
-        for attribute_name, attribute_value in element.attrib.items():
-            attribute_local_name = attribute_name.rsplit("}", 1)[-1]
-            if attribute_local_name not in {"about", "lang", "parseType"}:
-                other_values.append(classify(attribute_value))
+        other_values.extend(classify(value) for value in element.attrib.values())
+        for child in element:
+            visit_xmp(child, field)
+            tail_class = classify(child.tail)
+            if field is not None:
+                result[field] = combine((result[field], tail_class))
+            elif local_name not in structural_names and tail_class != "absent":
+                other_values.append(tail_class)
+
+    visit_xmp(xml_root)
     result["otherXmp"] = combine(other_values)
     return result
 
@@ -298,7 +305,12 @@ def main() -> None:
         raise ValueError("invalid expected paragraphs")
     inspection = inspect_pdf(pdf_bytes, request["caseId"], expected)
     json.dump(
-        {"pypdfVersion": pypdf.__version__, "inspection": inspection},
+        {
+            "pythonVersion": sys.version.split()[0],
+            "pythonUnicodeVersion": unicodedata.unidata_version,
+            "pypdfVersion": pypdf.__version__,
+            "inspection": inspection,
+        },
         sys.stdout,
         ensure_ascii=True,
         separators=(",", ":"),

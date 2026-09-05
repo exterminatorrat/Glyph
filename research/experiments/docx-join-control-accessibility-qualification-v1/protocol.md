@@ -97,9 +97,12 @@ The fixed cross-anchor search strings are:
 
 ## Segmentation and normalization
 
-Inspection records NFC and NFKC equality without mutating text. Grapheme and
-word segmentation uses `Intl.Segmenter` with each row's frozen locale and
-granularity `grapheme` or `word`. Line evidence means exact paragraph/newline
+Inspection records NFC and NFKC equality on the raw carrier-bearing text without
+mutating or first removing frames. Grapheme and word segmentation likewise uses
+the raw control and marked rows with `Intl.Segmenter`, each row's frozen locale,
+and granularity `grapheme` or `word`. Exact counts are compared with the frozen
+expected raw rows for that checkpoint; visible-text comparison separately
+removes only checksum-valid frames. Line evidence means exact paragraph/newline
 boundaries only; this experiment makes no Unicode line-breaking-conformance
 claim.
 
@@ -133,8 +136,10 @@ Targets are `control-alpha`, `marked-alpha`, `control-beta`, and
 `forward-delete-restored`.
 
 Each editor/case therefore has one round trip and 24 mutation DOCX files. The
-complete matrix is 204 DOCX files, 8 TXT files, 8 PDFs, and 12 PNGs. Every DOCX
-and PDF must have exactly one page.
+complete matrix is 204 DOCX files, 8 TXT files, 8 PDFs, and 12 PNGs. Every PDF
+must have exactly one page. One-page DOCX presentation is an editor observation
+within the frozen layout-parity workflow; the structural DOCX inspector does not
+claim to calculate pagination.
 
 Generators and renderers use create-only writes and refuse an existing path,
 symlink, non-regular file, absolute path, directory escape, or symlinked
@@ -264,12 +269,13 @@ selection, search, spellcheck, special-surface, accessibility, or mutation
 operations. Record control/marked text, layout, order, page count, and
 placeholder parity, then export one PDF.
 
-Pure PDF inspection uses `pypdf==6.10.0` under
-`uv run --no-project --script`. Rendering is a separate create-only action
+Pure PDF inspection uses Python `3.14.7`, Unicode data `16.0.0`, and
+`pypdf==6.10.0` under `uv run --no-project --script`; the PEP 723 header pins
+the exact Python interpreter and dependency. Rendering is a separate create-only action
 using Poppler `pdftoppm` at 144 DPI with an argument array, no shell,
 `LC_ALL=C`, and suppressed raw stderr. Frozen pre-implementation tool versions
-are uv `0.12.9`, pypdf `6.10.0`, and pdftoppm `26.05.0`. A missing or different
-tool version is `BLOCKED`.
+are Python `3.14.7`, Unicode data `16.0.0`, uv `0.12.9`, pypdf `6.10.0`, and
+pdftoppm `26.05.0`. A missing or different tool version is `BLOCKED`.
 
 The pure inspector:
 
@@ -369,7 +375,8 @@ for:
 - ordinary versus non-ordinary context;
 - exact visible rows after removing only validated frames;
 - allowlisted legitimate Persian and emoji join controls;
-- NFC/NFKC and frozen segmentation evidence;
+- raw carrier-bearing NFC/NFKC and frozen segmentation evidence, kept separate
+  from visible rows produced by removing only validated frames;
 - direct and inherited hidden state through `docDefaults`, paragraph styles,
   character styles, and `basedOn` chains;
 - redacted core metadata classifications; and
@@ -811,6 +818,8 @@ type ImplementationProvenance = Readonly<{
   icuVersion: string;
   unicodeVersion: string;
   uvVersion: "0.12.9";
+  pythonVersion: "3.14.7";
+  pythonUnicodeVersion: "16.0.0";
   pypdfVersion: "6.10.0";
   pdftoppmVersion: "26.05.0";
 }>;

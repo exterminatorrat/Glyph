@@ -14,8 +14,10 @@ import { readRepositoryRegularFile } from "./lib/research-artifact-io.ts";
 const USAGE =
   "Usage: pnpm research:carrier:join-control-qualification:inspect-docx -- <case-id> <checkpoint-id> <source|transformed> <repository-relative-docx-path>";
 
-const main = async (): Promise<void> => {
-  const args = commandArguments();
+export const runInspectJoinControlQualificationDocxCommand = async (
+  repositoryRoot: string,
+  args: readonly string[],
+): Promise<void> => {
   const caseId = args.length === 4 ? parseCaseId(args[0]) : null;
   const checkpointId = args.length === 4 ? parseCheckpointId(args[1]) : null;
   const mode = args[2] === "source" || args[2] === "transformed" ? args[2] : null;
@@ -35,7 +37,7 @@ const main = async (): Promise<void> => {
   }
   try {
     const bytes = await readRepositoryRegularFile({
-      repositoryRoot: repositoryRootFor(import.meta.url),
+      repositoryRoot,
       allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
       relativePath: artifactPath,
     });
@@ -53,4 +55,9 @@ const main = async (): Promise<void> => {
   }
 };
 
-if (directExecution(import.meta.url)) void main();
+if (directExecution(import.meta.url)) {
+  void runInspectJoinControlQualificationDocxCommand(
+    repositoryRootFor(import.meta.url),
+    commandArguments(),
+  );
+}

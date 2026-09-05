@@ -522,7 +522,48 @@ describe("join-control qualification DOCX inspector", () => {
     const mixed = mutateEntry(source, "word/document.xml", (xml) =>
       xml.replace(alpha, `${alpha}\u2062`),
     );
-    expect(inspectJoinControlQualificationDocx(mixed, "latin-operations-v1", "roundtrip", "transformed").frameState).toBe("mixed");
+    const mixedInspection = inspectJoinControlQualificationDocx(
+      mixed,
+      "latin-operations-v1",
+      "roundtrip",
+      "transformed",
+    );
+    expect(mixedInspection.frameState).toBe("mixed");
+    expect(mixedInspection.occurrences).toContainEqual(
+      expect.objectContaining({
+        markerId: null,
+        context: "ordinary-body",
+        part: "word/document.xml",
+        paragraphIndex: 1,
+        runIndices: [1],
+        startCodePointIndex: expect.any(Number),
+        codePointCount: 1,
+        finding: "mixed",
+      }),
+    );
+  });
+
+  test("measures segmentation on the raw carrier-bearing rows", async () => {
+    const source = await generateJoinControlQualificationDocx(
+      qualificationCase("latin-operations-v1"),
+    );
+    const alpha = encodeCarrier("join-control-binary-v1", "alpha");
+    const movedWithinDocument = mutateEntry(source, "word/document.xml", (xml) => {
+      const withoutAlpha = xml.replace(alpha, "");
+      const rowStart = "Alpha sample — The archive opens at nine.";
+      const controlIndex = withoutAlpha.indexOf(rowStart);
+      const markedIndex = withoutAlpha.indexOf(rowStart, controlIndex + rowStart.length);
+      return `${withoutAlpha.slice(0, markedIndex)}${alpha}${withoutAlpha.slice(markedIndex)}`;
+    });
+    const inspection = inspectJoinControlQualificationDocx(
+      movedWithinDocument,
+      "latin-operations-v1",
+      "roundtrip",
+      "transformed",
+    );
+    expect(inspection.visibleTextState).toBe("exact");
+    expect(inspection.segmentationState).toBe("mismatch");
+    expect(inspection.findings).toContain("segmentation-mismatch");
   });
 
   test("detects direct and inherited hidden properties only on validated frames", async () => {
@@ -588,12 +629,25 @@ describe("join-control qualification DOCX inspector", () => {
     const mixedElsewhere = mutateEntry(source, "docProps/app.xml", (xml) =>
       xml.replace(/\/>$/u, ">\u2062</Properties>"),
     );
-    expect(inspectJoinControlQualificationDocx(
+    const inspection = inspectJoinControlQualificationDocx(
       mixedElsewhere,
       "latin-operations-v1",
       "roundtrip",
       "transformed",
-    ).frameState).toBe("mixed");
+    );
+    expect(inspection.frameState).toBe("mixed");
+    expect(inspection.occurrences).toContainEqual(
+      expect.objectContaining({
+        markerId: null,
+        context: "non-ordinary",
+        part: "other-redacted",
+        paragraphIndex: -1,
+        runIndices: [-1],
+        startCodePointIndex: expect.any(Number),
+        codePointCount: 1,
+        finding: "mixed",
+      }),
+    );
   });
 
   test("classifies core metadata and macro content without leaking raw values", async () => {
@@ -948,6 +1002,23 @@ describe("join-control qualification plain-text inspector", () => {
       }
     },
   );
+
+  test("measures clipboard segmentation before removing valid frames", () => {
+    const alpha = encodeCarrier("join-control-binary-v1", "alpha");
+    const rows = qualificationText("latin-operations-v1").split("\n");
+    const markedAlpha = rows[1];
+    if (markedAlpha === undefined) throw new Error("Missing marked Alpha row");
+    rows[1] = `${alpha}${markedAlpha.replace(alpha, "")}`;
+    const moved = rows.join("\n");
+    const inspection = inspectJoinControlQualificationText(
+      new TextEncoder().encode(moved),
+      "latin-operations-v1",
+      "roundtrip",
+    );
+    expect(inspection.visibleTextState).toBe("exact");
+    expect(inspection.segmentationState).toBe("mismatch");
+    expect(inspection.findings).toContain("segmentation-mismatch");
+  });
 
   test("rejects invalid UTF-8 without returning source bytes", () => {
     expect(() =>

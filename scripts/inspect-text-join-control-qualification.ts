@@ -13,8 +13,10 @@ import { readRepositoryRegularFile } from "./lib/research-artifact-io.ts";
 const USAGE =
   "Usage: pnpm research:carrier:join-control-qualification:inspect-text -- <case-id> <repository-relative-text-path>";
 
-const main = async (): Promise<void> => {
-  const args = commandArguments();
+export const runInspectJoinControlQualificationTextCommand = async (
+  repositoryRoot: string,
+  args: readonly string[],
+): Promise<void> => {
   const caseId = args.length === 2 ? parseCaseId(args[0]) : null;
   const artifactPath = args[1];
   if (caseId === null || !artifactPath) {
@@ -23,7 +25,7 @@ const main = async (): Promise<void> => {
   }
   try {
     const bytes = await readRepositoryRegularFile({
-      repositoryRoot: repositoryRootFor(import.meta.url),
+      repositoryRoot,
       allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
       relativePath: artifactPath,
     });
@@ -40,4 +42,9 @@ const main = async (): Promise<void> => {
   }
 };
 
-if (directExecution(import.meta.url)) void main();
+if (directExecution(import.meta.url)) {
+  void runInspectJoinControlQualificationTextCommand(
+    repositoryRootFor(import.meta.url),
+    commandArguments(),
+  );
+}

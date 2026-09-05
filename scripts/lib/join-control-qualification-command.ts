@@ -17,7 +17,6 @@ export const CANDIDATE_ID = "join-control-binary-v1";
 export const DOCUMENT_PROFILE = "docx-zero-width-join-control-v1";
 
 export const repositoryRootFor = (moduleUrl: string): string =>
-  process.env.GLYPH_REPOSITORY_ROOT ??
   fileURLToPath(new URL("..", moduleUrl));
 
 export const directExecution = (moduleUrl: string): boolean =>

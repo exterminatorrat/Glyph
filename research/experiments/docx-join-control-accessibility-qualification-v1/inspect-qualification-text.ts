@@ -1,5 +1,6 @@
 import {
   expectedCaseState,
+  expectedCarrierRows,
   qualificationCase,
   type QualificationCaseId,
   type QualificationLanguage,
@@ -250,11 +251,23 @@ export function inspectJoinControlQualificationText(
   const defaultIgnorableState = unexpectedDefaultIgnorable
     ? "unexpected"
     : "allowlisted-only";
-  const visibleText = visibleRows.join("\n");
-  const nfcState = visibleText.normalize("NFC") === visibleText ? "stable" : "mismatch";
-  const nfkcState = visibleText.normalize("NFKC") === visibleText ? "stable" : "mismatch";
-  const segmentation = segmentationFor(visibleRows, caseId);
-  const segmentationState = visibleTextState === "exact" ? "expected" : "mismatch";
+  const rawText = rows.join("\n");
+  const nfcState = rawText.normalize("NFC") === rawText ? "stable" : "mismatch";
+  const nfkcState = rawText.normalize("NFKC") === rawText ? "stable" : "mismatch";
+  const segmentation = segmentationFor(rows, caseId);
+  const expectedSegmentation = segmentationFor(
+    expectedCarrierRows(caseId, checkpointId),
+    caseId,
+  );
+  const segmentationState = segmentation.every((row, index) => {
+    const expectedRow = expectedSegmentation[index];
+    return expectedRow !== undefined &&
+      row.graphemeCount === expectedRow.graphemeCount &&
+      row.wordLikeCount === expectedRow.wordLikeCount &&
+      row.paragraphCount === expectedRow.paragraphCount;
+  })
+    ? "expected"
+    : "mismatch";
   const findings: JoinControlQualificationTextInspection["findings"][number][] = [];
   if (frameState !== "exact" || visibleTextState !== "exact") {
     findings.push("clipboard-mismatch");

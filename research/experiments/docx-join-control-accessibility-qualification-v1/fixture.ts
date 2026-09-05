@@ -1,3 +1,6 @@
+import { encodeCarrier } from "../docx-zero-width-carrier-bakeoff-v1/frame.ts";
+import { CANDIDATE_A } from "../docx-zero-width-carrier-bakeoff-v1/fixture.ts";
+
 export const QUALIFICATION_CASE_IDS = [
   "latin-operations-v1",
   "arabic-persian-joining-v1",
@@ -223,4 +226,21 @@ export function expectedCaseState(
     checkpointId,
     rows: rows as unknown as QualificationExpectedCaseState["rows"],
   };
+}
+
+export function expectedCarrierRows(
+  caseId: QualificationCaseId,
+  checkpointId: QualificationCheckpointId,
+): readonly [string, string, string, string] {
+  const rows = expectedCaseState(caseId, checkpointId).rows.map((row) => {
+    if (row.markerId === null) return row.visibleText;
+    const points = [...row.visibleText];
+    points.splice(
+      row.carrierCodePointIndex,
+      0,
+      encodeCarrier(CANDIDATE_A.id, row.markerId),
+    );
+    return points.join("");
+  });
+  return rows as unknown as readonly [string, string, string, string];
 }

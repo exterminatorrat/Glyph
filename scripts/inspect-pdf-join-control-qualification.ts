@@ -17,6 +17,8 @@ import {
 import { readRepositoryRegularFile } from "./lib/research-artifact-io.ts";
 
 const EXPECTED_UV_VERSION = "0.12.9";
+const EXPECTED_PYTHON_VERSION = "3.14.7";
+const EXPECTED_PYTHON_UNICODE_VERSION = "16.0.0";
 const EXPECTED_PYPDF_VERSION = "6.10.0";
 const INSPECTOR_PATH = fileURLToPath(
   new URL(
@@ -278,15 +280,29 @@ export async function inspectJoinControlQualificationPdf(
     blocked();
   }
   assertRecord(envelope);
-  if (envelope.pypdfVersion !== EXPECTED_PYPDF_VERSION) blocked();
+  exactKeys(envelope, [
+    "pythonVersion",
+    "pythonUnicodeVersion",
+    "pypdfVersion",
+    "inspection",
+  ]);
+  if (
+    envelope.pythonVersion !== EXPECTED_PYTHON_VERSION ||
+    envelope.pythonUnicodeVersion !== EXPECTED_PYTHON_UNICODE_VERSION ||
+    envelope.pypdfVersion !== EXPECTED_PYPDF_VERSION
+  ) {
+    blocked();
+  }
   return validateQualificationPdfInspection(envelope.inspection, caseId);
 }
 
 const USAGE =
   "Usage: pnpm research:carrier:join-control-qualification:inspect-pdf -- <case-id> <repository-relative-pdf-path>";
 
-const main = async (): Promise<void> => {
-  const args = commandArguments();
+export const runInspectJoinControlQualificationPdfCommand = async (
+  repositoryRoot: string,
+  args: readonly string[],
+): Promise<void> => {
   const caseId = args.length === 2 ? parseCaseId(args[0]) : null;
   const artifactPath = args[1];
   if (caseId === null || !artifactPath) {
@@ -295,7 +311,7 @@ const main = async (): Promise<void> => {
   }
   try {
     const bytes = await readRepositoryRegularFile({
-      repositoryRoot: repositoryRootFor(import.meta.url),
+      repositoryRoot,
       allowedRoot: JOIN_CONTROL_QUALIFICATION_ARTIFACT_ROOT,
       relativePath: artifactPath,
     });
@@ -308,4 +324,9 @@ const main = async (): Promise<void> => {
   }
 };
 
-if (directExecution(import.meta.url)) void main();
+if (directExecution(import.meta.url)) {
+  void runInspectJoinControlQualificationPdfCommand(
+    repositoryRootFor(import.meta.url),
+    commandArguments(),
+  );
+}

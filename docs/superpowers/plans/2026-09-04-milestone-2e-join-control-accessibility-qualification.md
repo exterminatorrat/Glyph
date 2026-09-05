@@ -35,7 +35,7 @@ All case documents use 11-point Arial, 1-inch margins, 100% scale observations, 
 | `devanagari-emoji-graphemes-v1` | Alpha `hi-IN` LTR; Beta `en-US` LTR | `यह क्षेत्र का सरल प्रश्न है. फिर अगला वाक्य आता है.` | `The family emoji 👨‍👩‍👧‍👦 stays intact. Then the line continues.` |
 | `mixed-bidi-v1` | Alpha `en-US` LTR; Beta `ar-SA` RTL | `The token GLYPH42 precedes العربية 123. Then the line ends.` | `يتضمن النص GLYPH42 والرقم 123. ثم يستمر السطر.` |
 
-The only allowlisted visible join controls outside frames are the Persian ZWNJ in `کتاب‌ها` and the emoji ZWJs inside `👨‍👩‍👧‍👦`. No bidi control character is allowed. “Line segmentation” means deterministic paragraph/newline boundaries plus the platform’s grapheme and word boundaries; the experiment does not claim Unicode line-breaking conformance. Segmentation evidence freezes and records exact `process.versions.node`, `process.versions.icu`, `process.versions.unicode`, locale, and `Intl.Segmenter` granularity (`grapheme` or `word`); a provenance mismatch is operationally `BLOCKED` rather than silently recomputed.
+The only allowlisted visible join controls outside frames are the Persian ZWNJ in `کتاب‌ها` and the emoji ZWJs inside `👨‍👩‍👧‍👦`. No bidi control character is allowed. “Line segmentation” means deterministic paragraph/newline boundaries plus the platform’s grapheme and word boundaries; the experiment does not claim Unicode line-breaking conformance. Normalization and segmentation are measured on raw carrier-bearing control and marked rows, against the frozen expected raw rows for each checkpoint, before validated frames are removed for the separate visible-text comparison. Segmentation evidence freezes and records exact `process.versions.node`, `process.versions.icu`, `process.versions.unicode`, locale, and `Intl.Segmenter` granularity (`grapheme` or `word`); a provenance mismatch is operationally `BLOCKED` rather than silently recomputed.
 
 The fixed pair prefixes are `Alpha sample — ` for both Alpha rows and `Beta sample — ` for both Beta rows. In each marked row, the frame is its own ordinary run immediately after the first ASCII full stop and before the following ordinary space. Removing only the validated frame must make each marked paragraph byte-for-byte equal to its control.
 
@@ -91,7 +91,7 @@ Each case has one shared canonical `<case>.docx` and one ignored `<case>-canonic
 - one `<case>-<editor>-print.pdf`; and
 - one `<case>-<editor>-print-page-1.png`.
 
-The frozen expected page count is one. Across four cases the complete artifact set is 204 DOCX files (4 canonical plus 200 editor outputs), 8 TXT files, 8 PDFs, and 12 PNGs. The validator never requires or reads PNG content; it requires the fixed-code visual observation made from each successfully rendered PNG.
+The frozen expected page count is one. Across four cases the complete artifact set is 204 DOCX files (4 canonical plus 200 editor outputs), 8 TXT files, 8 PDFs, and 12 PNGs. The pure PDF inspector enforces its one-page result. DOCX one-page presentation is an editor observation within layout parity, not a structural-pagination claim by the DOCX inspector. The validator never requires or reads PNG content; it requires the fixed-code visual observation made from each successfully rendered PNG.
 
 ## Failure and BLOCKED boundary
 
@@ -175,6 +175,8 @@ type ImplementationProvenance = Readonly<{
   icuVersion: string;
   unicodeVersion: string;
   uvVersion: "0.12.9";
+  pythonVersion: "3.14.7";
+  pythonUnicodeVersion: "16.0.0";
   pypdfVersion: "6.10.0";
   pdftoppmVersion: "26.05.0";
 }>;
@@ -348,7 +350,7 @@ Task 1 is a documentation-only specification subphase. Execution must stop after
 
 **Files:** Create the Python inspector, pure TypeScript inspection wrapper, separate renderer, and PDF tests. Modify `package.json` and `docs/TESTING.md` only for the command contract.
 
-- [ ] Add a PEP 723 header pinning only `pypdf==6.10.0`; execute it with `uv run --no-project --script`. Freeze safe exact version capture for uv, pypdf, and pdftoppm. A missing or mismatched tool is operationally `BLOCKED`. Do not add a Python project or product dependency.
+- [ ] Add a PEP 723 header pinning Python `3.14.7` and only `pypdf==6.10.0`; execute it with `uv run --no-project --script`. Freeze exact version capture for Python, its Unicode data, uv, pypdf, and pdftoppm. A missing or mismatched tool is operationally `BLOCKED`. Do not add a Python project or product dependency.
 - [ ] Write adversarial tests that generate disposable synthetic PDFs for parse failure, encryption, page-count mismatch, text-order mismatch, extracted ZWNJ/ZWJ frames, replacement/control placeholders, attachments, JavaScript, launch/URI/open actions, annotations, malformed object graphs, metadata redaction, and bounded traversal.
 - [ ] Implement in-process text comparison that returns only booleans/counts/fixed codes. Raw extracted text and metadata values must not appear in stdout, stderr, exceptions, snapshots, or records.
 - [ ] Traverse objects with fixed visited-object, depth, and object-count limits. Reject `/EmbeddedFiles`, `/Filespec`, `/FileAttachment`, `/AF`, `/JavaScript`, `/JS`, `/Launch`, `/URI`, unsafe `/OpenAction` or `/AA`, and every annotation.

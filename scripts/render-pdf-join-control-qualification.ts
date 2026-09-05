@@ -52,12 +52,12 @@ const verifyRendererVersion = (): void => {
 export async function renderJoinControlQualificationPdf(
   input: RenderInput,
 ): Promise<QualificationPdfRenderResult> {
-  verifyRendererVersion();
   await assertNewRepositoryArtifactPath({
     repositoryRoot: input.repositoryRoot,
     allowedRoot: ARTIFACT_ROOT,
     relativePath: input.outputRelativePath,
   });
+  verifyRendererVersion();
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "glyph-m2e-render-"));
   try {
     const pdfPath = join(temporaryDirectory, "source.pdf");
@@ -101,15 +101,16 @@ export async function renderJoinControlQualificationPdf(
 const USAGE =
   "Usage: pnpm research:carrier:join-control-qualification:render-pdf -- <repository-relative-pdf-path> <repository-relative-png-path>";
 
-const main = async (): Promise<void> => {
-  const args = commandArguments();
+export const runRenderJoinControlQualificationPdfCommand = async (
+  repositoryRoot: string,
+  args: readonly string[],
+): Promise<void> => {
   const inputPath = args[0];
   const outputPath = args[1];
   if (args.length !== 2 || !inputPath || !outputPath) {
     failCommand(USAGE);
     return;
   }
-  const repositoryRoot = repositoryRootFor(import.meta.url);
   try {
     const pdfBytes = await readRepositoryRegularFile({
       repositoryRoot,
@@ -141,4 +142,9 @@ const main = async (): Promise<void> => {
   }
 };
 
-if (directExecution(import.meta.url)) void main();
+if (directExecution(import.meta.url)) {
+  void runRenderJoinControlQualificationPdfCommand(
+    repositoryRootFor(import.meta.url),
+    commandArguments(),
+  );
+}

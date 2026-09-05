@@ -153,7 +153,13 @@ const METADATA_CLASSIFICATIONS = [
 ] as const;
 const HASH_PATTERN = /^[a-f0-9]{64}$/;
 const GIT_REVISION_PATTERN = /^[a-f0-9]{40}$/;
-const SAFE_VERSION_PATTERN = /^[A-Za-z0-9 ._()+-]{1,80}$/;
+const NUMERIC_VERSION_PATTERN = /^\d{1,6}(?:\.\d{1,6}){0,4}$/;
+const MACOS_VERSION_PATTERN =
+  /^\d{1,3}(?:\.\d{1,3}){1,3}(?: \(\d{2}[A-Z]\d{1,6}[a-z]?\))?$/;
+const OFFICE_VERSION_PATTERN =
+  /^\d{1,6}(?:\.\d{1,6}){0,4}(?: \(\d{6,12}\))?$/;
+const WINDOWS_VERSION_PATTERN =
+  /^(?:\d{2}H[12]|\d{1,6}(?:\.\d{1,6}){0,4})(?: \(\d{4,6}(?:\.\d{1,6}){0,3}\))?$/;
 const FORBIDDEN_VALUE_PATTERN =
   /(?:BEGIN [A-Z ]*PRIVATE KEY|\bBearer\s+\S+|\b(?:sk|rk|pk|ghp|github_pat|xox[abprs])[-_][A-Za-z0-9_-]+)/i;
 const RUN_RECORD_PATH =
@@ -165,6 +171,28 @@ const FIXTURE_PATH =
 const GENERATOR_PATH =
   "src/documents/docx/docx-join-control-accessibility-qualification-v1.ts";
 const VALIDATOR_PATH = "scripts/validate-docx-join-control-qualification-run.ts";
+const QUALIFICATION_BEHAVIOR_PATHS = [
+  PROTOCOL_PATH,
+  FIXTURE_PATH,
+  "research/experiments/docx-join-control-accessibility-qualification-v1/inspect-qualification-docx.ts",
+  "research/experiments/docx-join-control-accessibility-qualification-v1/inspect-qualification-text.ts",
+  "research/experiments/docx-join-control-accessibility-qualification-v1/inspect-qualification-pdf.py",
+  GENERATOR_PATH,
+  "scripts/generate-docx-join-control-qualification.ts",
+  "scripts/inspect-docx-join-control-qualification.ts",
+  "scripts/inspect-text-join-control-qualification.ts",
+  "scripts/inspect-pdf-join-control-qualification.ts",
+  "scripts/render-pdf-join-control-qualification.ts",
+  "scripts/lib/join-control-qualification-command.ts",
+  "scripts/lib/research-artifact-io.ts",
+  VALIDATOR_PATH,
+  "research/experiments/docx-zero-width-carrier-bakeoff-v1/frame.ts",
+  "research/experiments/docx-zero-width-carrier-bakeoff-v1/fixture.ts",
+  "research/experiments/docx-zero-width-carrier-bakeoff-v1/inspect-zero-width-docx.ts",
+  "research/experiments/docx-hidden-run-v1/fixture.ts",
+  "package.json",
+  "pnpm-lock.yaml",
+] as const;
 const execFileAsync = promisify(execFile);
 
 type MetadataClassification = (typeof METADATA_CLASSIFICATIONS)[number];
@@ -359,6 +387,8 @@ export type QualificationRunRecord = Readonly<{
     icuVersion: string;
     unicodeVersion: string;
     uvVersion: "0.12.9";
+    pythonVersion: "3.14.7";
+    pythonUnicodeVersion: "16.0.0";
     pypdfVersion: "6.10.0";
     pdftoppmVersion: "26.05.0";
   }>;
@@ -430,10 +460,14 @@ const exactValue = <T>(value: unknown, expected: T, path: string): T => {
   return expected;
 };
 
-const safeVersion = (value: unknown, path: string): string => {
+const safeVersion = (
+  value: unknown,
+  path: string,
+  pattern: RegExp = NUMERIC_VERSION_PATTERN,
+): string => {
   ensure(
     typeof value === "string" &&
-      SAFE_VERSION_PATTERN.test(value) &&
+      pattern.test(value) &&
       !FORBIDDEN_VALUE_PATTERN.test(value),
     path,
     "expected a safe version string",
@@ -559,7 +593,7 @@ const assertOccurrence = (value: unknown, path: string): void => {
   enumAt(occurrence.part, ["word/document.xml", "other-redacted"] as const, `${path}.part`);
   integerAt(occurrence.paragraphIndex, `${path}.paragraphIndex`, -1);
   arrayAt(occurrence.runIndices, `${path}.runIndices`).forEach((entry, index) =>
-    integerAt(entry, `${path}.runIndices[${index}]`),
+    integerAt(entry, `${path}.runIndices[${index}]`, -1),
   );
   integerAt(occurrence.startCodePointIndex, `${path}.startCodePointIndex`);
   integerAt(occurrence.codePointCount, `${path}.codePointCount`);
@@ -1026,11 +1060,19 @@ const assertEditor = (
   );
   enumAt(spellcheck.pairFindings, ["same", "different"] as const, `${path}.spellcheck.pairFindings`);
   enumAt(spellcheck.pairSuggestionPresence, ["same", "different"] as const, `${path}.spellcheck.pairSuggestionPresence`);
-  exactValue(
-    spellcheck.latinBetaMisspelling,
-    caseId === "latin-operations-v1" ? "same" : "not-applicable",
-    `${path}.spellcheck.latinBetaMisspelling`,
-  );
+  if (caseId === "latin-operations-v1") {
+    enumAt(
+      spellcheck.latinBetaMisspelling,
+      ["same", "different"] as const,
+      `${path}.spellcheck.latinBetaMisspelling`,
+    );
+  } else {
+    exactValue(
+      spellcheck.latinBetaMisspelling,
+      "not-applicable",
+      `${path}.spellcheck.latinBetaMisspelling`,
+    );
+  }
   const specialized = exactObject(
     editor.specializedView,
     ["presentation", "navigation", "residualLayout"],
@@ -1071,6 +1113,8 @@ const assertImplementation = (value: unknown, path: string): void => {
       "icuVersion",
       "unicodeVersion",
       "uvVersion",
+      "pythonVersion",
+      "pythonUnicodeVersion",
       "pypdfVersion",
       "pdftoppmVersion",
     ],
@@ -1094,6 +1138,12 @@ const assertImplementation = (value: unknown, path: string): void => {
   safeVersion(implementation.icuVersion, `${path}.icuVersion`);
   safeVersion(implementation.unicodeVersion, `${path}.unicodeVersion`);
   exactValue(implementation.uvVersion, "0.12.9", `${path}.uvVersion`);
+  exactValue(implementation.pythonVersion, "3.14.7", `${path}.pythonVersion`);
+  exactValue(
+    implementation.pythonUnicodeVersion,
+    "16.0.0",
+    `${path}.pythonUnicodeVersion`,
+  );
   exactValue(implementation.pypdfVersion, "6.10.0", `${path}.pypdfVersion`);
   exactValue(implementation.pdftoppmVersion, "26.05.0", `${path}.pdftoppmVersion`);
 };
@@ -1150,14 +1200,31 @@ const assertEnvironments = (value: unknown, path: string): void => {
     ["macosVersion", "chromeVersion", "googleDocsVersion", "wordForMacVersion"],
     `${path}.macos`,
   );
-  safeVersion(macos.macosVersion, `${path}.macos.macosVersion`);
+  safeVersion(
+    macos.macosVersion,
+    `${path}.macos.macosVersion`,
+    MACOS_VERSION_PATTERN,
+  );
   safeVersion(macos.chromeVersion, `${path}.macos.chromeVersion`);
   exactValue(macos.googleDocsVersion, "not-exposed", `${path}.macos.googleDocsVersion`);
-  safeVersion(macos.wordForMacVersion, `${path}.macos.wordForMacVersion`);
+  safeVersion(
+    macos.wordForMacVersion,
+    `${path}.macos.wordForMacVersion`,
+    OFFICE_VERSION_PATTERN,
+  );
   const windows = exactObject(environments.windowsNvda, WINDOWS_NVDA_KEYS, `${path}.windowsNvda`);
-  for (const key of ["windows11Version", "espeakNgVersion", "chromeVersion", "wordMicrosoft365Version"] as const) {
-    safeVersion(windows[key], `${path}.windowsNvda.${key}`);
-  }
+  safeVersion(
+    windows.windows11Version,
+    `${path}.windowsNvda.windows11Version`,
+    WINDOWS_VERSION_PATTERN,
+  );
+  safeVersion(windows.espeakNgVersion, `${path}.windowsNvda.espeakNgVersion`);
+  safeVersion(windows.chromeVersion, `${path}.windowsNvda.chromeVersion`);
+  safeVersion(
+    windows.wordMicrosoft365Version,
+    `${path}.windowsNvda.wordMicrosoft365Version`,
+    OFFICE_VERSION_PATTERN,
+  );
   const exactSettings: Readonly<Record<string, string | number | boolean>> = {
     nvdaVersion: "2026.2",
     googleDocsVersion: "not-exposed",
@@ -1639,6 +1706,23 @@ export const validateJoinControlQualificationRun = async (
       committedBytes,
       expectedHash,
       `$.implementation.gitRevision:${path}`,
+    );
+  }
+
+  for (const path of QUALIFICATION_BEHAVIOR_PATHS) {
+    const currentBytes = await dependencies.readImplementation(
+      repositoryRoot,
+      path,
+    );
+    const committedBytes = await dependencies.readImplementationAtRevision(
+      repositoryRoot,
+      record.implementation.gitRevision,
+      path,
+    );
+    ensure(
+      sha256(currentBytes) === sha256(committedBytes),
+      `$.implementation.behaviorFile:${path}`,
+      "behavior file differs from the recorded revision",
     );
   }
 

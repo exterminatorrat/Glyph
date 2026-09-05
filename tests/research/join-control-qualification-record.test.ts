@@ -176,6 +176,8 @@ const makeRecord = (): QualificationRunRecord => ({
     icuVersion: process.versions.icu ?? "",
     unicodeVersion: process.versions.unicode ?? "",
     uvVersion: "0.12.9",
+    pythonVersion: "3.14.7",
+    pythonUnicodeVersion: "16.0.0",
     pypdfVersion: "6.10.0",
     pdftoppmVersion: "26.05.0",
   },
@@ -294,6 +296,18 @@ describe("join-control qualification record gate", () => {
     const unsafe = mutable();
     unsafe.environments.macos.chromeVersion = "https://private.example";
     expect(() => assertJoinControlQualificationRecordShape(unsafe)).toThrow(/safe version/);
+    const proseVersion = mutable();
+    proseVersion.environments.macos.chromeVersion = "Harry Jin private workstation";
+    expect(() => assertJoinControlQualificationRecordShape(proseVersion)).toThrow(/safe version/);
+    for (const identityBearingVersion of [
+      "1.0 (Harry-Jin)",
+      "1.0 (private-subject)",
+      "1.0 (call-me)",
+    ]) {
+      const prefixedProse = mutable();
+      prefixedProse.environments.macos.chromeVersion = identityBearingVersion;
+      expect(() => assertJoinControlQualificationRecordShape(prefixedProse)).toThrow(/safe version/);
+    }
     const lineage = mutable();
     lineage.cases[0]!.editors[0]!.sourceCanonicalSha256 = "b".repeat(64);
     expect(() => assertJoinControlQualificationRecordShape(lineage)).toThrow(/sourceCanonicalSha256/);
@@ -303,6 +317,72 @@ describe("join-control qualification record gate", () => {
     const decision = mutable();
     decision.gate.decision = "BLOCKED" as "QUALIFY_PROFILE";
     expect(() => assertJoinControlQualificationRecordShape(decision)).toThrow(/decision/);
+  });
+
+  test("requires the frozen Python and Unicode-data runtime provenance", () => {
+    const missing = mutable();
+    delete (missing.implementation as unknown as Record<string, unknown>)
+      .pythonUnicodeVersion;
+    expect(() =>
+      assertJoinControlQualificationRecordShape(
+        missing as unknown as QualificationRunRecord,
+      )
+    ).toThrow(/implementation/);
+
+    const record = mutable();
+    (record.implementation as unknown as Record<string, unknown>).pythonVersion =
+      "3.14.6";
+    expect(() =>
+      assertJoinControlQualificationRecordShape(
+        record as unknown as QualificationRunRecord,
+      )
+    ).toThrow(/pythonVersion/);
+  });
+
+  test("accepts a Latin spellcheck difference so the frozen gate can reject it", async () => {
+    const record = mutable();
+    record.cases[0]!.editors[0]!.spellcheck.latinBetaMisspelling = "different";
+    const gate = deriveJoinControlQualificationGate(
+      deriveJoinControlQualificationFailureCodes(
+        record as unknown as QualificationRunRecord,
+      ),
+    );
+    expect(gate).toEqual({
+      failureCodes: ["spellcheck-mismatch"],
+      decision: "REJECT_PROFILE",
+      rationale: "mandatory-criteria-failed",
+    });
+    record.gate.failureCodes = [...gate.failureCodes];
+    record.gate.decision = gate.decision;
+    record.gate.rationale = gate.rationale;
+    await expect(
+      validateJoinControlQualificationRun(
+        record as unknown as QualificationRunRecord,
+        "/synthetic",
+        dependencies,
+      ),
+    ).resolves.toBe(record);
+  });
+
+  test("accepts redacted non-ordinary occurrence coordinates", () => {
+    const record = mutable();
+    record.cases[0]!.canonical.inspection.occurrences[0] = {
+      markerId: "alpha",
+      checksumValid: true,
+      context: "non-ordinary",
+      part: "other-redacted",
+      paragraphIndex: -1,
+      runIndices: [-1],
+      startCodePointIndex: 0,
+      codePointCount: 120,
+      anchor: "unexpected",
+      finding: "moved",
+    };
+    expect(() =>
+      assertJoinControlQualificationRecordShape(
+        record as unknown as QualificationRunRecord,
+      )
+    ).not.toThrow();
   });
 
   test("blocks hash and independent-inspection mismatches", async () => {
@@ -327,6 +407,30 @@ describe("join-control qualification record gate", () => {
           new TextEncoder().encode("different committed source"),
       }),
     ).rejects.toThrow(/hash mismatch/);
+  });
+
+  test("blocks drift in an executable behavior file outside the four recorded pins", async () => {
+    await expect(
+      validateJoinControlQualificationRun(makeRecord(), "/synthetic", {
+        ...dependencies,
+        readImplementationAtRevision: async (_root, _revision, path) =>
+          path.endsWith("inspect-qualification-text.ts")
+            ? new TextEncoder().encode("different committed behavior")
+            : bytes,
+      }),
+    ).rejects.toThrow(/behavior file/i);
+  });
+
+  test("blocks drift in the reused carrier fixture's transitive dependency", async () => {
+    await expect(
+      validateJoinControlQualificationRun(makeRecord(), "/synthetic", {
+        ...dependencies,
+        readImplementationAtRevision: async (_root, _revision, path) =>
+          path === "research/experiments/docx-hidden-run-v1/fixture.ts"
+            ? new TextEncoder().encode("different transitive fixture")
+            : bytes,
+      }),
+    ).rejects.toThrow(/behavior file/i);
   });
 
   test("derives PDF visual and unresolved metadata failures without inventing a blocked state", () => {

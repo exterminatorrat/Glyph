@@ -11,8 +11,8 @@ import {
 } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { fileURLToPath } from "node:url";
-import { describe, expect, test } from "vitest";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { describe, expect, test, vi } from "vitest";
 
 import {
   QUALIFICATION_CASE_IDS,
@@ -20,6 +20,7 @@ import {
 } from "../../research/experiments/docx-join-control-accessibility-qualification-v1/fixture";
 import { encodeCarrier } from "../../research/experiments/docx-zero-width-carrier-bakeoff-v1/frame";
 import { CANDIDATE_A } from "../../research/experiments/docx-zero-width-carrier-bakeoff-v1/fixture";
+import { repositoryRootFor } from "../../scripts/lib/join-control-qualification-command";
 
 const sourceRoot = fileURLToPath(new URL("../../", import.meta.url));
 const artifactRoot =
@@ -49,18 +50,31 @@ const run = (
   script: string,
   repositoryRoot: string,
   args: readonly string[],
-) =>
-  spawnSync(process.execPath, [script, ...args], {
+) => {
+  const exportName = new Map([
+    [scripts.generate, "runGenerateJoinControlQualificationCommand"],
+    [scripts.inspectDocx, "runInspectJoinControlQualificationDocxCommand"],
+    [scripts.inspectText, "runInspectJoinControlQualificationTextCommand"],
+    [scripts.inspectPdf, "runInspectJoinControlQualificationPdfCommand"],
+    [scripts.renderPdf, "runRenderJoinControlQualificationPdfCommand"],
+  ]).get(script);
+  if (exportName === undefined) throw new Error("Unknown qualification command");
+  const normalized = args[0] === "--" ? args.slice(1) : args;
+  const harness = [
+    `const command = await import(${JSON.stringify(pathToFileURL(script).href)});`,
+    `await command[${JSON.stringify(exportName)}](process.argv[1], process.argv.slice(2));`,
+  ].join("");
+  return spawnSync(process.execPath, ["--input-type=module", "--eval", harness, repositoryRoot, ...normalized], {
     cwd: repositoryRoot,
     encoding: "utf8",
     env: {
       ...process.env,
-      GLYPH_REPOSITORY_ROOT: repositoryRoot,
       NODE_NO_WARNINGS: "1",
     },
     shell: false,
     timeout: 60_000,
   });
+};
 
 const json = (stdout: string): Record<string, unknown> => {
   const parsed: unknown = JSON.parse(stdout);
@@ -91,6 +105,47 @@ const clipboardBytes = (caseId: (typeof QUALIFICATION_CASE_IDS)[number]): Uint8A
 };
 
 describe("join-control qualification command safety", () => {
+  test("derives the repository root solely from the entrypoint location", () => {
+    try {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("GLYPH_REPOSITORY_ROOT", "/tmp/private-redirect");
+      const scriptUrl = new URL("../../scripts/example.ts", import.meta.url).href;
+      expect(repositoryRootFor(scriptUrl)).toBe(sourceRoot);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  test("direct production entry points never honor a repository-root environment override", async () => {
+    const repositoryRoot = await mkdtemp(join(tmpdir(), "glyph-m2e-command-"));
+    try {
+      const textPath = `${artifactRoot}/latin-operations-v1-google-docs-copy-plain-text.txt`;
+      await mkdir(dirname(resolve(repositoryRoot, textPath)), { recursive: true });
+      await writeFile(resolve(repositoryRoot, textPath), clipboardBytes("latin-operations-v1"));
+      const result = spawnSync(
+        process.execPath,
+        [scripts.inspectText, "latin-operations-v1", textPath],
+        {
+          cwd: sourceRoot,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            NODE_ENV: "test",
+            GLYPH_REPOSITORY_ROOT: repositoryRoot,
+            NODE_NO_WARNINGS: "1",
+          },
+          shell: false,
+          timeout: 60_000,
+        },
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toBe("Unable to inspect qualification text.\n");
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  });
+
   test("enforces exact argument counts and closed enums", async () => {
     const repositoryRoot = await mkdtemp(join(tmpdir(), "glyph-m2e-command-"));
     try {
