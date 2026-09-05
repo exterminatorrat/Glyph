@@ -10,7 +10,7 @@
 - Qualification profile: `docx-zero-width-join-control-qualification-v1`
 - Candidate/document profile: `join-control-binary-v1` / `docx-zero-width-join-control-v1`
 - Canonical artifacts: four generated once; hashes frozen; source inspections passed; original and supplemental one-page previews preserved
-- Editor workflows: Task 8 started; partial Word Latin observations; blocked on computer-control timeouts
+- Editor workflows: Task 8 started; Word control recovered; first Latin roundtrip export is empty and uninspectable
 - NVDA workflows: not started
 - Run record: absent
 - Gate: pending; incomplete or unreliable evidence is operationally `BLOCKED`
@@ -106,9 +106,10 @@ Completed experiment tree fingerprints use
   inspections and one-page visual verification passed. The preview blocker
   recorded at `f2adddd` was resolved by explicit renderer font configuration;
   original evidence remains preserved alongside verified supplemental previews.
-- Task 8: started after user-confirmed Desktop 4 placement. Word Latin
-  visual/search observations collected; navigation/proofing incomplete.
-  Operationally `BLOCKED` on persistent Word computer-control timeouts.
+- Task 8: partial Word Latin observations preserved. Reopened Word responded
+  on retry, but its first roundtrip DOCX export is zero bytes despite a saved
+  UI status. Operationally `BLOCKED` on uninspectable exported evidence;
+  navigation/proofing and the remaining matrix are incomplete.
 - Tasks 9–11: not started.
 
 ## Frozen scientific state
@@ -129,13 +130,13 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Restore reliable Word computer control on user-designated Desktop 4, inspect
-and dismiss any remaining Language dialog without applying changes, and repeat
-the Latin case primary workflow from a fresh open of its unchanged canonical.
-Do not mark navigation or spelling as passing from the interrupted attempt.
-Continue the existing Task 8 plan only when observations are reliable. No
-canonical regeneration, frozen-code change or run record is authorized by this
-operational recovery step. Tasks 8–11 and the Milestone 2E gate remain pending.
+Diagnose why Word's native Save As produced a zero-byte Latin roundtrip DOCX
+while reporting success. Preserve the empty export and all hash-frozen
+canonicals. Do not overwrite the failed export, regenerate a canonical, change
+frozen implementation or infer a scientific result. A reliable export path and
+an explicit evidence-preserving recovery procedure are needed before resuming
+the remaining Task 8 observations. Tasks 8–11 and the Milestone 2E gate remain
+pending; no completed run record exists.
 
 ## Task 7 canonical evidence — 2026-09-05
 
@@ -765,3 +766,45 @@ All four canonical SHA-256 values were recomputed after the interruption and
 match the frozen Task 7 values. No source or frozen protocol changed. No
 Task 8 artifact export or `run-001.json` was created. Prior completed experiment
 history and the pending Milestone 2E gate remain unchanged.
+
+## Task 8 Word reopen retry — 2026-09-05
+
+The user reopened Word and authorized another Task 8 attempt. The native app
+responded again. Before interaction, all four canonical hashes were verified
+against the frozen ledger; every hash matched.
+
+The existing Latin window was closed and its canonical freshly opened through
+Word's native Open dialog using the exact path. Print Layout at 100%, one-page
+ordinary presentation, formatting marks off, paired visible/layout `parity`
+and carrier presentation `absent` were observed again before other evidence
+operations. No navigation, proofing, mutation or copy was performed in this
+fresh attempt before the roundtrip export.
+
+### Failed native roundtrip export
+
+The target path was confirmed absent before Save As:
+
+`research/artifacts/docx-join-control-accessibility-qualification-v1/latin-operations-v1-microsoft-word-roundtrip.docx`
+
+Word's native Save As dialog used Word Document (.docx), the required artifact
+root and the exact new filename. A computer-control stale-state guard required
+refreshing the dialog before setting the filename. The final UI confirmed the
+new roundtrip document title and `Saved to my Mac` status.
+
+The frozen `research:carrier:join-control-qualification:inspect-docx` command
+was run with `latin-operations-v1 roundtrip transformed` and the above path.
+It exited 1 with `Unable to inspect qualification DOCX.`
+Two filesystem checks separated by a fresh Word state/screenshot observation
+found the same regular, non-symlink, zero-byte file. Its SHA-256 is:
+
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+
+It is not a readable ZIP/DOCX. Word still showed its saved status and no visible
+save-error dialog. The reason for the empty output is not established. This
+is uninspectable evidence and operationally `BLOCKED`, not a carrier rejection.
+The empty file is preserved under its original ignored path; no overwrite,
+repair, second export, or mutation was attempted after confirmation.
+
+All four canonical hashes remain unchanged. Only this ledger changes in Git;
+the failed export remains ignored. Google Docs, copy/mutation/print workflows,
+NVDA and complete run-record creation were not started in this retry.
