@@ -9,7 +9,7 @@
 - Reviewers: parallel read-only protocol/science and code/privacy lanes
 - Qualification profile: `docx-zero-width-join-control-qualification-v1`
 - Candidate/document profile: `join-control-binary-v1` / `docx-zero-width-join-control-v1`
-- Canonical artifacts: not generated
+- Canonical artifacts: four generated once; hashes frozen; source inspections passed; four one-page previews preserved
 - Editor workflows: not started
 - NVDA workflows: not started
 - Run record: absent
@@ -102,7 +102,10 @@ Completed experiment tree fingerprints use
   validator `a83351e28d27afb26a3438ddad30ff720d9b626d7ea191152f176a3d6c60eaba`;
   package `a5b9bb22197a5a54abcbce70a577a6ece43988a5911f563f373298da0adc9027`;
   lockfile `83f234738c6a6f31f7a5429eedd0a479b4d739d2222fb291e7e1fbf9213ab0e3`.
-- Tasks 7–11: not started.
+- Task 7: canonical generation, replacement refusal checks, source inspections, and
+  one-page rendering complete; visual evidence `BLOCKED` because the family
+  emoji is absent from both rows in the Devanagari/emoji preview.
+- Tasks 8–11: not started.
 
 ## Frozen scientific state
 
@@ -122,8 +125,448 @@ Completed experiment tree fingerprints use
 
 ## Exact next action
 
-Begin Task 7 from implementation provenance commit
-`d00a2d3526d15f94968ccdb15af10c612d9732ae`: generate each of the four
-canonicals exactly once, freeze its hash, structurally inspect it in source
-mode, and render its one-page preview. Do not change the frozen implementation
-or begin editor/NVDA workflows during Task 7.
+Resolve the Task 7 canonical-preview evidence blocker before Task 8. The
+preserved `devanagari-emoji-graphemes-v1-canonical-page-1.png` omits the family
+emoji from both Beta rows, so grapheme preservation cannot be reliably
+observed with this preview. Do not regenerate or modify any canonical, replace
+any preserved preview, change frozen implementation, or start editor/NVDA
+workflows. No run record or scientific decision is created.
+
+## Task 7 canonical evidence — 2026-09-05
+
+Implementation provenance: `d00a2d3526d15f94968ccdb15af10c612d9732ae`.
+Starting HEAD: `e706b3dc0c952c43eff8abbcc37fb7b1dcb4d71d`. Clean designated branch;
+only the Task 6 ledger checkpoint differs from provenance. Frozen source,
+protocol, fixture, package and lockfile hashes verified unchanged.
+Document operation marker succeeded once for four DOCX outputs.
+Generation uses the frozen Node 26.3.0 / pnpm 11.19.0 repository command.
+
+### Frozen canonical SHA-256 values
+
+- `latin-operations-v1`: `ead38b8f846102e593dece481a0f5a47e4368362fcc5b94446731fa3834863c5`
+- `arabic-persian-joining-v1`: `f797b16180eed18eb78191973d02edbef8a48abe167b7626eefc6912957f68ac`
+- `devanagari-emoji-graphemes-v1`: `4f8140a6ee2a4ac4b81af77a6d0faad2e01674a504f4daff4e21bb65887f2dc7`
+- `mixed-bidi-v1`: `bb6309f9ef31fb6573386aa5bad922a9a3a7437ae3a5eda858741519042273a8`
+
+### `arabic-persian-joining-v1` source inspection
+
+Replacement attempt refused; SHA-256 unchanged. Source inspection:
+
+```json
+{
+  "artifactPath": "research/artifacts/docx-join-control-accessibility-qualification-v1/arabic-persian-joining-v1.docx",
+  "sha256": "f797b16180eed18eb78191973d02edbef8a48abe167b7626eefc6912957f68ac",
+  "mode": "source",
+  "caseId": "arabic-persian-joining-v1",
+  "checkpointId": "canonical",
+  "frameState": "exact",
+  "occurrences": [
+    {
+      "markerId": "alpha",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 1,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 30,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    },
+    {
+      "markerId": "beta",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 3,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 36,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    }
+  ],
+  "visibleTextState": "exact",
+  "hiddenPropertyState": "absent",
+  "defaultIgnorableState": "allowlisted-only",
+  "nfcState": "stable",
+  "nfkcState": "stable",
+  "segmentationState": "expected",
+  "segmentation": [
+    {
+      "rowIndex": 0,
+      "locale": "ar-SA",
+      "graphemeCount": 50,
+      "wordLikeCount": 9,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 1,
+      "locale": "ar-SA",
+      "graphemeCount": 50,
+      "wordLikeCount": 9,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 2,
+      "locale": "fa-IR",
+      "graphemeCount": 56,
+      "wordLikeCount": 10,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 3,
+      "locale": "fa-IR",
+      "graphemeCount": 56,
+      "wordLikeCount": 10,
+      "paragraphCount": 1
+    }
+  ],
+  "nodeVersion": "26.3.0",
+  "icuVersion": "78.3",
+  "unicodeVersion": "17.0",
+  "packageSafetyState": "safe",
+  "relationshipSafetyState": "safe",
+  "macroOrActiveContent": "absent",
+  "coreMetadata": {
+    "creator": "synthetic_expected",
+    "lastModifiedBy": "synthetic_expected",
+    "otherCore": "non_synthetic_redacted"
+  },
+  "findings": []
+}
+```
+
+### `devanagari-emoji-graphemes-v1` source inspection
+
+Replacement attempt refused; SHA-256 unchanged. Source inspection:
+
+```json
+{
+  "artifactPath": "research/artifacts/docx-join-control-accessibility-qualification-v1/devanagari-emoji-graphemes-v1.docx",
+  "sha256": "4f8140a6ee2a4ac4b81af77a6d0faad2e01674a504f4daff4e21bb65887f2dc7",
+  "mode": "source",
+  "caseId": "devanagari-emoji-graphemes-v1",
+  "checkpointId": "canonical",
+  "frameState": "exact",
+  "occurrences": [
+    {
+      "markerId": "alpha",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 1,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 43,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    },
+    {
+      "markerId": "beta",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 3,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 52,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    }
+  ],
+  "visibleTextState": "exact",
+  "hiddenPropertyState": "absent",
+  "defaultIgnorableState": "allowlisted-only",
+  "nfcState": "stable",
+  "nfkcState": "stable",
+  "segmentationState": "expected",
+  "segmentation": [
+    {
+      "rowIndex": 0,
+      "locale": "hi-IN",
+      "graphemeCount": 48,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 1,
+      "locale": "hi-IN",
+      "graphemeCount": 48,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 2,
+      "locale": "en-US",
+      "graphemeCount": 71,
+      "wordLikeCount": 11,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 3,
+      "locale": "en-US",
+      "graphemeCount": 71,
+      "wordLikeCount": 11,
+      "paragraphCount": 1
+    }
+  ],
+  "nodeVersion": "26.3.0",
+  "icuVersion": "78.3",
+  "unicodeVersion": "17.0",
+  "packageSafetyState": "safe",
+  "relationshipSafetyState": "safe",
+  "macroOrActiveContent": "absent",
+  "coreMetadata": {
+    "creator": "synthetic_expected",
+    "lastModifiedBy": "synthetic_expected",
+    "otherCore": "non_synthetic_redacted"
+  },
+  "findings": []
+}
+```
+
+### `latin-operations-v1` source inspection
+
+Replacement attempt refused; SHA-256 unchanged. Source inspection:
+
+```json
+{
+  "artifactPath": "research/artifacts/docx-join-control-accessibility-qualification-v1/latin-operations-v1.docx",
+  "sha256": "ead38b8f846102e593dece481a0f5a47e4368362fcc5b94446731fa3834863c5",
+  "mode": "source",
+  "caseId": "latin-operations-v1",
+  "checkpointId": "canonical",
+  "frameState": "exact",
+  "occurrences": [
+    {
+      "markerId": "alpha",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 1,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 41,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    },
+    {
+      "markerId": "beta",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 3,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 46,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    }
+  ],
+  "visibleTextState": "exact",
+  "hiddenPropertyState": "absent",
+  "defaultIgnorableState": "allowlisted-only",
+  "nfcState": "stable",
+  "nfkcState": "stable",
+  "segmentationState": "expected",
+  "segmentation": [
+    {
+      "rowIndex": 0,
+      "locale": "en-US",
+      "graphemeCount": 69,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 1,
+      "locale": "en-US",
+      "graphemeCount": 69,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 2,
+      "locale": "en-US",
+      "graphemeCount": 77,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 3,
+      "locale": "en-US",
+      "graphemeCount": 77,
+      "wordLikeCount": 13,
+      "paragraphCount": 1
+    }
+  ],
+  "nodeVersion": "26.3.0",
+  "icuVersion": "78.3",
+  "unicodeVersion": "17.0",
+  "packageSafetyState": "safe",
+  "relationshipSafetyState": "safe",
+  "macroOrActiveContent": "absent",
+  "coreMetadata": {
+    "creator": "synthetic_expected",
+    "lastModifiedBy": "synthetic_expected",
+    "otherCore": "non_synthetic_redacted"
+  },
+  "findings": []
+}
+```
+
+### `mixed-bidi-v1` source inspection
+
+Replacement attempt refused; SHA-256 unchanged. Source inspection:
+
+```json
+{
+  "artifactPath": "research/artifacts/docx-join-control-accessibility-qualification-v1/mixed-bidi-v1.docx",
+  "sha256": "bb6309f9ef31fb6573386aa5bad922a9a3a7437ae3a5eda858741519042273a8",
+  "mode": "source",
+  "caseId": "mixed-bidi-v1",
+  "checkpointId": "canonical",
+  "frameState": "exact",
+  "occurrences": [
+    {
+      "markerId": "alpha",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 1,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 54,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    },
+    {
+      "markerId": "beta",
+      "checksumValid": true,
+      "context": "ordinary-body",
+      "part": "word/document.xml",
+      "paragraphIndex": 3,
+      "runIndices": [
+        1
+      ],
+      "startCodePointIndex": 44,
+      "codePointCount": 120,
+      "anchor": "expected",
+      "finding": "none"
+    }
+  ],
+  "visibleTextState": "exact",
+  "hiddenPropertyState": "absent",
+  "defaultIgnorableState": "allowlisted-only",
+  "nfcState": "stable",
+  "nfkcState": "stable",
+  "segmentationState": "expected",
+  "segmentation": [
+    {
+      "rowIndex": 0,
+      "locale": "en-US",
+      "graphemeCount": 74,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 1,
+      "locale": "en-US",
+      "graphemeCount": 74,
+      "wordLikeCount": 12,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 2,
+      "locale": "ar-SA",
+      "graphemeCount": 60,
+      "wordLikeCount": 10,
+      "paragraphCount": 1
+    },
+    {
+      "rowIndex": 3,
+      "locale": "ar-SA",
+      "graphemeCount": 60,
+      "wordLikeCount": 10,
+      "paragraphCount": 1
+    }
+  ],
+  "nodeVersion": "26.3.0",
+  "icuVersion": "78.3",
+  "unicodeVersion": "17.0",
+  "packageSafetyState": "safe",
+  "relationshipSafetyState": "safe",
+  "macroOrActiveContent": "absent",
+  "coreMetadata": {
+    "creator": "synthetic_expected",
+    "lastModifiedBy": "synthetic_expected",
+    "otherCore": "non_synthetic_redacted"
+  },
+  "findings": []
+}
+```
+
+All four source inspections report `otherCore: non_synthetic_redacted`.
+Per the frozen metadata contract, carry deviation `docx-core-metadata-redacted`
+and limitation `docx-core-metadata-requires-privacy-review` into any later
+complete run record. No raw metadata was recorded or emitted.
+
+### Canonical preview observations
+
+Renderer: documents skill `render_docx.py` from bundle `26.903.11726`, bundled
+Python, fixed 144 DPI, default bundled LibreOffice/Poppler resolution. Each
+render used a fresh directory beneath the ignored artifact root; its sole
+`page-1.png` was copied create-only to the frozen canonical-preview filename.
+No intermediate PDF was retained. All four canonical hashes stayed unchanged.
+Every full-page PNG was opened and visually inspected.
+
+The following fixed codes describe paired-row appearance in the source preview
+only; they are not primary-editor or NVDA evidence.
+
+| Case | Pages | Paired visual parity | Paired layout parity | Evidence status |
+| --- | --- | --- | --- | --- |
+| `latin-operations-v1` | 1 | `parity` | `parity` | observed |
+| `arabic-persian-joining-v1` | 1 | `parity` | `parity` | observed |
+| `devanagari-emoji-graphemes-v1` | 1 | `parity` | `parity` | `BLOCKED` |
+| `mixed-bidi-v1` | 1 | `parity` | `parity` | observed |
+
+The family emoji is absent from both Beta rows of the Devanagari/emoji preview.
+Paired visual parity alone cannot establish preservation of that grapheme.
+This is a canonical-preview rendering/evidence limitation; its cause has not
+been established and it is not a scientific rejection of the candidate.
+Task 7 remains `BLOCKED` on reliable visual evidence. No source fix,
+regeneration, preview replacement, editor workflow, NVDA workflow, or run
+record was attempted after observing this blocker.
+
+### Preserved preview SHA-256 values
+
+- `arabic-persian-joining-v1-canonical-page-1.png`: `9a4f9241d14a3bd66c3355a494a1f4c476f441fb90abd0a6d830c524bcaad052`
+- `devanagari-emoji-graphemes-v1-canonical-page-1.png`: `45f2eeaf3a4e1582c44850577f8ce4ef773c84a165aab2ac561536a214b95ba4`
+- `latin-operations-v1-canonical-page-1.png`: `ee13bca71b6b6b404481f2027faccb5327f4f54d6fd9414b8efe813a1e949205`
+- `mixed-bidi-v1-canonical-page-1.png`: `73c7fe8f3a381e7905226925e1bd1b44c830d1b8ad0c11bceb83b2513023cbb9`
+
+### Task 7 checkpoint verification
+
+- Post-render source reinspection exactly matches all four recorded inspection
+  objects and hashes.
+- All four completed experiment tree fingerprints match the baseline.
+- Frozen implementation, protocol, package and lockfile remain unchanged.
+- Artifact root contains exactly four ignored DOCX and four ignored PNG files;
+  no symlinks, editor exports, or `run-001.json` exist in that root.
+- Only this ledger is changed. No implementation tests were added or rerun for
+  this evidence-only checkpoint; executed generation, refusal, source
+  reinspection, rendering and artifact-scope checks are recorded above.
