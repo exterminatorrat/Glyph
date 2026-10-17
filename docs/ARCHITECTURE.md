@@ -1,5 +1,30 @@
 # Glyph architecture
 
+Status: planned target architecture adopted 2026-10-17; not implemented.
+
+## Current repository and target
+
+The current checkout is a root Next.js/React application with DOCX research code. It does not contain the planned `packages/core`, `apps/lab`, `apps/web`, or shared JSON fixtures. This document describes a target, not existing source or a claim that the new product works.
+
+The planned pnpm workspace contains `packages/core` (pure, strict TypeScript with no `any`, I/O, network, or DOM access), `apps/lab`, `apps/web`, `fixtures/*.json`, and documentation. Core uses Web Crypto `crypto.subtle` for browser and Node runtimes. Every function will have Vitest coverage and shared JSON test vectors. The root `package.json` scripts remain authoritative as the workspace is implemented.
+
+## Planned contracts and flow
+
+The browser prepares assignment text and its `{assignmentId, layers: Layer[]}` manifest, then checks a response locally. `Layer` is `{id, carrier: "tag" | "visibleNote", canary}`. Assignment text and student responses never go to a server, and the MVP has no accounts or database. The browser must provide a separate result for each layer. The local research lab is separate and may call model APIs only for synthetic or explicitly consented research inputs, with credentials in environment variables; it is not a submission backend.
+
+Canary derivation is stateless `HMAC-SHA256(teacherKey, assignmentId + layerId)` to index curated word lists. The input encoding must be unambiguous and domain-separated, and key lifecycle must be settled before implementation in Step 2; this architecture does not specify a broader key-management system.
+
+The carrier seam stays small and swappable, with no plugin framework. The tag carrier maps each ASCII instruction character `c` to `0xE0000 + code(c)`, wraps it with U+E0001 and U+E007F, and rejects non-ASCII input. Placement is redundant at start/middle/end sentence boundaries, never midword, and skips code blocks and URLs. Decode must preserve legitimate U+1F3F4 tag-emoji sequences. The complete malformed/control-character contract is a Step 1 decision because ASCII controls may overlap delimiter-equivalent values.
+
+The visible-note carrier uses at least eight AI-addressed sentence templates containing `{canary}`, inserted at a middle sentence boundary. Template and placement selection are key-derived and rotate reproducibly per assignment. Stripping the injected tags and removing the injected note must restore the original JavaScript string exactly, preserving Unicode, line endings, and emoji. The reversible-string and template-choice metadata contract remains unresolved until Step 3; do not choose an API prematurely.
+
+Detection normalizes case, whitespace, and punctuation before exact per-canary matching and flags remaining raw tag characters. Exact token and normalization boundaries, including legitimate flag emoji, require explicit tests. Fuzzy, semantic, and lemma matching are out of scope. A canary match is not proof of ingestion or authorship; a miss does not imply innocence, and results must not be converted to scores or probabilities.
+
+Prior DOCX architecture and experiment material below is archived Milestone 0 text. Its original records remain unchanged and apply only to their named profiles; none qualifies the planned tag or visible-note carriers.
+
+<details>
+<summary>Archived Milestone 0 architecture (superseded)</summary>
+
 Status: approved Milestone 0 architecture, 2026-08-30
 
 ## Architectural outcome
@@ -250,3 +275,5 @@ This is an ownership map, not authorization to create empty folders or stub modu
 The INTERNAL RESEARCH PROTOTYPE runs locally and is unauthenticated. It must not be exposed through Vercel, a tunnel, a shared host, or another public endpoint.
 
 The PILOT-READY PRODUCT may use Vercel and managed Supabase only after the gates in `SECURITY.md` pass. There is no separate API server, worker, queue, object store, or external AI service in the MVP architecture.
+
+</details>

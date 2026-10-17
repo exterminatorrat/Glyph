@@ -1,5 +1,46 @@
 # Glyph MVP specification
 
+Status: adopted research direction, 2026-10-17; documentation only. No roadmap implementation is authorized by this change.
+
+## Current authority
+
+Glyph tests assignment-specific canary prompt injection, not whether text was written by AI. Every assignment has two layers with distinct exact canaries: a hidden Unicode tag instruction and a visible, camouflaged note addressed to an AI. Report each layer separately. A match may prompt a conversation and corroboration from drafts, version history, or oral explanation; it cannot prove direct ingestion, authorship, intent, or misconduct. A miss is evidence neither for nor against AI use. Never produce an AI score or probability.
+
+The proposed ranking is hidden-only strongest as a single signal, visible-only moderate, and both together strongest. It is an unvalidated hypothesis pending controls and repeated measurements. Hidden instructions can be inspected and shared; layer results are not presumed independent.
+
+### Manifest and canaries
+
+The planned manifest is `{assignmentId, layers: Layer[]}`. Each layer is `{id, carrier: "tag" | "visibleNote", canary}`. Canaries are distinct across the two layers and matched exactly after the specified normalization; fuzzy, semantic, lemma, and embedding matching are deferred.
+
+Derive canaries statelessly with `HMAC-SHA256(teacherKey, assignmentId + layerId)` to index curated word lists. No accounts or database are part of the MVP. The exact input encoding/domain separation and key lifecycle remain Step 2 decisions; do not fill them in by assumption.
+
+### Carrier requirements
+
+For the hidden layer, encode each ASCII instruction character `c` as `0xE0000 + code(c)`, bracket the sequence with U+E0001 and U+E007F, and reject non-ASCII input. Insert redundant copies at start, middle, and end sentence boundaries, never midword, and skip code blocks and URLs. Decode must ignore legitimate U+1F3F4 black-flag sequences containing tag characters and ending in U+E007F. Step 1 must settle malformed input and the ASCII control-character/delimiter ambiguity before implementation.
+
+For the visible layer, define at least eight AI-addressed sentence templates containing `{canary}`. Insert the note at a sentence boundary in the middle of the assignment, with template and placement reproducibly derived from the key and assignment ID and rotated per assignment. Stripping the injected tags and removing the injected note must restore the original text exactly, including existing Unicode, line endings, and emoji. The exact JavaScript-string/reversibility and template-choice metadata contracts remain open for Step 3; do not invent an incompatible API now.
+
+Detection normalizes case, whitespace, and punctuation, then exact-matches each canary and flags remaining raw tag characters. Tests must define legitimate flag-emoji handling and precise token and normalization boundaries. Do not use fuzzy scoring.
+
+### Privacy and scope
+
+Embedding and checking are client-first; assignment prompts and student submissions never leave the browser and are not uploaded, logged, or persisted. Do not put real student data in Git, fixtures, documentation, or logs, and do not commit keys or secrets. A local research CLI may call model APIs only on synthetic or explicitly consented research inputs, using credentials from environment variables; it is not a teacher-submission backend. Do not use white-text tricks. Any later teacher-facing use requires disclosure in the teacher AI policy and fresh accessibility and international-text testing for these carriers.
+
+## Ordered roadmap (not implementation authorization)
+
+1. **Core types and tag codec:** implement manifest/layer types, tag encode/decode/strip, and flag-emoji tests; resolve the malformed/control-character policy first.
+2. **Canary derivation:** implement deterministic HMAC-SHA256 derivation from curated word lists after defining unambiguous, domain-separated input and the `teacherKey` lifecycle.
+3. **Visible carrier and reversible embedding:** add at least eight templates, `embed(text, manifest)`, and exact restoration/removal, with the pending string and template-metadata contract resolved first.
+4. **Detection:** exact per-layer reports, tag-character detection, and the explicit interpretation caveat; no fuzzy scoring.
+5. **Research lab:** JSON model-API matrix and mock dry-run; manual web-UI CSV import is first-class; JSONL output and per-model/per-layer hit-rate tables.
+6. **Repeated campaign:** 5–10 samples per cell, including “summarize in 3 sentences” and “rewrite in my own words” variants; measure instruction acknowledgement and noticeability, vary visible placements/templates, and compare ChatGPT and Claude web UI with API behavior.
+7. **Minimal teacher web flow and red team:** local embed/verify/copy check, then test cleaners, OCR, retyping, LLM discovery of hidden instructions, and canary-group sharing before a consenting teacher pilot. Consider Docs/LTI integrations only for measured carrier-surviving platforms and account for LMS sanitization.
+
+These steps are proposed in order. This documentation-only adoption stops before Step 1. The earlier Milestone 0 requirements below are retained for provenance only; M0–M2E research records and outcomes are unchanged and do not qualify the new carriers.
+
+<details>
+<summary>Archived Milestone 0 specification (superseded)</summary>
+
 Status: approved and frozen for Milestone 0, 2026-08-30
 
 This document defines the research MVP. A later change to these requirements requires an explicit specification revision. Deliberately staged decisions, such as the generated-marker profile and experiment-specific go/no-go thresholds, are frozen at their named milestones before affected experiments begin.
@@ -238,3 +279,5 @@ Pilot readiness additionally requires authenticated teacher context, assignment 
 Normal teacher requests must not depend on unrestricted privileged database access. The current Supabase server-secret terminology and recommended access pattern must be re-checked against official documentation when persistence and pilot milestones begin.
 
 No dependency version is frozen by this specification. Versions are selected and recorded only when the relevant dependency is installed in an authorized milestone.
+
+</details>

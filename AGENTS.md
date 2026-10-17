@@ -1,40 +1,35 @@
 # Glyph repository guide
 
-Glyph is an experimental academic-integrity research product. It measures whether assignment-specific markers are present in a response and tests whether marker presence is more common after a protected assignment is provided to a generative AI system than in controls.
-
-Glyph is not an AI-writing detector and does not determine authorship, direct AI ingestion, student intent, cheating, or academic misconduct.
+Glyph is an experimental research project for assignment-specific canary prompt injection: teachers place two distinct canaries in an assignment and test whether a chatbot includes them in its response. Glyph is not a general AI-writing detector and cannot establish authorship, direct ingestion, intent, cheating, or misconduct.
 
 ## Authoritative documentation
 
-- Product purpose and language: `docs/PRODUCT.md`
-- Frozen MVP requirements and milestones: `docs/MVP_SPEC.md`
-- Modules, interfaces, data flow, and persistence: `docs/ARCHITECTURE.md`
-- Privacy, security, and pilot gates: `docs/SECURITY.md`
+- Product purpose and evidence language: `docs/PRODUCT.md`
+- Adopted requirements and ordered roadmap: `docs/MVP_SPEC.md`
+- Planned architecture and current repository state: `docs/ARCHITECTURE.md`
+- Privacy and research-data boundaries: `docs/SECURITY.md`
 - Verification policy: `docs/TESTING.md`
-- Research protocols and metrics: `docs/EXPERIMENTS.md`
+- Research plan and historical provenance: `docs/EXPERIMENTS.md`
+- User-reported carrier-survival observations: `docs/carrier-survival.md`
 
 ## Non-negotiable constraints
 
-- Keep raw measurement, technical interpretation, research interpretation, and any later product claim distinct.
-- Never persist or log raw assignment prompts, student responses, or uploaded response documents. Persist marker values only inside the approved server-only fingerprint payload; never log them or expose them through browser-facing data contracts.
-- Never place actual student work in Git, fixtures, logs, or documentation examples.
-- Keep privileged database credentials and fingerprint material out of browser code and browser-facing data contracts.
-- Keep `documentProfile` versioning separate from fingerprint strategy and schema versioning.
-- Use minimal explicit dispatch while only one fingerprint strategy exists; do not build a plugin framework.
+- Keep observed canary matches, technical interpretation, research interpretation, and any later product claim distinct. A match warrants contextual conversation and corroboration; it is not proof. A miss is evidence neither for nor against AI use. Never produce an AI score or probability.
+- The proposed ordering (hidden-only strongest, visible-only moderate, both strongest) is an unvalidated hypothesis, not a finding. Do not assume hidden instructions remain secret or that the layers are independent.
+- Assignment prompts and student responses must stay in the browser and must never be uploaded, logged, or persisted. Do not put real student work in Git, fixtures, logs, or documentation. Research model APIs may be used only by the local lab on synthetic or explicitly consented research inputs, with credentials supplied through environment variables; this is not a teacher-submission backend.
+- Never commit keys, secrets, raw assignments, or raw responses. Canary values are inspectable test material, not cryptographic proof or tamper-resistant watermarks.
+- Keep carriers behind a small swappable interface; do not build a plugin framework. Do not invent unresolved HMAC, reversible-string, template-metadata, malformed-tag, or normalization contracts ahead of their roadmap steps.
+- Keep prior research records and outcomes unchanged. Prior DOCX-carrier evidence does not qualify the new tag or visible-note carriers.
 
 ## Milestones and gates
 
-Work only on the active approved milestone. Milestone 2 ended with the recorded abandonment of `docx-hidden-run-v1`;
-Milestone 2B recorded `REVISE_CANDIDATE`; Milestone 2C recorded
-`REVISE_CARRIER`; Milestone 2D selected `join-control-binary-v1` with
-`SELECT_A`. Milestone 2E, the separately versioned accessibility and
-international-text qualification of that unchanged profile, is the current
-research milestone. Milestone 3 and product workflows remain later and require
-a positive Milestone 2E gate.
+The two-layer canary briefing was adopted as a documentation-only direction on 2026-10-17. Roadmap Step 1 has not started, and no implementation is authorized by this adoption. Wait for separate authorization before beginning it.
+
+Milestones 0–2E and their ledgers, protocols, fixtures, and results remain historical evidence for the named DOCX profiles. Their original outcomes must not be relabeled, generalized, or used as evidence for the new carriers. The prior Milestone 2E accessibility gate is no longer the active roadmap gate; its recorded status remains unchanged.
 
 ## Verification commands
 
-When executable tooling exists, authoritative commands belong in `package.json` scripts and are explained in `docs/TESTING.md`. Do not invent or document commands before the relevant tooling is installed.
+`package.json` is authoritative for executable commands. The current root `pnpm test` and `pnpm typecheck` scripts cover the existing application, not the planned workspace. The full test suite can overwrite ignored canonical DOCX evidence; run it only in a disposable isolated checkout after verifying every output path is isolated. See `docs/TESTING.md`.
 
 ## Repository synchronization
 
