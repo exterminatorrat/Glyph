@@ -1,6 +1,6 @@
 # Glyph testing and verification strategy
 
-Status: current verification policy adopted 2026-10-17; Roadmap Step 1 core codec is implemented in this change.
+Status: current verification policy adopted 2026-10-17; Roadmap Step 1 is merged to `main` in PR #4, and Step 2 is implemented in this change.
 
 ## Current commands and isolation
 
@@ -8,13 +8,19 @@ Status: current verification policy adopted 2026-10-17; Roadmap Step 1 core code
 
 The full existing suite has previously overwritten ignored canonical DOCX research artifacts. Do not run it in an evidence-bearing checkout. Run `pnpm test` and `pnpm typecheck` only in a disposable isolated checkout/environment after inspecting the test output paths and confirming that no fixed, absolute, symlinked, or shared output can reach retained evidence. Keep generated files and dependencies out of the working repository. Do not modify package scripts or dependencies as part of documentation adoption.
 
-The documentation-only adoption was checked for rendered Markdown structure, local links, required wording and its final carrier-observation line. For Step 1, run the focused core tests first, then `pnpm test` and `pnpm typecheck` in an isolated checkout after confirming test outputs cannot reach retained evidence. Always run `git diff --check`.
+The documentation-only adoption was checked for rendered Markdown structure, local links, required wording and its final carrier-observation line. For code changes, run the focused core tests first, then `pnpm test` and `pnpm typecheck` in an isolated checkout after confirming test outputs cannot reach retained evidence. Always run `git diff --check`.
 
 ## Step 1 core verification
 
 Every exported function in `packages/core` has Vitest coverage and shared JSON vectors. Step 1 tests verify the exact printable-ASCII mapping, empty frames, rejection of non-ASCII/control/DEL input, ordered and adjacent frame decoding, malformed-frame preservation and resynchronization, black-flag subdivision emoji preservation, and exact removal while retaining surrounding Unicode and line endings. Fixtures are synthetic and escape invisible tag characters so the vectors can be inspected. These checks do not prove provider survival or accessibility.
 
 `pnpm test` and `pnpm typecheck` cover the existing root application and core package. A passing software suite proves implementation behavior only; it does not prove carrier survival, model compliance, prompt reuse, authorship, or misconduct. Manual and research evidence must be reported separately.
+
+## Step 2 canary derivation verification
+
+`packages/core/test/canary-derivation.test.ts` covers every package-level derivation export, frozen v1 word-list ordering and layer-pool disjointness, exact phrase formatting, deterministic repeatability, and fixed public synthetic-key vectors. Each vector includes the canonical JSON message and expected HMAC digest; the test independently checks the digest with Node's standard `node:crypto` HMAC implementation before checking the derived phrase. It also covers key length and immutability, asynchronous key snapshotting, supported layer IDs, empty and malformed-surrogate IDs, valid control/Unicode/non-BMP IDs, case/space/NFC preservation, and JSON-array boundary encoding. These tests establish deterministic software behavior only; they do not establish global phrase uniqueness, provider compliance, or natural-occurrence rarity.
+
+The 32-byte test keys are intentionally public synthetic fixtures. Tests must not generate, log, or persist real teacher keys or student content. Do not add statistical randomness tests or claims that changing one input can never collide in the finite phrase space.
 
 The earlier Milestone 0 verification text below is retained as a historical record. The M2E DOCX command, test, and research records are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. Their scope does not apply to or qualify the new carriers.
 

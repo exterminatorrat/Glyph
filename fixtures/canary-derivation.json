@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "wordlistSha256": "ff33d71dd8e8085849dc0d4f4db23aecfa53087e0f586d6b7c8019c74a873c4f",
+  "keys": {
+    "standard": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "alternate": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+  },
+  "vectors": [
+    {
+      "label": "lesson 42 tag",
+      "key": "standard",
+      "assignmentId": "lesson-42",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"lesson-42\",\"tag\"]",
+      "digestHex": "9eae771301c91b085c03340d2c57f2fe234a79d6ce936e17d57ad17657a6163c",
+      "phrase": "the kind meadow shapes the familiar pebble beside the calm apple"
+    },
+    {
+      "label": "lesson 42 visible note",
+      "key": "standard",
+      "assignmentId": "lesson-42",
+      "layerId": "visibleNote",
+      "message": "[\"glyph.canary\",1,\"lesson-42\",\"visibleNote\"]",
+      "digestHex": "1b9f31582bdcfb7b59e651ce20d0611187e8a5f6b28432fa37a85935372bfa78",
+      "phrase": "the bold river traces the calm compass beside the fresh mirror"
+    },
+    {
+      "label": "different assignment",
+      "key": "standard",
+      "assignmentId": "lesson-43",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"lesson-43\",\"tag\"]",
+      "digestHex": "c2fa7e9cf6314fb14dee3d7a0ab966948ce74efeef98406ac7092797b1b9c7a9",
+      "phrase": "the neat parcel keeps the firm library beside the open pond"
+    },
+    {
+      "label": "different key",
+      "key": "alternate",
+      "assignmentId": "lesson-42",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"lesson-42\",\"tag\"]",
+      "digestHex": "a223ccf34eb394baf1adfad3decab186e9ac91a69b1abf152e3281ac3a7eb2b9",
+      "phrase": "the large hill crosses the open canvas beside the careful candle"
+    },
+    {
+      "label": "case preserved",
+      "key": "standard",
+      "assignmentId": "Lesson-42",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"Lesson-42\",\"tag\"]",
+      "digestHex": "5998f63f438bebed6f27389f6b3e5a8c7a2d0a7fc03e347903d46173c4334968",
+      "phrase": "the easy desk guides the soft island beside the soft atlas"
+    },
+    {
+      "label": "spaces preserved",
+      "key": "standard",
+      "assignmentId": "lesson-42 ",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"lesson-42 \",\"tag\"]",
+      "digestHex": "90baeba090051e953b1a8b72574086b574a9e79638329e37bad394d9ede5cd83",
+      "phrase": "the humble brook keeps the round road beside the ancient castle"
+    },
+    {
+      "label": "precomposed Unicode",
+      "key": "standard",
+      "assignmentId": "café",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"café\",\"tag\"]",
+      "digestHex": "cc02c9f4e70b0b1e54393e971388100f96928e690abb9008a868b7d9d46fe172",
+      "phrase": "the patient anchor covers the neat garden beside the crisp lantern"
+    },
+    {
+      "label": "decomposed Unicode",
+      "key": "standard",
+      "assignmentId": "café",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"café\",\"tag\"]",
+      "digestHex": "08cd9bbbf35f4ea91e9f765c43da36763f9d95db798854b23193264ff0f18dfe",
+      "phrase": "the autumn button places the hazy room beside the mild picture"
+    },
+    {
+      "label": "control characters",
+      "key": "standard",
+      "assignmentId": "unit\n1\u0000",
+      "layerId": "visibleNote",
+      "message": "[\"glyph.canary\",1,\"unit\\n1\\u0000\",\"visibleNote\"]",
+      "digestHex": "cb39250d78f5545860a9378dacea86de7538e74f8199a9e5aace981f2fa325e3",
+      "phrase": "the linear picture holds the bright castle beside the patient ribbon"
+    },
+    {
+      "label": "non-BMP Unicode",
+      "key": "standard",
+      "assignmentId": "lesson-📘-1",
+      "layerId": "visibleNote",
+      "message": "[\"glyph.canary\",1,\"lesson-📘-1\",\"visibleNote\"]",
+      "digestHex": "a8cbd2a1299e36999c1d5ecbdabbea7d5f9c8e2a36aaf2804edb4eff46ded413",
+      "phrase": "the ideal button marks the pale meadow beside the balanced library"
+    },
+    {
+      "label": "ambiguous boundary left",
+      "key": "standard",
+      "assignmentId": "ab",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"ab\",\"tag\"]",
+      "digestHex": "16553493ce086e97a0d343ef7983bccf92094ef5c4470a1dc376df1e48bd9958",
+      "phrase": "the bare kettle finds the careful book beside the clear candle"
+    },
+    {
+      "label": "ambiguous boundary right",
+      "key": "standard",
+      "assignmentId": "a",
+      "layerId": "tag",
+      "message": "[\"glyph.canary\",1,\"a\",\"tag\"]",
+      "digestHex": "3ddf43e3ba101c9e881d8f7f1532a3c5bd9d1fb3fcc2be09480d60a810152624",
+      "phrase": "the coral forest traces the cloudy shell beside the cheerful road"
+    }
+  ]
+}
