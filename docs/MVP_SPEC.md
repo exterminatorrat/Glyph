@@ -1,6 +1,6 @@
 # Glyph MVP specification
 
-Status: adopted research direction, 2026-10-17; documentation only. No roadmap implementation is authorized by this change.
+Status: adopted research direction, 2026-10-17; Roadmap Step 1 was separately authorized and is implemented here. Steps 2–7 remain proposed and unauthorized.
 
 ## Current authority
 
@@ -16,7 +16,7 @@ Derive canaries statelessly with `HMAC-SHA256(teacherKey, assignmentId + layerId
 
 ### Carrier requirements
 
-For the hidden layer, encode each ASCII instruction character `c` as `0xE0000 + code(c)`, bracket the sequence with U+E0001 and U+E007F, and reject non-ASCII input. Insert redundant copies at start, middle, and end sentence boundaries, never midword, and skip code blocks and URLs. Decode must ignore legitimate U+1F3F4 black-flag sequences containing tag characters and ending in U+E007F. Step 1 must settle malformed input and the ASCII control-character/delimiter ambiguity before implementation.
+For the hidden layer, the Step 1 codec encodes each printable ASCII instruction character `c` as `0xE0000 + code(c)`, bracketed by U+E0001 and U+E007F. It accepts only U+0020–U+007E, rejects all ASCII control characters including DEL, and permits an empty payload as a start/end frame with no payload characters. A valid frame contains only mapped payload tag characters U+E0020–U+E007E. A nested start or any other invalid code point makes the candidate malformed; scanning resumes after its first following terminator. An unterminated candidate remains untouched through end of text. Decode extracts only complete valid frames, while strip removes only those frames and preserves malformed sequences, raw tag characters outside frames, legitimate flag emoji, and surrounding text exactly. Step 1 implements this codec only; sentence-boundary placement, redundant insertion, and URL/code-block exclusion remain later work. Decode must ignore legitimate U+1F3F4 black-flag sequences containing tag characters and ending in U+E007F.
 
 For the visible layer, define at least eight AI-addressed sentence templates containing `{canary}`. Insert the note at a sentence boundary in the middle of the assignment, with template and placement reproducibly derived from the key and assignment ID and rotated per assignment. Stripping the injected tags and removing the injected note must restore the original text exactly, including existing Unicode, line endings, and emoji. The exact JavaScript-string/reversibility and template-choice metadata contracts remain open for Step 3; do not invent an incompatible API now.
 
@@ -26,9 +26,9 @@ Detection normalizes case, whitespace, and punctuation, then exact-matches each 
 
 Embedding and checking are client-first; assignment prompts and student submissions never leave the browser and are not uploaded, logged, or persisted. Do not put real student data in Git, fixtures, documentation, or logs, and do not commit keys or secrets. A local research CLI may call model APIs only on synthetic or explicitly consented research inputs, using credentials from environment variables; it is not a teacher-submission backend. Do not use white-text tricks. Any later teacher-facing use requires disclosure in the teacher AI policy and fresh accessibility and international-text testing for these carriers.
 
-## Ordered roadmap (not implementation authorization)
+## Ordered roadmap
 
-1. **Core types and tag codec:** implement manifest/layer types, tag encode/decode/strip, and flag-emoji tests; resolve the malformed/control-character policy first.
+1. **Core types and tag codec (implemented):** manifest/layer types, tag encode/decode/strip, flag-emoji tests, and the explicit malformed/control-character policy.
 2. **Canary derivation:** implement deterministic HMAC-SHA256 derivation from curated word lists after defining unambiguous, domain-separated input and the `teacherKey` lifecycle.
 3. **Visible carrier and reversible embedding:** add at least eight templates, `embed(text, manifest)`, and exact restoration/removal, with the pending string and template-metadata contract resolved first.
 4. **Detection:** exact per-layer reports, tag-character detection, and the explicit interpretation caveat; no fuzzy scoring.
@@ -36,7 +36,7 @@ Embedding and checking are client-first; assignment prompts and student submissi
 6. **Repeated campaign:** 5–10 samples per cell, including “summarize in 3 sentences” and “rewrite in my own words” variants; measure instruction acknowledgement and noticeability, vary visible placements/templates, and compare ChatGPT and Claude web UI with API behavior.
 7. **Minimal teacher web flow and red team:** local embed/verify/copy check, then test cleaners, OCR, retyping, LLM discovery of hidden instructions, and canary-group sharing before a consenting teacher pilot. Consider Docs/LTI integrations only for measured carrier-surviving platforms and account for LMS sanitization.
 
-These steps are proposed in order. This documentation-only adoption stops before Step 1. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
+The 2026-10-17 documentation adoption itself stopped before implementation; Harry separately authorized Step 1, which is implemented in this change. Steps 2–7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
 
 <details>
 <summary>Archived Milestone 0 specification (superseded)</summary>

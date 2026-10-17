@@ -1,20 +1,20 @@
 # Glyph architecture
 
-Status: planned target architecture adopted 2026-10-17; not implemented.
+Status: partial workspace implemented through Roadmap Step 1; later steps remain planned.
 
 ## Current repository and target
 
-The current checkout is a root Next.js/React application with DOCX research code. It does not contain the planned `packages/core`, `apps/lab`, `apps/web`, or shared JSON fixtures. This document describes a target, not existing source or a claim that the new product works.
+The current checkout remains a root Next.js/React application with DOCX research code, now joined by `packages/core` and shared tag-codec vectors in `fixtures/tag-codec.json`. The pnpm workspace includes the root application and `packages/*`; the application has not moved, and `apps/lab` and `apps/web` have not been created. This describes the partial implementation, not a claim that the new carriers work across providers.
 
-The planned pnpm workspace contains `packages/core` (pure, strict TypeScript with no `any`, I/O, network, or DOM access), `apps/lab`, `apps/web`, `fixtures/*.json`, and documentation. Core uses Web Crypto `crypto.subtle` for browser and Node runtimes. Every function will have Vitest coverage and shared JSON test vectors. The root `package.json` scripts remain authoritative as the workspace is implemented.
+`packages/core` is pure strict TypeScript with no `any`, I/O, network, or DOM access. It exports the manifest/layer types and the synchronous tag encode/decode/strip functions; every exported function has Vitest coverage using shared JSON vectors. The root `package.json` scripts remain authoritative and cover both the existing application and core. HMAC derivation, the lab, and the web application remain later roadmap work.
 
 ## Planned contracts and flow
 
-The browser prepares assignment text and its `{assignmentId, layers: Layer[]}` manifest, then checks a response locally. `Layer` is `{id, carrier: "tag" | "visibleNote", canary}`. Assignment text and student responses never go to a server, and the MVP has no accounts or database. The browser must provide a separate result for each layer. The local research lab is separate and may call model APIs only for synthetic or explicitly consented research inputs, with credentials in environment variables; it is not a submission backend.
+The browser will prepare assignment text and its `{assignmentId, layers: Layer[]}` manifest, then check a response locally. `Layer` is `{id, carrier: "tag" | "visibleNote", canary}`. Assignment text and student responses never go to a server, and the MVP has no accounts or database. The browser must provide a separate result for each layer. The local research lab is separate and may call model APIs only for synthetic or explicitly consented research inputs, with credentials in environment variables; it is not a submission backend.
 
 Canary derivation is stateless `HMAC-SHA256(teacherKey, assignmentId + layerId)` to index curated word lists. The input encoding must be unambiguous and domain-separated, and key lifecycle must be settled before implementation in Step 2; this architecture does not specify a broader key-management system.
 
-The carrier seam stays small and swappable, with no plugin framework. The tag carrier maps each ASCII instruction character `c` to `0xE0000 + code(c)`, wraps it with U+E0001 and U+E007F, and rejects non-ASCII input. Placement is redundant at start/middle/end sentence boundaries, never midword, and skips code blocks and URLs. Decode must preserve legitimate U+1F3F4 tag-emoji sequences. The complete malformed/control-character contract is a Step 1 decision because ASCII controls may overlap delimiter-equivalent values.
+The carrier seam stays small and swappable, with no plugin framework. The tag codec maps each printable ASCII instruction character `c` to `0xE0000 + code(c)`, wraps it with U+E0001 and U+E007F, and rejects controls, DEL, and non-ASCII input; an empty payload is a valid frame. Only complete frames containing mapped payload tag characters are decoded or stripped. Nested or otherwise malformed candidates are left intact through the first terminator, scanning then resumes; unterminated candidates remain intact through end of text. Decode and strip preserve legitimate U+1F3F4 tag-emoji sequences and all surrounding content. Sentence-boundary placement, redundancy, and code-block/URL exclusion remain later work.
 
 The visible-note carrier uses at least eight AI-addressed sentence templates containing `{canary}`, inserted at a middle sentence boundary. Template and placement selection are key-derived and rotate reproducibly per assignment. Stripping the injected tags and removing the injected note must restore the original JavaScript string exactly, preserving Unicode, line endings, and emoji. The reversible-string and template-choice metadata contract remains unresolved until Step 3; do not choose an API prematurely.
 

@@ -1,0 +1,103 @@
+{
+  "encode": [
+    {
+      "label": "single ASCII character",
+      "text": "A",
+      "encoded": "\udb40\udc01\udb40\udc41\udb40\udc7f"
+    },
+    {
+      "label": "mixed printable ASCII",
+      "text": "Run: A to z!",
+      "encoded": "\udb40\udc01\udb40\udc52\udb40\udc75\udb40\udc6e\udb40\udc3a\udb40\udc20\udb40\udc41\udb40\udc20\udb40\udc74\udb40\udc6f\udb40\udc20\udb40\udc7a\udb40\udc21\udb40\udc7f"
+    },
+    {
+      "label": "empty payload",
+      "text": "",
+      "encoded": "\udb40\udc01\udb40\udc7f"
+    }
+  ],
+  "allPrintableAscii": {
+    "text": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+    "encoded": "\udb40\udc01\udb40\udc20\udb40\udc21\udb40\udc22\udb40\udc23\udb40\udc24\udb40\udc25\udb40\udc26\udb40\udc27\udb40\udc28\udb40\udc29\udb40\udc2a\udb40\udc2b\udb40\udc2c\udb40\udc2d\udb40\udc2e\udb40\udc2f\udb40\udc30\udb40\udc31\udb40\udc32\udb40\udc33\udb40\udc34\udb40\udc35\udb40\udc36\udb40\udc37\udb40\udc38\udb40\udc39\udb40\udc3a\udb40\udc3b\udb40\udc3c\udb40\udc3d\udb40\udc3e\udb40\udc3f\udb40\udc40\udb40\udc41\udb40\udc42\udb40\udc43\udb40\udc44\udb40\udc45\udb40\udc46\udb40\udc47\udb40\udc48\udb40\udc49\udb40\udc4a\udb40\udc4b\udb40\udc4c\udb40\udc4d\udb40\udc4e\udb40\udc4f\udb40\udc50\udb40\udc51\udb40\udc52\udb40\udc53\udb40\udc54\udb40\udc55\udb40\udc56\udb40\udc57\udb40\udc58\udb40\udc59\udb40\udc5a\udb40\udc5b\udb40\udc5c\udb40\udc5d\udb40\udc5e\udb40\udc5f\udb40\udc60\udb40\udc61\udb40\udc62\udb40\udc63\udb40\udc64\udb40\udc65\udb40\udc66\udb40\udc67\udb40\udc68\udb40\udc69\udb40\udc6a\udb40\udc6b\udb40\udc6c\udb40\udc6d\udb40\udc6e\udb40\udc6f\udb40\udc70\udb40\udc71\udb40\udc72\udb40\udc73\udb40\udc74\udb40\udc75\udb40\udc76\udb40\udc77\udb40\udc78\udb40\udc79\udb40\udc7a\udb40\udc7b\udb40\udc7c\udb40\udc7d\udb40\udc7e\udb40\udc7f"
+  },
+  "decode": [
+    {
+      "label": "single frame in surrounding text",
+      "text": "before \udb40\udc01\udb40\udc41\udb40\udc7f after",
+      "payloads": ["A"]
+    },
+    {
+      "label": "adjacent and empty frames",
+      "text": "\udb40\udc01\udb40\udc66\udb40\udc69\udb40\udc72\udb40\udc73\udb40\udc74\udb40\udc7f\udb40\udc01\udb40\udc7f\udb40\udc01\udb40\udc6c\udb40\udc61\udb40\udc73\udb40\udc74\udb40\udc7f",
+      "payloads": ["first", "", "last"]
+    },
+    {
+      "label": "non-BMP text, line endings, flag, and adjacent frame",
+      "text": "before\r\n👩‍🔬 \ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f after\udb40\udc01\udb40\udc67\udb40\udc6f\udb40\udc7f",
+      "payloads": ["go"]
+    },
+    {
+      "label": "resynchronize after nested malformed frame",
+      "text": "\udb40\udc01\udb40\udc01\udb40\udc6e\udb40\udc65\udb40\udc73\udb40\udc74\udb40\udc65\udb40\udc64\udb40\udc7f\udb40\udc7f\udb40\udc01\udb40\udc6f\udb40\udc6b\udb40\udc7f",
+      "payloads": ["ok"]
+    },
+    {
+      "label": "tag characters outside frames",
+      "text": "\udb40\udc61\udb40\udc7f",
+      "payloads": []
+    }
+  ],
+  "strip": [
+    {
+      "label": "preserve surrounding Unicode and line endings",
+      "text": "before\r\n👩‍🔬\udb40\udc01\udb40\udc72\udb40\udc65\udb40\udc6d\udb40\udc6f\udb40\udc76\udb40\udc65\udb40\udc20\udb40\udc74\udb40\udc68\udb40\udc69\udb40\udc73\udb40\udc7f\r\nafter",
+      "stripped": "before\r\n👩‍🔬\r\nafter"
+    },
+    {
+      "label": "preserve flag emoji beside instruction",
+      "text": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f\udb40\udc01\udb40\udc67\udb40\udc6f\udb40\udc7f",
+      "stripped": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f"
+    },
+    {
+      "label": "preserve malformed nesting while removing later valid frame",
+      "text": "\udb40\udc01\udb40\udc01\udb40\udc6e\udb40\udc65\udb40\udc73\udb40\udc74\udb40\udc65\udb40\udc64\udb40\udc7f\udb40\udc7f\udb40\udc01\udb40\udc72\udb40\udc65\udb40\udc6d\udb40\udc6f\udb40\udc76\udb40\udc65\udb40\udc7f",
+      "stripped": "\udb40\udc01\udb40\udc01\udb40\udc6e\udb40\udc65\udb40\udc73\udb40\udc74\udb40\udc65\udb40\udc64\udb40\udc7f\udb40\udc7f"
+    },
+    {
+      "label": "preserve raw tag characters outside frames",
+      "text": "\udb40\udc61\udb40\udc7f",
+      "stripped": "\udb40\udc61\udb40\udc7f"
+    },
+    {
+      "label": "remove an empty payload frame",
+      "text": "\udb40\udc01\udb40\udc7f",
+      "stripped": ""
+    }
+  ],
+  "malformed": [
+    {
+      "label": "stray terminator",
+      "text": "before\udb40\udc7fafter"
+    },
+    {
+      "label": "unterminated frame",
+      "text": "before\udb40\udc01\udb40\udc75\udb40\udc6e\udb40\udc66\udb40\udc69\udb40\udc6e\udb40\udc69\udb40\udc73\udb40\udc68\udb40\udc65\udb40\udc64"
+    },
+    {
+      "label": "nested frame",
+      "text": "\udb40\udc01\udb40\udc01\udb40\udc6e\udb40\udc65\udb40\udc73\udb40\udc74\udb40\udc65\udb40\udc64\udb40\udc7f\udb40\udc7f"
+    },
+    {
+      "label": "invalid tag code point",
+      "text": "\udb40\udc01\udb40\udc1f\udb40\udc7f"
+    },
+    {
+      "label": "raw printable ASCII in frame",
+      "text": "\udb40\udc01not-encoded\udb40\udc7f"
+    },
+    {
+      "label": "reversed delimiters",
+      "text": "\udb40\udc7f\udb40\udc72\udb40\udc65\udb40\udc76\udb40\udc65\udb40\udc72\udb40\udc73\udb40\udc65\udb40\udc64\udb40\udc01"
+    }
+  ]
+}

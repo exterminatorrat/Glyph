@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
     "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project packages/core/tsconfig.json",
     "test": "vitest run",
     "build": "next build",
     "research:carrier:generate": "node scripts/generate-docx-carrier-spike.ts",
