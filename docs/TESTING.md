@@ -1,5 +1,26 @@
 # Glyph testing and verification strategy
 
+Status: current verification policy adopted 2026-10-17; new canary code is not implemented.
+
+## Current commands and isolation
+
+`package.json` is authoritative. At this revision, `pnpm test` runs `vitest run`, `pnpm typecheck` runs `next typegen && tsc --noEmit`, and `pnpm lint` runs `eslint .`. These scripts cover the existing root application and research tests; they do not yet validate the planned workspace or `packages/core`.
+
+The full existing suite has previously overwritten ignored canonical DOCX research artifacts. Do not run it in an evidence-bearing checkout. Run `pnpm test` and `pnpm typecheck` only in a disposable isolated checkout/environment after inspecting the test output paths and confirming that no fixed, absolute, symlinked, or shared output can reach retained evidence. Keep generated files and dependencies out of the working repository. Do not modify package scripts or dependencies as part of documentation adoption.
+
+For this documentation-only change, check the rendered Markdown structure, local links, required wording and final carrier-observation line, and run `git diff --check`. These checks do not substitute for the requested test/typecheck when an isolated environment is safe and available.
+
+## Planned core verification
+
+When implementation is separately authorized, every function in `packages/core` needs Vitest coverage and shared JSON vectors. Verify ASCII tag encode/decode/strip, rejection of non-ASCII and the explicitly decided malformed/control cases, valid black-flag tag emoji preservation, redundant sentence-boundary placement, URLs/code-block exclusion, deterministic canary derivation, visible-template selection, exact original-text restoration (including Unicode, line endings, and emoji), normalization boundaries, per-layer exact detection, and raw tag-character reporting. Tests use synthetic inputs only and must never log assignment or response text, keys, or secrets.
+
+`pnpm test` and `pnpm typecheck` must cover the new workspace after its scripts and package layout actually exist. A passing software suite proves implementation behavior only; it does not prove carrier survival, model compliance, prompt reuse, authorship, or misconduct. Manual and research evidence must be reported separately.
+
+The earlier Milestone 0 verification text below is retained as a historical record. The M2E DOCX command, test, and research records are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. Their scope does not apply to or qualify the new carriers.
+
+<details>
+<summary>Archived Milestone 0 testing strategy (superseded)</summary>
+
 Status: approved Milestone 0 strategy, 2026-08-30
 
 ## Purpose
@@ -217,3 +238,5 @@ Each milestone report records:
 - the gate decision when the milestone contains a gate
 
 A carrier decision and baseline decision must be explicit even when all software tests pass.
+
+</details>
