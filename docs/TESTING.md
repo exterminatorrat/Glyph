@@ -1,20 +1,20 @@
 # Glyph testing and verification strategy
 
-Status: current verification policy adopted 2026-10-17; new canary code is not implemented.
+Status: current verification policy adopted 2026-10-17; Roadmap Step 1 core codec is implemented in this change.
 
 ## Current commands and isolation
 
-`package.json` is authoritative. At this revision, `pnpm test` runs `vitest run`, `pnpm typecheck` runs `next typegen && tsc --noEmit`, and `pnpm lint` runs `eslint .`. These scripts cover the existing root application and research tests; they do not yet validate the planned workspace or `packages/core`.
+`package.json` is authoritative. `pnpm test` runs `vitest run` across the existing application and `packages/core`. `pnpm typecheck` runs Next.js type generation, checks the root TypeScript project, then checks core with its separate strict TypeScript configuration and no DOM library. `pnpm lint` runs `eslint .`.
 
 The full existing suite has previously overwritten ignored canonical DOCX research artifacts. Do not run it in an evidence-bearing checkout. Run `pnpm test` and `pnpm typecheck` only in a disposable isolated checkout/environment after inspecting the test output paths and confirming that no fixed, absolute, symlinked, or shared output can reach retained evidence. Keep generated files and dependencies out of the working repository. Do not modify package scripts or dependencies as part of documentation adoption.
 
-For this documentation-only change, check the rendered Markdown structure, local links, required wording and final carrier-observation line, and run `git diff --check`. These checks do not substitute for the requested test/typecheck when an isolated environment is safe and available.
+The documentation-only adoption was checked for rendered Markdown structure, local links, required wording and its final carrier-observation line. For Step 1, run the focused core tests first, then `pnpm test` and `pnpm typecheck` in an isolated checkout after confirming test outputs cannot reach retained evidence. Always run `git diff --check`.
 
-## Planned core verification
+## Step 1 core verification
 
-When implementation is separately authorized, every function in `packages/core` needs Vitest coverage and shared JSON vectors. Verify ASCII tag encode/decode/strip, rejection of non-ASCII and the explicitly decided malformed/control cases, valid black-flag tag emoji preservation, redundant sentence-boundary placement, URLs/code-block exclusion, deterministic canary derivation, visible-template selection, exact original-text restoration (including Unicode, line endings, and emoji), normalization boundaries, per-layer exact detection, and raw tag-character reporting. Tests use synthetic inputs only and must never log assignment or response text, keys, or secrets.
+Every exported function in `packages/core` has Vitest coverage and shared JSON vectors. Step 1 tests verify the exact printable-ASCII mapping, empty frames, rejection of non-ASCII/control/DEL input, ordered and adjacent frame decoding, malformed-frame preservation and resynchronization, black-flag subdivision emoji preservation, and exact removal while retaining surrounding Unicode and line endings. Fixtures are synthetic and escape invisible tag characters so the vectors can be inspected. These checks do not prove provider survival or accessibility.
 
-`pnpm test` and `pnpm typecheck` must cover the new workspace after its scripts and package layout actually exist. A passing software suite proves implementation behavior only; it does not prove carrier survival, model compliance, prompt reuse, authorship, or misconduct. Manual and research evidence must be reported separately.
+`pnpm test` and `pnpm typecheck` cover the existing root application and core package. A passing software suite proves implementation behavior only; it does not prove carrier survival, model compliance, prompt reuse, authorship, or misconduct. Manual and research evidence must be reported separately.
 
 The earlier Milestone 0 verification text below is retained as a historical record. The M2E DOCX command, test, and research records are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. Their scope does not apply to or qualify the new carriers.
 
