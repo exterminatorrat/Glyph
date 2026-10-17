@@ -1,5 +1,24 @@
 # Glyph security and privacy model
 
+Status: current privacy direction adopted 2026-10-17; implementation and pilot use are not authorized.
+
+## Current boundaries
+
+Assignment prompts and student responses remain in the browser: do not upload, log, or persist either. No real student work may appear in Git, test fixtures, research fixtures, logs, or documentation. The MVP has no accounts or database, and its embedding/checking path has no teacher-submission backend. Do not commit key material or secrets.
+
+The local research lab is a separate tool. It may call model APIs only for synthetic or explicitly consented research inputs and must obtain credentials through environment variables. It is not a route for teacher or student submissions.
+
+Canaries are inspectable, removable prompt-injection markers, not cryptographic secrets, statistical watermarks, or tamper-resistant carriers. The `teacherKey` is used for the planned stateless HMAC-SHA256 derivation, but its creation and lifecycle and the exact domain-separated input contract are deliberately unresolved until Step 2. This document does not define storage or key-management behavior.
+
+A match warrants contextual conversation and corroboration; it does not establish direct ingestion, authorship, intent, or misconduct. A miss provides no evidence either way. Do not show a score or probability. Hidden instructions may be inspected or shared, and the hidden-only/visible-only/both ordering remains an unvalidated hypothesis.
+
+Avoid white-text tricks. Disclose the use of canaries in the teacher AI policy. Before any pilot, run fresh accessibility and international-text testing for the new tag and visible-note carriers; prior DOCX accessibility results are not a proxy. Integrations such as Docs or LTI require measured carrier survival on each platform and explicit consideration of LMS sanitization.
+
+The Milestone 0 policy below is archived and superseded where it conflicts with these boundaries. The M2E accessibility-qualification record remains on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17; it does not establish safety for the new design.
+
+<details>
+<summary>Archived Milestone 0 security policy (superseded)</summary>
+
 Status: approved Milestone 0 policy, 2026-08-30
 
 ## Security posture
@@ -163,3 +182,5 @@ If prompts, responses, student information, marker values, or credentials appear
 ## Claims boundary
 
 Security and privacy controls do not improve the epistemic meaning of a detected marker. A secure result still reports marker presence, not AI authorship, direct AI ingestion, intent, cheating, or misconduct.
+
+</details>

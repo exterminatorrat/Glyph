@@ -1,5 +1,26 @@
 # Glyph experimental framework
 
+Status: current research direction adopted 2026-10-17; no canary implementation or new campaign has run.
+
+## Current research question
+
+Test whether an assignment-specific canary prompt injection causes an AI system to include an exact phrase in its output. Use two distinct layers—hidden Unicode tags and a visible AI-addressed note—and record outcomes separately for each. This is not a general AI-writing detector, and a match does not prove direct ingestion, authorship, intent, or misconduct. A miss is not evidence of innocence.
+
+The hidden-only strongest, visible-only moderate, both strongest ordering is the user's unvalidated hypothesis, not a calibrated evidential ranking. Controls and repeated measurements must test it; do not presume hidden instructions are secret or the layers independent.
+
+The supplied manual web-UI observations are recorded separately in [`carrier-survival.md`](carrier-survival.md). They are user-reported, n=1 per cell, have no retained prompt/output artifacts or recorded versions/dates, and are not a hit-rate estimate or independent replication. Do not fill gaps by reconstructing raw outputs.
+
+## Research sequence
+
+Follow the ordered plan in [`MVP_SPEC.md`](MVP_SPEC.md): types/tag codec; deterministic canaries; reversible visible embedding; exact per-layer detection; a local lab with model-API JSON matrix/mock dry-run and first-class manual web-UI CSV import; repeated controlled campaigns; then local teacher workflow, red-team tests, and a consenting pilot. Model API calls belong only to the local research lab and only use synthetic or explicitly consented research inputs, with credentials in environment variables.
+
+The later campaign should compare hidden-only, visible-only, both, and controls; include the planned paraphrase and summarization variants, noticeability and acknowledgement, template/placement variation, and ChatGPT/Claude web-versus-API conditions. Report per-model and per-layer sample counts and hit rates only when measured. A model's failure to emit a canary cannot identify whether a provider stripped it or the model ignored it without separate evidence.
+
+Prior M0–M2E experiments, progress ledgers, and protocol files remain historical evidence only for the carriers and workflows they actually tested. The M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17; those files are not part of this main-branch snapshot. The M2E ledger's pending status is unchanged, but that former DOCX accessibility gate no longer gates this roadmap and cannot qualify the new text carriers. See the archived Milestone 0 material below for provenance, not current protocol.
+
+<details>
+<summary>Archived Milestone 0 experiment framework (superseded for current roadmap)</summary>
+
 Status: approved Milestone 0 research design, 2026-08-30
 
 ## Research objective
@@ -272,3 +293,5 @@ Results are grouped by source/model, workflow, transformation, assignment, carri
 The fingerprint approach should be abandoned or materially reframed if predeclared experiments repeatedly show that relevant carriers do not survive, controlled model compliance is too unstable, realistic end-to-end workflows rarely preserve signals, controls produce unacceptable contamination, ordinary accessibility behavior exposes or acts on directives incompatibly, or teachers cannot interpret results without overclaiming.
 
 The purpose of the framework is to discover those outcomes early, not to optimize for favorable results.
+
+</details>
