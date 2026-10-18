@@ -38,13 +38,21 @@ For a later authorized send, send exactly once. If submission state is uncertain
 
 There are 143 tag code points per hidden frame, including start/end. These are code-point counts, not UTF-16 lengths. See `packet.json` for the chosen zero-based visible template and placement selector; the source has four sentences and the selected interior boundary is fixed by the stored plan. No provider input or reply is needed to verify this packet.
 
-From the repository root, using the existing pinned project toolchain (no new installation is authorized by these instructions):
+Use the dependency-equipped checkout identified by the local manual handoff, which must name its exact working directory, helper path, and reviewed commit. Do not assume an arbitrary repository root is current or has dependencies: a fresh worktree may lack them, and an older evidence-bearing checkout must not be substituted. Before use, confirm `git rev-parse HEAD` matches the handoff's reviewed commit and that the helper and packet match that commit. The handoff owner must retain that checkout and its dependency paths through the pilot. The commands below use the existing Node.js runtime and locally resolvable `tsx`; they require neither a global `pnpm` nor an installation. If the named runtime/dependencies are unavailable, stop rather than installing tooling or guessing another checkout.
+
+From that verified working directory, first run this no-clipboard launch check; it must return sanitized JSON with `status: "completed"` and zero detected layers/raw tags. This is software validation, not a trial:
 
 ```sh
-pnpm exec tsx research/step6-pilot/clipboard.ts copy unmarked
-pnpm exec tsx research/step6-pilot/clipboard.ts verify unmarked
-pnpm exec tsx research/step6-pilot/clipboard.ts copy both
-pnpm exec tsx research/step6-pilot/clipboard.ts verify both
+node --import tsx research/step6-pilot/clipboard.ts score confirmed-empty unknown
+```
+
+Only when a trial's copy step is authorized, use its condition's command:
+
+```sh
+node --import tsx research/step6-pilot/clipboard.ts copy unmarked
+node --import tsx research/step6-pilot/clipboard.ts verify unmarked
+node --import tsx research/step6-pilot/clipboard.ts copy both
+node --import tsx research/step6-pilot/clipboard.ts verify both
 ```
 
 `copy` overwrites the local clipboard with the selected synthetic prompt and checks its readback. Use only the condition being attempted; these lines are alternatives, not a batch. After pasting, use the composer’s complete-select/copy operation without sending, then run `verify` for that condition. An operator must establish that the entire composer, not another field or old clipboard, was re-copied; the helper cannot prove the clipboard's provenance. If a complete composer copy cannot be established, mark blocked. Do not print the clipboard with `pbpaste`, read it through a tool, or paste a reply into Terminal/Capy.
@@ -52,8 +60,8 @@ pnpm exec tsx research/step6-pilot/clipboard.ts verify both
 After a complete response, copy only the assistant response in the UI, then run one of:
 
 ```sh
-pnpm exec tsx research/step6-pilot/clipboard.ts score text unknown
-pnpm exec tsx research/step6-pilot/clipboard.ts score confirmed-empty unknown
+node --import tsx research/step6-pilot/clipboard.ts score text unknown
+node --import tsx research/step6-pilot/clipboard.ts score confirmed-empty unknown
 ```
 
 Replace the last token only with the operator's `yes`, `no`, or `unknown` acknowledgment annotation. `confirmed-empty` is only for a UI-confirmed real empty response; it deliberately does not read the clipboard. An empty clipboard with `text` is blocked to avoid counting a failed copy as an empty answer. A refusal is ordinary completed text. Never score a loading, partial, truncated, technical-error, or unsure-state reply. The helper reads `/usr/bin/pbpaste` only into memory, calls the merged detector, and emits no raw reply, response hash, canary, key, excerpt, or exception. It writes no files or CSV and makes no network requests. Its booleans are observations, not scientific conclusions. Clear the task clipboard after processing without pasting it elsewhere; clipboard-history tools, if present, are not controlled by this protocol.
