@@ -1,6 +1,6 @@
 # Glyph experimental framework
 
-Status: current research direction adopted 2026-10-17; core Steps 1–4 and the local Step 5 lab are implemented, but no new research campaign or live model API run has occurred.
+Status: current research direction adopted 2026-10-17; Steps 1–5 are merged. Step 6 planning, exact-packet preparation, and five-site Vivaldi access/model preflight were authorized on 2026-10-18. This preparation includes no test-prompt pasting or chatbot submissions, and no new research campaign or live model API run is claimed.
 
 ## Current research question
 
@@ -11,6 +11,8 @@ The hidden-only strongest, visible-only moderate, both strongest ordering is the
 The supplied manual web-UI carrier-survival observations are recorded separately in [`carrier-survival.md`](carrier-survival.md). They are user-reported, n=1 per cell, have no retained prompt/output artifacts or recorded versions/dates, and are not a hit-rate estimate or independent replication. Do not fill gaps by reconstructing raw outputs or fabricate imports from those notes.
 
 ## Research sequence
+
+The [Step 6 browser pilot protocol and exact synthetic packet](../research/step6-pilot/README.md) freeze only an initial summary pilot: up to ten submissions, one fresh unmarked control followed by one fresh both-layer exposure per allowed site, `n=1` per cell, no retries. Preparation stops before submissions and reports actual model/access preflight facts first. Claude is always manual-only through Harry; Gemini 4 Argon is also manual-only. Full composer re-copy verification is required before any later send, and a mismatch is a pre-submission carrier failure, not a model miss. Replies are scored only transiently; no raw-response CSV export is part of this pilot. The larger repeated campaign below is later work, not already fixed, approved, or completed.
 
 Follow the ordered plan in [`MVP_SPEC.md`](MVP_SPEC.md): types/tag codec; deterministic canaries; reversible visible embedding; exact per-layer detection; a local lab with model-API JSON matrix/mock dry-run and first-class manual web-UI CSV import; repeated controlled campaigns; then local teacher workflow, red-team tests, and a consenting pilot. Model API calls belong only to the local research lab and only use synthetic or explicitly consented research inputs, with credentials in environment variables.
 
