@@ -429,15 +429,56 @@ describe("embed", () => {
     expect(removeEmbeddedText(result.text, result.receipt)).toBe(text);
   });
 
-  test("handles a large dotted token without an input-size cap", async () => {
+  test("keeps large dotted and repeated-period inputs bounded without a size cap", async () => {
     const plan = await deriveEmbeddingPlan(keyFromHex(vectorKeys.standard), manifest);
     const dottedToken = "a.".repeat(16_000);
-    const original = `${dottedToken} End. Second sentence. Third sentence.`;
-    const result = embed(original, manifest, plan);
+    const repeatedPeriods = ".".repeat(32_000);
+    const cases = [
+      {
+        original: `${dottedToken} End. Second sentence. Third sentence.`,
+        offsets: [0, dottedToken.length + 6],
+      },
+      {
+        original: `${repeatedPeriods} End. Second sentence. Third sentence.`,
+        offsets: [repeatedPeriods.length + 1, repeatedPeriods.length + 6],
+      },
+    ];
+    const hiddenFrame = encodeTagInstruction(
+      hiddenInstruction(manifest.layers[0]!.canary),
+    );
+    const visibleNote = vectors.templates[plan.templateIndex]!.replace(
+      "{canary}",
+      manifest.layers[1]!.canary,
+    );
+    const insertionTexts = [
+      hiddenFrame,
+      `${hiddenFrame}${visibleNote} `,
+      ` ${hiddenFrame}`,
+    ];
 
-    expect(result.receipt.originalLength).toBe(original.length);
-    expect(result.receipt.insertions).toHaveLength(3);
-    expect(removeEmbeddedText(result.text, result.receipt)).toBe(original);
+    for (const { original, offsets } of cases) {
+      const result = embed(original, manifest, plan);
+      const [first, middle, last] = result.receipt.insertions;
+
+      expect(result.receipt.originalLength).toBe(original.length);
+      expect(result.receipt.insertions.map(({ offset }) => offset)).toEqual([
+        ...offsets,
+        original.length,
+      ]);
+      expect(result.receipt.insertions.map(({ text }) => text)).toEqual(
+        insertionTexts,
+      );
+      expect(result.text).toBe(
+        original.slice(0, first!.offset) +
+          first!.text +
+          original.slice(first!.offset, middle!.offset) +
+          middle!.text +
+          original.slice(middle!.offset, last!.offset) +
+          last!.text +
+          original.slice(last!.offset),
+      );
+      expect(removeEmbeddedText(result.text, result.receipt)).toBe(original);
+    }
   });
 
   test("rejects all-code, unclosed-code and insufficient prose input", async () => {

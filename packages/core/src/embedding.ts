@@ -720,6 +720,10 @@ const sentenceBoundaryEnd = (
   region: Span,
   mask: Uint8Array,
 ): number | undefined => {
+  if (text[index] === "." && text[index + 1] === "." && !mask[index + 1]) {
+    return undefined;
+  }
+
   let end = index + 1;
   while (
     end < region.end &&
@@ -741,9 +745,6 @@ const sentenceBoundaryEnd = (
 
   if (text[index] === ".") {
     if (isDecimalPoint(text, index, region.end)) {
-      return undefined;
-    }
-    if (text[index + 1] === "." && !mask[index + 1]) {
       return undefined;
     }
     if (isAbbreviation(text, index, region.start, mask)) {
