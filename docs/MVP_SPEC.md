@@ -1,6 +1,6 @@
 # Glyph MVP specification
 
-Status: adopted research direction, 2026-10-17; Roadmap Step 1 was separately authorized and is implemented here. Steps 2–7 remain proposed and unauthorized.
+Status: adopted research direction, 2026-10-17; Roadmap Step 1 is merged to `main` in PR #4, and Step 2 is implemented in this change. Harry separately authorized both on 2026-10-17. Steps 3–7 remain proposed and unauthorized.
 
 ## Current authority
 
@@ -10,9 +10,68 @@ The proposed ranking is hidden-only strongest as a single signal, visible-only m
 
 ### Manifest and canaries
 
-The planned manifest is `{assignmentId, layers: Layer[]}`. Each layer is `{id, carrier: "tag" | "visibleNote", canary}`. Canaries are distinct across the two layers and matched exactly after the specified normalization; fuzzy, semantic, lemma, and embedding matching are deferred.
+The planned manifest is `{assignmentId, layers: Layer[]}`. Each layer is `{id, carrier: "tag" | "visibleNote", canary}`. The `tag` and `visibleNote` canaries are guaranteed distinct for one assignment by disjoint opening-word lists; phrases may still collide across different assignments or keys. Canaries are matched exactly after the specified normalization; fuzzy, semantic, lemma, and embedding matching are deferred.
 
-Derive canaries statelessly with `HMAC-SHA256(teacherKey, assignmentId + layerId)` to index curated word lists. No accounts or database are part of the MVP. The exact input encoding/domain separation and key lifecycle remain Step 2 decisions; do not fill them in by assumption.
+Derive canaries statelessly with `deriveCanary(teacherKey, assignmentId, layerId)`. `teacherKey` is exactly 32 raw bytes in a `Uint8Array`; the caller must obtain it from a cryptographically secure random source and keep a private backup. Core does not generate or persist keys. Losing the key prevents reproduction, while rotating it changes the derived canaries. No accounts, key registry, uniqueness registry, or database are part of the MVP.
+
+#### Canary derivation v1 contract
+
+Version 1 signs the UTF-8 bytes of `JSON.stringify(["glyph.canary", 1, assignmentId, layerId])` using Web Crypto HMAC-SHA-256. The only supported layer IDs are the exact strings `tag` and `visibleNote`. `assignmentId` must be nonempty and well-formed UTF-16; its exact code units are retained, with no trimming, case folding, or Unicode normalization. The JSON array provides domain separation and unambiguous field boundaries. If Web Crypto or `TextEncoder` is unavailable, derivation fails rather than switching to another primitive.
+
+The ordered v1 dictionaries are frozen below. Do not reorder or change a v1 list or its grammar; any future change must use a separately reviewed version without changing v1 outputs. The first adjective list is selected by layer; the shared adjective, noun, and verb lists fill the remaining slots.
+
+```json
+{
+  "openingAdjectives": {
+    "tag": [
+      "amber", "arctic", "autumn", "azure", "balanced", "bare", "brisk", "bright",
+      "broad", "calm", "careful", "central", "clear", "coastal", "cool", "coral",
+      "crisp", "curious", "dark", "deep", "distant", "early", "easy", "even",
+      "faint", "fair", "familiar", "firm", "fresh", "gentle", "golden", "green",
+      "grey", "handy", "happy", "hazy", "humble", "icy", "inland", "kind",
+      "large", "light", "lively", "local", "mellow", "mild", "modern", "narrow",
+      "neat", "open", "pale", "patient", "plain", "quiet", "rapid", "ready",
+      "round", "rural", "simple", "soft", "steady", "sunny", "warm", "wide"
+    ],
+    "visibleNote": [
+      "active", "airy", "ancient", "awake", "basic", "blue", "bold", "breezy",
+      "cheerful", "circular", "classic", "cloudy", "compact", "complete", "complex", "concrete",
+      "constant", "cozy", "crafty", "current", "delicate", "dense", "direct", "dry",
+      "elastic", "empty", "equal", "exact", "expressive", "extended", "extra", "favorite",
+      "final", "flat", "focused", "formal", "forward", "full", "glossy", "grateful",
+      "hearty", "high", "ideal", "indoor", "instant", "intact", "jolly", "joyful",
+      "leafy", "legal", "linear", "loose", "loyal", "lunar", "main", "measured",
+      "medium", "merry", "miniature", "noble", "novel", "orange", "organic", "outdoor"
+    ]
+  },
+  "adjectives": [
+    "airy", "amber", "ancient", "awake", "balanced", "bare", "basic", "blue",
+    "bold", "bright", "brisk", "broad", "calm", "careful", "cheerful", "clear",
+    "cloudy", "cool", "coral", "crisp", "cozy", "curious", "deep", "dense",
+    "distant", "early", "easy", "even", "fair", "familiar", "faint", "firm",
+    "fresh", "gentle", "golden", "green", "grey", "happy", "hazy", "ideal",
+    "icy", "kind", "large", "light", "lively", "local", "mellow", "mild",
+    "modern", "narrow", "neat", "open", "pale", "patient", "plain", "quiet",
+    "rapid", "ready", "round", "rural", "simple", "soft", "steady", "sunny"
+  ],
+  "nouns": [
+    "anchor", "apple", "arch", "atlas", "basket", "beacon", "bell", "blanket",
+    "boat", "book", "bridge", "brook", "button", "cabin", "candle", "canvas",
+    "castle", "cedar", "circle", "city", "cloud", "compass", "corner", "cottage",
+    "creek", "desk", "drum", "field", "flower", "forest", "fountain", "garden",
+    "globe", "harbor", "hill", "island", "jacket", "kettle", "ladder", "lantern",
+    "leaf", "library", "meadow", "mirror", "mountain", "notebook", "orchard", "parcel",
+    "path", "pebble", "pencil", "picture", "planet", "pocket", "pond", "porch",
+    "ribbon", "river", "road", "room", "sail", "shelf", "shell", "sign"
+  ],
+  "verbs": [
+    "carries", "collects", "covers", "crosses", "draws", "finds", "frames", "gathers",
+    "guides", "holds", "keeps", "marks", "moves", "places", "shapes", "traces"
+  ]
+}
+```
+
+Starting at bit 0 of the 32-byte HMAC digest, where bit 0 is the most significant bit of byte 0, consume contiguous bits most-significant-first in slot order: opening adjective (6), first noun (6), verb (4), second adjective (6), second noun (6), third adjective (6), third noun (6). The power-of-two list sizes use 40 digest bits without modulo reduction. Render exactly `the {adjective} {noun} {verb} the {adjective} {noun} beside the {adjective} {noun}` in lowercase ASCII, with one space between words and no punctuation. The disjoint 64-word opening adjective pools guarantee cross-layer distinction; the finite phrase space can still collide across assignments or keys. These generic phrases do not prove authorship or ingestion, are not forgery-resistant watermarks, and make no provider-compliance claim. Their natural occurrence and context fit still need measurement in later research.
 
 ### Carrier requirements
 
@@ -28,15 +87,15 @@ Embedding and checking are client-first; assignment prompts and student submissi
 
 ## Ordered roadmap
 
-1. **Core types and tag codec (implemented):** manifest/layer types, tag encode/decode/strip, flag-emoji tests, and the explicit malformed/control-character policy.
-2. **Canary derivation:** implement deterministic HMAC-SHA256 derivation from curated word lists after defining unambiguous, domain-separated input and the `teacherKey` lifecycle.
+1. **Core types and tag codec (implemented on `main`):** manifest/layer types, tag encode/decode/strip, flag-emoji tests, and the explicit malformed/control-character policy.
+2. **Canary derivation (implemented in this change):** deterministic, versioned HMAC-SHA256 derivation from frozen curated word lists, with the raw-key lifecycle and canonical input contract above.
 3. **Visible carrier and reversible embedding:** add at least eight templates, `embed(text, manifest)`, and exact restoration/removal, with the pending string and template-metadata contract resolved first.
 4. **Detection:** exact per-layer reports, tag-character detection, and the explicit interpretation caveat; no fuzzy scoring.
 5. **Research lab:** JSON model-API matrix and mock dry-run; manual web-UI CSV import is first-class; JSONL output and per-model/per-layer hit-rate tables.
 6. **Repeated campaign:** 5–10 samples per cell, including “summarize in 3 sentences” and “rewrite in my own words” variants; measure instruction acknowledgement and noticeability, vary visible placements/templates, and compare ChatGPT and Claude web UI with API behavior.
 7. **Minimal teacher web flow and red team:** local embed/verify/copy check, then test cleaners, OCR, retyping, LLM discovery of hidden instructions, and canary-group sharing before a consenting teacher pilot. Consider Docs/LTI integrations only for measured carrier-surviving platforms and account for LMS sanitization.
 
-The 2026-10-17 documentation adoption itself stopped before implementation; Harry separately authorized Step 1, which is implemented in this change. Steps 2–7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
+The 2026-10-17 documentation adoption itself stopped before implementation; Harry separately authorized Step 1, now merged to `main` in PR #4, and Step 2, implemented in this change. Steps 3–7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
 
 <details>
 <summary>Archived Milestone 0 specification (superseded)</summary>

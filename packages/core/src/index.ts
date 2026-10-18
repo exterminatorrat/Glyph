@@ -9,6 +9,8 @@ export type Manifest = {
   layers: Layer[];
 };
 
+export { CANARY_DERIVATION_VERSION, deriveCanary } from "./canary.js";
+
 const TAG_OFFSET = 0xe0000;
 const FRAME_START = 0xe0001;
 const FRAME_END = 0xe007f;
