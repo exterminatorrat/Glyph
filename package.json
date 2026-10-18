@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
+    "lab": "tsx apps/lab/src/cli.ts",
     "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project packages/core/tsconfig.json",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project packages/core/tsconfig.json && tsc --noEmit --project apps/lab/tsconfig.json",
     "test": "vitest run",
     "build": "next build",
     "research:carrier:generate": "node scripts/generate-docx-carrier-spike.ts",
@@ -27,6 +28,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.3.3",
     "fflate": "0.8.3",
+    "tsx": "4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
   }

@@ -23,13 +23,13 @@ Glyph is an experimental research project for assignment-specific canary prompt 
 
 ## Milestones and gates
 
-The two-layer canary briefing was adopted as a documentation-only direction on 2026-10-17. Harry separately authorized Roadmap Steps 1 and 2 on 2026-10-17; both are merged to `main` in PRs #4 and #5. Harry separately authorized Step 3 on 2026-10-18; it is merged in PR #6. Harry separately authorized Step 4 on 2026-10-18, and this change implements it. Step 5 and later remain unauthorized without separate approval.
+The two-layer canary briefing was adopted as a documentation-only direction on 2026-10-17. Harry separately authorized Roadmap Steps 1 and 2 on 2026-10-17; both are merged to `main` in PRs #4 and #5. Harry separately authorized Step 3 on 2026-10-18; it is merged in PR #6. Step 4 is merged in PR #7. Harry separately authorized Step 5 on 2026-10-18; this change implements the local research lab. Steps 6 and later remain unauthorized without separate approval.
 
 Milestones 0–2E remain historical evidence only for their named DOCX profiles. The M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. Do not relabel or generalize those outcomes or use them to qualify the new carriers. The recorded M2E accessibility status remains unchanged; that former gate is no longer active.
 
 ## Verification commands
 
-`package.json` is authoritative for executable commands. The root `pnpm test` and `pnpm typecheck` scripts cover the existing application and `packages/core`. The full test suite can overwrite ignored canonical DOCX evidence; run it only in a disposable isolated checkout after verifying every output path is isolated. See `docs/TESTING.md`.
+`package.json` is authoritative for executable commands. The root `pnpm test` and `pnpm typecheck` scripts cover the existing application, `packages/core`, and `apps/lab`. The full test suite can overwrite ignored canonical DOCX evidence; run it only in a disposable isolated checkout after verifying every output path is isolated. See `docs/TESTING.md`.
 
 ## Repository synchronization
 
