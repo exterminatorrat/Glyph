@@ -1,6 +1,6 @@
 # Glyph testing and verification strategy
 
-Status: current verification policy adopted 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5, and Step 3 is implemented in this change.
+Status: current verification policy adopted 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5, Step 3 is merged in PR #6, and Step 4 is authorized and implemented in this change.
 
 ## Current commands and isolation
 
@@ -27,6 +27,12 @@ The 32-byte test keys are intentionally public synthetic fixtures. Tests must no
 `fixtures/embedding-plan.json` freezes the `glyph.embedding` v1 message, three synthetic-key HMAC vectors, ordered visible templates, selector fields, and UTF-16 placement vectors. The test-only Node `createHmac` oracle checks the expected message and digest; production core continues to use Web Crypto and has no Node, DOM, or I/O dependency. `packages/core/test/embedding.test.ts` verifies manifest and plan validation, descriptor ordering and binding, key snapshotting, all-template reachability, and exact shared-boundary insertion order.
 
 The embedding tests also check three decodable hidden frames and one visible note; exact receipt round trips with Unicode, combining marks, emoji, lone surrogates, CRLF, tabs, and surrounding whitespace; preservation of a pre-existing valid tag frame and an identical source note; fixed offsets and central-window selection; decimal, abbreviation, and quoted-punctuation handling; fenced, indented, and inline code; composed inline-code and Markdown-destination syntax, including destination-looking text inside code; URLs and Markdown destinations; large dotted-token and repeated-period inputs; insufficient and unclosed-code inputs; and conservative failures for altered spans and malformed receipts. They demonstrate that same-length edits outside recorded spans are not detected. These tests establish deterministic local string behavior only, not authenticity, arbitrary-edit recovery, carrier/model survival, camouflage, natural occurrence, accessibility, or evidential strength.
+
+## Step 4 detection verification
+
+`fixtures/detection.json` freezes synthetic manifests and independent expected per-layer booleans and raw-tag counts. `packages/core/test/detection.test.ts` covers all four layer-hit combinations, empty and unrelated submissions, exact whole-token boundaries, locale-independent lowercasing, punctuation and Unicode-whitespace normalization, BOM handling, and preservation of symbols, combining marks, format characters, confusables, non-BMP characters, and lone surrogates. It also verifies literal matches in quoted/source-looking text, boolean-only behavior for repeats, encoded hidden instructions that are not decoded into hits, canonical layer order regardless of manifest array order, and rejection of invalid submissions/manifests without value echoes.
+
+The raw-tag vectors cover orphan and malformed tag characters, false flag wrappers, mixed inputs, and England/Scotland/Wales flag-shaped sequences. Only a complete black-flag sequence followed by one or more lowercase ASCII-letter/digit tag code points and a cancel is exempt; this is a syntactic shape exception, not an RGI registration claim. A bounded large near-miss sample exercises token matching and tag counting without brittle timing assertions. These tests establish deterministic local string behavior only; they do not establish provenance, direct ingestion, carrier survival, model compliance, accessibility, or evidential strength.
 
 The earlier Milestone 0 verification text below is retained as a historical record. The M2E DOCX command, test, and research records are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. Their scope does not apply to or qualify the new carriers.
 

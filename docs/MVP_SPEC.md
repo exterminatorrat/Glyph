@@ -1,6 +1,6 @@
 # Glyph MVP specification
 
-Status: adopted research direction, 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5. Harry separately authorized Step 3 on 2026-10-18, and this change implements it. Steps 4–7 remain proposed and unauthorized.
+Status: adopted research direction, 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5, and Step 3 is merged in PR #6. Harry separately authorized Step 4 on 2026-10-18, and this change implements it. Steps 5–7 remain proposed and unauthorized.
 
 ## Current authority
 
@@ -110,7 +110,15 @@ At least three completed safe prose sentences are required; empty, all-code, unc
 
 The receipt is ephemeral caller-held data, not a database or server record; it stores no original text, key, or content hash. Removal is not authenticity or tamper protection: a mismatching insertion span is rejected, but same-length edits outside recorded spans cannot be detected without a content hash, and arbitrary edits are not restored. The finite template and placement choices can repeat across assignments; rotation is reproducible selection, not a guarantee of unique wording or position. Software tests establish only these deterministic string behaviors, not camouflage, natural occurrence, carrier/model survival, accessibility, evidence strength, or student behavior.
 
-Detection normalizes case, whitespace, and punctuation, then exact-matches each canary and flags remaining raw tag characters. Tests must define legitimate flag-emoji handling and precise token and normalization boundaries. Do not use fuzzy scoring.
+#### Detection v1 contract
+
+`detect(submission, manifest)` is a pure synchronous core operation. It accepts a string and a valid v1 two-layer manifest containing exactly one `tag` and one `visibleNote` layer; it uses the existing manifest grammar and rejects unsupported or malformed manifests without echoing response or manifest values. An empty submission is valid and reports no canary hits. Detection accepts no key, embedding plan, receipt, DOM, I/O, or network input and does not persist or log content.
+
+Normalize both submission and canaries with locale-independent ECMAScript `toLowerCase()`, then replace every run of Unicode Punctuation (`General_Category=P`) or Unicode `White_Space`, plus U+FEFF, with one ASCII space and trim. Match only an exact contiguous sequence of complete tokens separated by those normalized spaces, anywhere in the submission. Thus case, quotes, punctuation, CRLF, and Unicode whitespace between full words can vary, but punctuation or whitespace that splits a canary word, or a canary embedded inside a larger token, does not match. Leave every other code point intact, including letters, digits, combining marks, symbols, controls, zero-width format characters, and lone surrogates. Do not strip diacritics or invisibles, translate confusables, decode HTML, apply NFC/NFKC, stem, infer word boundaries, or fuzzy/semantic-match. Literal phrases in quotes, code, or source-looking text count; no source provenance is inferred. Hidden tag payloads are not decoded before matching.
+
+Return one boolean `{id, carrier, detected}` record per layer in canonical `tag`, then `visibleNote` order, plus `assignmentId`, a separate `rawTags: {present, count}` observation, and the same `caveat` string on every result. Do not return submissions, normalized text, excerpts, match counts, ranks, confidence, or AI scores. The caveat states that matches warrant conversation and corroboration but prove no AI use, direct ingestion, authorship, intent, or misconduct; a result with no detected canary provides no evidence either for or against AI use and is never evidence of innocence; retyping, OCR, paraphrasing, or an unreached canary can cause misses; and raw tags are a separate text observation, not a canary hit or proof of source. The unvalidated proposed signal ordering above is not implemented as a result rank or evidence-strength claim.
+
+Count every code point in U+E0000–U+E007F independently of phrase matching, except tag code points in a complete flag-shaped sequence: U+1F3F4 followed by one or more lowercase ASCII-letter or digit tag code points, then U+E007F. This is a conservative syntactic exemption, not a claim of registered ISO or Unicode RGI status. Missing cancels, U+E0001 inside a wrapper, uppercase or other payload characters, stray tags, and malformed sequences remain counted; the black flag itself is not a tag code point. The detector does not alter Step 1 encoding or decoding.
 
 ### Privacy and scope
 
@@ -120,13 +128,13 @@ Embedding and checking are client-first; assignment prompts and student submissi
 
 1. **Core types and tag codec (implemented on `main`):** manifest/layer types, tag encode/decode/strip, flag-emoji tests, and the explicit malformed/control-character policy.
 2. **Canary derivation (merged to `main` in PR #5):** deterministic, versioned HMAC-SHA256 derivation from frozen curated word lists, with the raw-key lifecycle and canonical input contract above.
-3. **Visible carrier and reversible embedding (implemented in this change):** frozen templates, a keyed serializable plan, deterministic safe-boundary placement, and exact insertion-receipt removal.
-4. **Detection:** exact per-layer reports, tag-character detection, and the explicit interpretation caveat; no fuzzy scoring.
+3. **Visible carrier and reversible embedding (merged in PR #6):** frozen templates, a keyed serializable plan, deterministic safe-boundary placement, and exact insertion-receipt removal.
+4. **Detection (authorized and implemented in this change):** pure synchronous exact-token per-layer reports, a separate raw-tag observation with the flag-shaped exemption, and the explicit interpretation caveat; no fuzzy scoring or signal ranking.
 5. **Research lab:** JSON model-API matrix and mock dry-run; manual web-UI CSV import is first-class; JSONL output and per-model/per-layer hit-rate tables.
 6. **Repeated campaign:** 5–10 samples per cell, including “summarize in 3 sentences” and “rewrite in my own words” variants; measure instruction acknowledgement and noticeability, vary visible placements/templates, and compare ChatGPT and Claude web UI with API behavior.
 7. **Minimal teacher web flow and red team:** local embed/verify/copy check, then test cleaners, OCR, retyping, LLM discovery of hidden instructions, and canary-group sharing before a consenting teacher pilot. Consider Docs/LTI integrations only for measured carrier-surviving platforms and account for LMS sanitization.
 
-The 2026-10-17 documentation adoption itself stopped before implementation. Harry separately authorized Steps 1 and 2 on 2026-10-17; both are merged to `main` in PRs #4 and #5. Harry separately authorized Step 3 on 2026-10-18, and this change implements it. Steps 4–7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
+The 2026-10-17 documentation adoption itself stopped before implementation. Harry separately authorized Steps 1 and 2 on 2026-10-17; both are merged to `main` in PRs #4 and #5. Harry separately authorized Step 3 on 2026-10-18; it is merged in PR #6. Harry separately authorized Step 4 on 2026-10-18, and this change implements it. Steps 5–7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
 
 <details>
 <summary>Archived Milestone 0 specification (superseded)</summary>

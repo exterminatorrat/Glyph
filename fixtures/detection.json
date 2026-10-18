@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "manifest": {
+    "assignmentId": "lesson-42",
+    "layers": [
+      {
+        "id": "hidden",
+        "carrier": "tag",
+        "canary": "the kind meadow shapes the familiar pebble beside the calm apple"
+      },
+      {
+        "id": "visible",
+        "carrier": "visibleNote",
+        "canary": "the bold river traces the calm compass beside the fresh mirror"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "label": "empty submission",
+      "submission": "",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "unrelated text with neither layer",
+      "submission": "A short synthetic response with no target phrase.",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "tag layer only",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "visible-note layer only",
+      "submission": "the bold river traces the calm compass beside the fresh mirror",
+      "tagDetected": false,
+      "visibleNoteDetected": true,
+      "rawTagCount": 0
+    },
+    {
+      "label": "both layers",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm apple / the bold river traces the calm compass beside the fresh mirror",
+      "tagDetected": true,
+      "visibleNoteDetected": true,
+      "rawTagCount": 0
+    },
+    {
+      "label": "uppercase, quotes, and adjacent punctuation",
+      "submission": "!!!\u201cTHE KIND MEADOW SHAPES THE FAMILIAR PEBBLE BESIDE THE CALM APPLE\u201d???",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "punctuation runs between complete words",
+      "submission": "the,---kind\u2013?!meadow\tshapes, the familiar pebble beside the calm apple",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "Unicode whitespace including NBSP, CRLF, and em space",
+      "submission": "the\u00a0kind\r\nmeadow\u2003shapes the familiar pebble beside the calm apple",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "BOM at phrase boundaries",
+      "submission": "\ufeffthe kind meadow shapes the familiar pebble beside the calm apple\ufeff",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "literal phrase inside source-looking text",
+      "submission": "const sample = \"the kind meadow shapes the familiar pebble beside the calm apple\";",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "repeated phrase remains a boolean hit",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm apple / the kind meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "emoji tokens outside the complete phrase are preserved",
+      "submission": "\ud83e\uddea the kind meadow shapes the familiar pebble beside the calm apple \u2705",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "larger word before the phrase is not a hit",
+      "submission": "xthe kind meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "larger word after the phrase is not a hit",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm applex",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "punctuation split inside a word is not a hit",
+      "submission": "the ki-nd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "line break split inside a word is not a hit",
+      "submission": "the ki\r\nnd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "symbol inside a word is preserved",
+      "submission": "the ki\ud83d\udca1nd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "zero-width format character inside a word is preserved",
+      "submission": "the ki\u200bnd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "combining mark is not stripped",
+      "submission": "the ki\u0301nd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "Cyrillic confusable is not translated",
+      "submission": "the k\u0456nd meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "fullwidth letter is not compatibility-normalized",
+      "submission": "the \uff4bind meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "non-BMP symbols separated from the phrase remain intact",
+      "submission": "\ud83e\udeb4 the kind meadow shapes the familiar pebble beside the calm apple \ud83e\udeb5",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "non-BMP symbol adjacent to the phrase is not ignored",
+      "submission": "\ud83e\udeb4the kind meadow shapes the familiar pebble beside the calm apple",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "orphan tag start is a raw-tag observation only",
+      "submission": "\udb40\udc01",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 1
+    },
+    {
+      "label": "a phrase hit remains separate from one raw tag",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm apple \udb40\udc01",
+      "tagDetected": true,
+      "visibleNoteDetected": false,
+      "rawTagCount": 1
+    },
+    {
+      "label": "black flag alone is not a tag codepoint",
+      "submission": "\ud83c\udff4",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "England subdivision-shaped flag is exempt",
+      "submission": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "Scotland subdivision-shaped flag is exempt",
+      "submission": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc73\udb40\udc63\udb40\udc74\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "Wales subdivision-shaped flag is exempt",
+      "submission": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc77\udb40\udc6c\udb40\udc73\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "one lowercase tag-shaped payload is conservatively exempt",
+      "submission": "\ud83c\udff4\udb40\udc61\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 0
+    },
+    {
+      "label": "malformed flag payload without cancel counts every tag",
+      "submission": "\ud83c\udff4\udb40\udc67\udb40\udc62",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 2
+    },
+    {
+      "label": "uppercase flag payload is not exempt",
+      "submission": "\ud83c\udff4\udb40\udc41\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 2
+    },
+    {
+      "label": "space and punctuation tag codepoints are not flag letters",
+      "submission": "\udb40\udc20\udb40\udc21",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 2
+    },
+    {
+      "label": "tag letters and cancel without black flag are counted",
+      "submission": "\udb40\udc61\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 2
+    },
+    {
+      "label": "embedded tag start defeats a false flag wrapper",
+      "submission": "\ud83c\udff4\udb40\udc61\udb40\udc01\udb40\udc78\udb40\udc7f\udb40\udc7f",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 5
+    },
+    {
+      "label": "multiple subdivision-shaped flags plus an orphan tag",
+      "submission": "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc73\udb40\udc63\udb40\udc74\udb40\udc7f\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc77\udb40\udc6c\udb40\udc73\udb40\udc7f\udb40\udc01",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 1
+    }
+  ]
+}

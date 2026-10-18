@@ -20,6 +20,8 @@ export {
   embed,
   removeEmbeddedText,
 } from "./embedding.js";
+export { detect } from "./detection.js";
+export type { DetectionResult } from "./detection.js";
 export type {
   EmbeddedText,
   EmbeddingPlan,
