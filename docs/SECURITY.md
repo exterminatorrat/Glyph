@@ -1,12 +1,14 @@
 # Glyph security and privacy model
 
-Status: current privacy direction adopted 2026-10-17; core steps 1–3 are authorized, but teacher workflow and pilot use are not authorized.
+Status: current privacy direction adopted 2026-10-17; core Steps 1–4 and the local Step 5 research lab are implemented, but teacher workflow and pilot use are not authorized.
 
 ## Current boundaries
 
 Assignment prompts and student responses remain in the browser: do not upload, log, or persist either. No real student work may appear in Git, test fixtures, research fixtures, logs, or documentation. The MVP has no accounts or database, and its embedding/checking path has no teacher-submission backend. Do not commit key material or secrets.
 
-The local research lab is a separate tool. It may call model APIs only for synthetic or explicitly consented research inputs and must obtain credentials through environment variables. It is not a route for teacher or student submissions.
+The local research lab is a separate tool. Its default mock mode uses no network and does not read credentials. Explicit live mode may send only researcher-prepared synthetic or explicitly consented research prompts to the fixed OpenAI Chat Completions or Anthropic Messages HTTPS endpoints; it reads only the provider's named API key from the process environment. The lab is not a route for teacher or student submissions. Consent declarations are user assertions, not a verification registry.
+
+The lab processes prompts and imported responses in memory and never copies them, canaries, keys, provider error bodies, or exception messages into output, logs, progress, or telemetry. It writes only safe metadata, detector booleans, raw-tag counts, fixed caveats, and bounded error codes into a new user-chosen directory. Existing output directories are rejected. API requests are sequential, budget-checked before network use, bounded by timeout and output tokens, and never retried. Fixed endpoints and redirect refusal prevent matrix-controlled destinations and credential forwarding.
 
 Canaries are inspectable, removable prompt-injection markers, not cryptographic secrets, statistical watermarks, or tamper-resistant carriers. The caller supplies the 32-byte `teacherKey` for stateless HMAC-SHA-256 derivation and planning; core does not generate, store, or manage it. The Step 2 `glyph.canary` and Step 3 `glyph.embedding` v1 input contracts are defined in `MVP_SPEC.md`. The embedding plan contains no key or source text, and its ephemeral removal receipt contains only inserted strings, offsets, and the original string length. Neither the plan nor receipt authenticates arbitrary edits: mismatched inserted spans fail removal, but same-length changes elsewhere are not detected. No server, database, or key-management behavior is introduced by the core carrier.
 

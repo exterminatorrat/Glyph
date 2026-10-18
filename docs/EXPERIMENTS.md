@@ -1,6 +1,6 @@
 # Glyph experimental framework
 
-Status: current research direction adopted 2026-10-17; no canary implementation or new campaign has run.
+Status: current research direction adopted 2026-10-17; core Steps 1–4 and the local Step 5 lab are implemented, but no new research campaign or live model API run has occurred.
 
 ## Current research question
 
@@ -8,13 +8,15 @@ Test whether an assignment-specific canary prompt injection causes an AI system 
 
 The hidden-only strongest, visible-only moderate, both strongest ordering is the user's unvalidated hypothesis, not a calibrated evidential ranking. Controls and repeated measurements must test it; do not presume hidden instructions are secret or the layers independent.
 
-The supplied manual web-UI observations are recorded separately in [`carrier-survival.md`](carrier-survival.md). They are user-reported, n=1 per cell, have no retained prompt/output artifacts or recorded versions/dates, and are not a hit-rate estimate or independent replication. Do not fill gaps by reconstructing raw outputs.
+The supplied manual web-UI carrier-survival observations are recorded separately in [`carrier-survival.md`](carrier-survival.md). They are user-reported, n=1 per cell, have no retained prompt/output artifacts or recorded versions/dates, and are not a hit-rate estimate or independent replication. Do not fill gaps by reconstructing raw outputs or fabricate imports from those notes.
 
 ## Research sequence
 
 Follow the ordered plan in [`MVP_SPEC.md`](MVP_SPEC.md): types/tag codec; deterministic canaries; reversible visible embedding; exact per-layer detection; a local lab with model-API JSON matrix/mock dry-run and first-class manual web-UI CSV import; repeated controlled campaigns; then local teacher workflow, red-team tests, and a consenting pilot. Model API calls belong only to the local research lab and only use synthetic or explicitly consented research inputs, with credentials in environment variables.
 
 The later campaign should compare hidden-only, visible-only, both, and controls; include the planned paraphrase and summarization variants, noticeability and acknowledgement, template/placement variation, and ChatGPT/Claude web-versus-API conditions. Report per-model and per-layer sample counts and hit rates only when measured. A model's failure to emit a canary cannot identify whether a provider stripped it or the model ignored it without separate evidence.
+
+The Step 5 lab imports manual web-UI CSV records or runs a caller-prepared JSON matrix. Its default mock is offline and visibly simulated; it is software-path validation, not a measurement. Imported web-UI records are researcher-supplied observations, while API rows are produced only by explicit live mode. The condition is a user label, not proof of exposure. The lab keeps completed text, including empty or refusal text, separate from technical errors; errors are not misses. Summaries group source, provider/model/version, assignment/case, variant, and condition, and report only observed counts/fractions with the n=1 and zero-denominator limits. No campaign, provider qualification, measured rate, or change to the supplied carrier-survival record is part of Step 5.
 
 Prior M0–M2E experiments, progress ledgers, and protocol files remain historical evidence only for the carriers and workflows they actually tested. The M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17; those files are not part of this main-branch snapshot. The M2E ledger's pending status is unchanged, but that former DOCX accessibility gate no longer gates this roadmap and cannot qualify the new text carriers. See the archived Milestone 0 material below for provenance, not current protocol.
 

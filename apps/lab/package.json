@@ -1,0 +1,10 @@
+{
+  "name": "@glyph/lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@glyph/core": "workspace:*",
+    "csv-parse": "7.0.3"
+  }
+}
