@@ -91,9 +91,9 @@ const anthropicText = (body: unknown): string => {
   const textParts: string[] = [];
   for (const block of body.content) {
     if (!isObject(block)) throw new LabError("INVALID_RESPONSE");
-    if (block.type === "text" && typeof block.text === "string") {
-      textParts.push(block.text);
-    }
+    if (block.type !== "text") continue;
+    if (typeof block.text !== "string") throw new LabError("INVALID_RESPONSE");
+    textParts.push(block.text);
   }
   if (textParts.length === 0) throw new LabError("INVALID_RESPONSE");
   return textParts.join("");

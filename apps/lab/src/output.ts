@@ -1,4 +1,4 @@
-import { mkdir, open, rmdir, rm } from "node:fs/promises";
+import { mkdir, open, rmdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { LabRecord, LabSummary } from "./contracts.js";
 import { LabError } from "./errors.js";
@@ -27,10 +27,8 @@ export const removeEmptyOutputDirectory = async (path: string): Promise<void> =>
 const writePrivateFile = async (
   path: string,
   content: string,
-  created: string[],
 ): Promise<void> => {
   const handle = await open(path, "wx", 0o600);
-  created.push(path);
   try {
     await handle.writeFile(content, "utf8");
   } finally {
@@ -43,19 +41,16 @@ export const writeOutputFiles = async (
   records: LabRecord[],
   summary: LabSummary,
 ): Promise<void> => {
-  const created: string[] = [];
   try {
     const resultsPath = join(directory, "results.jsonl");
     await writePrivateFile(
       resultsPath,
       records.map((record) => JSON.stringify(record)).join("\n") + (records.length === 0 ? "" : "\n"),
-      created,
     );
 
     const summaryPath = join(directory, "summary.json");
-    await writePrivateFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, created);
+    await writePrivateFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
   } catch {
-    await Promise.all(created.map((path) => rm(path, { force: true }).catch(() => undefined)));
     throw new LabError("OUTPUT_FAILED");
   }
 };

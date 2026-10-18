@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseRunMatrix } from "../src/inputs.js";
 import { runMatrix } from "../src/run.js";
+import { summarizeRecords } from "../src/summary.js";
 import { bothCanaries, manifest, matrixInput } from "./fixtures.js";
 
 const jsonResponse = (body: unknown, status = 200): Response =>
@@ -152,6 +153,80 @@ describe("live API wire contract", () => {
         { carrier: "visibleNote", detected: true },
       ],
     });
+  });
+
+  it("rejects every malformed Anthropic text block without recording a response", async () => {
+    const model = { provider: "anthropic", model: "claude-test-model", repeats: 1 };
+    const malformedContent = [
+      [
+        { type: "text", text: 42, detail: "ANTHROPIC_BODY_SENTINEL" },
+        { type: "text", text: "" },
+      ],
+      [
+        { type: "text", detail: "ANTHROPIC_BODY_SENTINEL" },
+        { type: "text", text: "" },
+      ],
+    ];
+
+    for (const content of malformedContent) {
+      const records = await runMatrix(matrix({ models: [model] }), {
+        ...liveOptions,
+        fetch: async () => jsonResponse({ content }),
+      });
+
+      expect(records[0]).toMatchObject({
+        source: "api",
+        status: "error",
+        errorCode: "INVALID_RESPONSE",
+      });
+      expect(records[0]).not.toHaveProperty("layers");
+      expect(JSON.stringify(records)).not.toContain("ANTHROPIC_BODY_SENTINEL");
+
+      const cell = summarizeRecords(records).cells[0];
+      expect(cell).toMatchObject({ validResponses: 0, technicalErrors: 1 });
+      expect(cell.layers.tag).toMatchObject({ hits: 0, denominator: 0, observedFraction: "N/A" });
+      expect(cell.layers.visibleNote).toMatchObject({
+        hits: 0,
+        denominator: 0,
+        observedFraction: "N/A",
+      });
+    }
+  });
+
+  it("keeps valid empty and refusal text while ignoring non-text Anthropic blocks", async () => {
+    const responses = ["", `I cannot help with that. ${manifest.layers[0].canary}`];
+    let responseIndex = 0;
+    const records = await runMatrix(
+      matrix({
+        models: [{ provider: "anthropic", model: "claude-test-model", repeats: 2 }],
+      }),
+      {
+        ...liveOptions,
+        fetch: async () =>
+          jsonResponse({
+            content: [
+              { type: "thinking", thinking: "ANTHROPIC_NON_TEXT_SENTINEL" },
+              { type: "text", text: responses[responseIndex++] },
+            ],
+          }),
+      },
+    );
+
+    expect(records[0]).toMatchObject({
+      status: "completed",
+      layers: [
+        { carrier: "tag", detected: false },
+        { carrier: "visibleNote", detected: false },
+      ],
+    });
+    expect(records[1]).toMatchObject({
+      status: "completed",
+      layers: [
+        { carrier: "tag", detected: true },
+        { carrier: "visibleNote", detected: false },
+      ],
+    });
+    expect(JSON.stringify(records)).not.toContain("ANTHROPIC_NON_TEXT_SENTINEL");
   });
 
   it("processes the documented OpenAI refusal content block as literal text", async () => {
