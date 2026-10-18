@@ -219,7 +219,7 @@ const parseLayer = (value: unknown): TagLayer | VisibleNoteLayer => {
   return { id, carrier: value.carrier, canary };
 };
 
-const validateManifest = (value: unknown): ManifestBinding => {
+export const validateManifest = (value: unknown): ManifestBinding => {
   if (
     !isRecord(value) ||
     !hasExactKeys(value, ["assignmentId", "layers"])
