@@ -383,15 +383,43 @@ describe("embed", () => {
     expect(removeEmbeddedText(result.text, result.receipt)).toBe(text);
   });
 
+  test("keeps inline code and Markdown destinations lexically independent", async () => {
+    const plan = await deriveEmbeddingPlan(keyFromHex(vectorKeys.standard), manifest);
+    const samples = [
+      "First sentence. [link](path`segment) Second sentence. `code one. Code two. Code three.` Last sentence.",
+      "First sentence. [link](path`segment) Second sentence. `code [fake](path.v1). Code two. Code three.` Last sentence.",
+    ];
+
+    for (const original of samples) {
+      const result = embed(original, manifest, plan);
+      const destinationStart = original.indexOf("](") + 1;
+      const destinationEnd = original.indexOf(")", destinationStart) + 1;
+      const codeStart = original.indexOf("`code");
+      const codeEnd = original.indexOf("`", codeStart + 1) + 1;
+      const lastSentenceEnd =
+        original.lastIndexOf("Last sentence.") + "Last sentence.".length;
+
+      expect(result.receipt.insertions[0]!.offset).toBe(0);
+      expect(codeEnd).toBeGreaterThan(codeStart);
+      for (const { offset } of result.receipt.insertions) {
+        expect(offset >= destinationStart && offset < destinationEnd).toBe(false);
+        expect(offset >= codeStart && offset < codeEnd).toBe(false);
+      }
+      expect(result.receipt.insertions[2]!.offset).toBe(lastSentenceEnd);
+      expect(removeEmbeddedText(result.text, result.receipt)).toBe(original);
+    }
+  });
+
   test("does not split decimals, abbreviations or quoted punctuation", async () => {
     const plan = await deriveEmbeddingPlan(keyFromHex(vectorKeys.standard), manifest);
     const text =
-      'Dr. Rao recorded 3.14 as a value. "A quoted sentence!" Then an example, e.g. this one. Next sentence. Final sentence.';
+      'Dr. Rao recorded 3.14 as a value. "A quoted sentence!" Then an example, e.g. this one. The estimate is approx. 3 units. Next sentence. Final sentence.';
     const result = embed(text, manifest, plan);
     const unsafeOffsets = [
       text.indexOf("Dr.") + 3,
       text.indexOf("3.14") + 2,
       text.indexOf("e.g.") + 2,
+      text.indexOf("approx.") + "approx.".length,
       text.indexOf("!") + 1,
     ];
 
@@ -399,6 +427,17 @@ describe("embed", () => {
       result.receipt.insertions.some(({ offset }) => unsafeOffsets.includes(offset)),
     ).toBe(false);
     expect(removeEmbeddedText(result.text, result.receipt)).toBe(text);
+  });
+
+  test("handles a large dotted token without an input-size cap", async () => {
+    const plan = await deriveEmbeddingPlan(keyFromHex(vectorKeys.standard), manifest);
+    const dottedToken = "a.".repeat(16_000);
+    const original = `${dottedToken} End. Second sentence. Third sentence.`;
+    const result = embed(original, manifest, plan);
+
+    expect(result.receipt.originalLength).toBe(original.length);
+    expect(result.receipt.insertions).toHaveLength(3);
+    expect(removeEmbeddedText(result.text, result.receipt)).toBe(original);
   });
 
   test("rejects all-code, unclosed-code and insufficient prose input", async () => {

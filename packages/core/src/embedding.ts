@@ -111,6 +111,9 @@ const ABBREVIATIONS = new Set([
   "u.s",
   "vs",
 ]);
+const MAX_ABBREVIATION_LENGTH = Math.max(
+  ...Array.from(ABBREVIATIONS, (abbreviation) => abbreviation.length),
+);
 
 const CLOSING_PUNCTUATION = new Set([
   '"',
@@ -513,6 +516,32 @@ const backtickRunEnd = (text: string, start: number, end: number): number => {
   return cursor;
 };
 
+const markdownDestinationEnd = (
+  text: string,
+  closingBracket: number,
+  region: Span,
+): number => {
+  const opening = closingBracket + 1;
+  let cursor = opening + 1;
+  let depth = 1;
+  while (cursor < region.end && text[cursor] !== "\n") {
+    if (text[cursor] === "\\") {
+      cursor += 2;
+      continue;
+    }
+    if (text[cursor] === "(") {
+      depth += 1;
+    } else if (text[cursor] === ")") {
+      depth -= 1;
+      if (depth === 0) {
+        return cursor + 1;
+      }
+    }
+    cursor += 1;
+  }
+  return Math.min(lineEnd(text, opening), region.end);
+};
+
 const inlineCodeMask = (
   text: string,
   region: Span,
@@ -521,7 +550,15 @@ const inlineCodeMask = (
   let index = region.start;
 
   while (index < region.end) {
-    if (mask[index] || text[index] !== "`") {
+    if (mask[index]) {
+      index += 1;
+      continue;
+    }
+    if (text[index] === "]" && text[index + 1] === "(") {
+      index = markdownDestinationEnd(text, index, region);
+      continue;
+    }
+    if (text[index] !== "`") {
       index += 1;
       continue;
     }
@@ -611,28 +648,8 @@ const markdownDestinationMask = (
       index += 1;
       continue;
     }
-    const opening = index + 1;
-    let cursor = opening + 1;
-    let depth = 1;
-    let closing = -1;
-    while (cursor < region.end && text[cursor] !== "\n") {
-      if (text[cursor] === "\\") {
-        cursor += 2;
-        continue;
-      }
-      if (text[cursor] === "(") {
-        depth += 1;
-      } else if (text[cursor] === ")") {
-        depth -= 1;
-        if (depth === 0) {
-          closing = cursor + 1;
-          break;
-        }
-      }
-      cursor += 1;
-    }
-    const end = closing >= 0 ? closing : lineEnd(text, opening);
-    mark(mask, opening, end);
+    const end = markdownDestinationEnd(text, index, region);
+    mark(mask, index + 1, end);
     index = end;
   }
 };
@@ -652,10 +669,19 @@ const isAbbreviation = (
   let start = index;
   while (
     start > regionStart &&
+    index - start < MAX_ABBREVIATION_LENGTH &&
     !mask[start - 1] &&
     /[A-Za-z.]/.test(text[start - 1]!)
   ) {
     start -= 1;
+  }
+  if (
+    start > regionStart &&
+    index - start === MAX_ABBREVIATION_LENGTH &&
+    !mask[start - 1] &&
+    /[A-Za-z.]/.test(text[start - 1]!)
+  ) {
+    return false;
   }
   const token = text.slice(start, index + 1).toLowerCase().replace(/\.$/, "");
   return ABBREVIATIONS.has(token) || /^[a-z]$/.test(token);
@@ -694,18 +720,6 @@ const sentenceBoundaryEnd = (
   region: Span,
   mask: Uint8Array,
 ): number | undefined => {
-  if (text[index] === ".") {
-    if (isDecimalPoint(text, index, region.end)) {
-      return undefined;
-    }
-    if (text[index + 1] === "." && !mask[index + 1]) {
-      return undefined;
-    }
-    if (isAbbreviation(text, index, region.start, mask)) {
-      return undefined;
-    }
-  }
-
   let end = index + 1;
   while (
     end < region.end &&
@@ -723,6 +737,18 @@ const sentenceBoundaryEnd = (
   }
   if (end < region.end && !isWhitespace(text[end]!)) {
     return undefined;
+  }
+
+  if (text[index] === ".") {
+    if (isDecimalPoint(text, index, region.end)) {
+      return undefined;
+    }
+    if (text[index + 1] === "." && !mask[index + 1]) {
+      return undefined;
+    }
+    if (isAbbreviation(text, index, region.start, mask)) {
+      return undefined;
+    }
   }
   return end;
 };
