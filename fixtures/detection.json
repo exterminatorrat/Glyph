@@ -185,6 +185,13 @@
       "rawTagCount": 1
     },
     {
+      "label": "tag-format codepoint after a phrase does not create a token boundary",
+      "submission": "the kind meadow shapes the familiar pebble beside the calm apple\udb40\udc01",
+      "tagDetected": false,
+      "visibleNoteDetected": false,
+      "rawTagCount": 1
+    },
+    {
       "label": "a phrase hit remains separate from one raw tag",
       "submission": "the kind meadow shapes the familiar pebble beside the calm apple \udb40\udc01",
       "tagDetected": true,
