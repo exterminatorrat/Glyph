@@ -1,6 +1,6 @@
 # Glyph product definition
 
-Status: current direction adopted 2026-10-17; documentation only, not implemented.
+Status: current direction adopted 2026-10-17; core Steps 1–3 are implemented, but no teacher workflow is implemented.
 
 Glyph researches assignment-specific canary prompt injection. A teacher adds two distinct canary layers to assignment text: hidden Unicode tag instructions and a visible, camouflaged note addressed to an AI system. The research question is whether a model follows either instruction and includes its exact canary in generated text.
 
@@ -8,7 +8,7 @@ This is not general AI-writing detection, statistical watermarking, or a claim t
 
 The hypothesized ordering is hidden-only as the strongest single signal, visible-only as moderate, and both together as strongest. This ranking is unvalidated and must be tested against controls and repeated measurements; hidden instructions can be inspected or shared, and the two layers are not presumed independent.
 
-The planned teacher workflow is local and browser-first: prepare assignment text with both layers and a manifest, then check a response locally and see separate results for each layer. No product workflow is implemented by this document. Assignment prompts and student responses must not leave the browser or be uploaded, logged, or persisted. The MVP has no accounts or database. The local research lab is a separate tool and may call model APIs only with synthetic or explicitly consented research inputs.
+The planned teacher workflow is local and browser-first: prepare assignment text with both layers and a manifest, then check a response locally and see separate results for each layer. The core implements types, tag encoding, canary derivation, and reversible embedding; no teacher workflow, detection, or browser interface is implemented. Assignment prompts and student responses must not leave the browser or be uploaded, logged, or persisted. The MVP has no accounts or database. The local research lab is a separate tool and may call model APIs only with synthetic or explicitly consented research inputs.
 
 For current requirements, gates, and staged scope, see [`MVP_SPEC.md`](MVP_SPEC.md). The archived Milestone 0 baseline below and prior M0–M2E research records are historical, not current product authority; their DOCX-specific decisions do not qualify the new carriers. The M2E design, protocol, ledger, fixtures, and results remain on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not in `main` as of 2026-10-17.
 

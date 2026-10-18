@@ -1,6 +1,6 @@
 # Glyph testing and verification strategy
 
-Status: current verification policy adopted 2026-10-17; Roadmap Step 1 is merged to `main` in PR #4, and Step 2 is implemented in this change.
+Status: current verification policy adopted 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5, and Step 3 is implemented in this change.
 
 ## Current commands and isolation
 
@@ -21,6 +21,12 @@ Every exported function in `packages/core` has Vitest coverage and shared JSON v
 `packages/core/test/canary-derivation.test.ts` covers every package-level derivation export, frozen v1 word-list ordering and layer-pool disjointness, exact phrase formatting, deterministic repeatability, and fixed public synthetic-key vectors. Each vector includes the canonical JSON message and expected HMAC digest; the test independently checks the digest with Node's standard `node:crypto` HMAC implementation before checking the derived phrase. It also covers key length and immutability, asynchronous key snapshotting, supported layer IDs, empty and malformed-surrogate IDs, valid control/Unicode/non-BMP IDs, case/space/NFC preservation, and JSON-array boundary encoding. These tests establish deterministic software behavior only; they do not establish global phrase uniqueness, provider compliance, or natural-occurrence rarity.
 
 The 32-byte test keys are intentionally public synthetic fixtures. Tests must not generate, log, or persist real teacher keys or student content. Do not add statistical randomness tests or claims that changing one input can never collide in the finite phrase space.
+
+## Step 3 embedding verification
+
+`fixtures/embedding-plan.json` freezes the `glyph.embedding` v1 message, three synthetic-key HMAC vectors, ordered visible templates, selector fields, and UTF-16 placement vectors. The test-only Node `createHmac` oracle checks the expected message and digest; production core continues to use Web Crypto and has no Node, DOM, or I/O dependency. `packages/core/test/embedding.test.ts` verifies manifest and plan validation, descriptor ordering and binding, key snapshotting, all-template reachability, and exact shared-boundary insertion order.
+
+The embedding tests also check three decodable hidden frames and one visible note; exact receipt round trips with Unicode, combining marks, emoji, lone surrogates, CRLF, tabs, and surrounding whitespace; preservation of a pre-existing valid tag frame and an identical source note; fixed offsets and central-window selection; decimal, abbreviation, and quoted-punctuation handling; fenced, indented, and inline code; composed inline-code and Markdown-destination syntax, including destination-looking text inside code; URLs and Markdown destinations; large dotted-token and repeated-period inputs; insufficient and unclosed-code inputs; and conservative failures for altered spans and malformed receipts. They demonstrate that same-length edits outside recorded spans are not detected. These tests establish deterministic local string behavior only, not authenticity, arbitrary-edit recovery, carrier/model survival, camouflage, natural occurrence, accessibility, or evidential strength.
 
 The earlier Milestone 0 verification text below is retained as a historical record. The M2E DOCX command, test, and research records are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. Their scope does not apply to or qualify the new carriers.
 

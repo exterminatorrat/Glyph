@@ -1,6 +1,6 @@
 # Glyph security and privacy model
 
-Status: current privacy direction adopted 2026-10-17; implementation and pilot use are not authorized.
+Status: current privacy direction adopted 2026-10-17; core steps 1–3 are authorized, but teacher workflow and pilot use are not authorized.
 
 ## Current boundaries
 
@@ -8,7 +8,7 @@ Assignment prompts and student responses remain in the browser: do not upload, l
 
 The local research lab is a separate tool. It may call model APIs only for synthetic or explicitly consented research inputs and must obtain credentials through environment variables. It is not a route for teacher or student submissions.
 
-Canaries are inspectable, removable prompt-injection markers, not cryptographic secrets, statistical watermarks, or tamper-resistant carriers. The `teacherKey` is used for the planned stateless HMAC-SHA256 derivation, but its creation and lifecycle and the exact domain-separated input contract are deliberately unresolved until Step 2. This document does not define storage or key-management behavior.
+Canaries are inspectable, removable prompt-injection markers, not cryptographic secrets, statistical watermarks, or tamper-resistant carriers. The caller supplies the 32-byte `teacherKey` for stateless HMAC-SHA-256 derivation and planning; core does not generate, store, or manage it. The Step 2 `glyph.canary` and Step 3 `glyph.embedding` v1 input contracts are defined in `MVP_SPEC.md`. The embedding plan contains no key or source text, and its ephemeral removal receipt contains only inserted strings, offsets, and the original string length. Neither the plan nor receipt authenticates arbitrary edits: mismatched inserted spans fail removal, but same-length changes elsewhere are not detected. No server, database, or key-management behavior is introduced by the core carrier.
 
 A match warrants contextual conversation and corroboration; it does not establish direct ingestion, authorship, intent, or misconduct. A miss provides no evidence either way. Do not show a score or probability. Hidden instructions may be inspected or shared, and the hidden-only/visible-only/both ordering remains an unvalidated hypothesis.
 
