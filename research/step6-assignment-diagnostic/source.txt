@@ -1,0 +1,1 @@
+The student council has a budget of 120 credits to improve a shared study room. A desk lamp costs 30 credits and a noticeboard costs 45 credits. Students want better lighting and a clear place for revision reminders. Your task is to recommend a purchase plan within the budget and explain one tradeoff. Write a short paragraph for the student council using only these details.

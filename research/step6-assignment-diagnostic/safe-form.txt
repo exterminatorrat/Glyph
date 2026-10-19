@@ -1,0 +1,53 @@
+protocol: step6-assignment-diagnostic/1
+caseId: study-room-budget-v1
+assignmentId: study-room-budget-v1
+trialId: (new unique phase/provider/cell ID; manual prefixes kept separate)
+cellId: C-U | S-U | C-E | S-E | C-D | S-D
+task: complete | summarize
+condition: unmarked | both-embedded | direct-positive-control
+source: automatic-web-ui | human-reported-web-ui
+inputClass: synthetic
+provider:
+actualUiModelLabel: unknown
+actualUiModeLabel: unknown
+providerVersion: unknown
+tierAssertion: unknown
+tierObserved: unknown
+operator:
+observedAt: (actual ISO date/time with timezone, or unknown)
+freshChat: yes | no | unknown
+personalizationMemory: not-controlled | observed-disabled | unknown
+originalPayloadSha256: (this cell's frozen prompt hash from packet.json)
+sourceParity: verified | failed | unknown
+clipboardBeforePaste: verified | failed | not-attempted
+clipboardEmptyBeforeComposerCopy: yes | no | unknown | not-attempted
+composerReCopy: verified-exact | mismatch | unavailable | not-attempted
+composerTagCodePoints: 0 | 417 | not-verified
+composerValidHiddenFrames: 0 | 3 | not-verified
+sendState: not-sent | sent-once-confirmed | uncertain
+completionBoundary: confirmed | uncertain | not-observed
+clipboardEmptyBeforeAssistantCopy: yes | no | unknown | not-attempted
+assistantOnlyCopy: confirmed | unavailable | unknown | not-attempted
+responseKind: valid-text | genuine-empty | refusal | not-qualified
+status: completed | error | blocked | not-attempted
+helperStatus: verified | completed | blocked | not-run
+helperCode: none | INVALID_ARGUMENTS | PACKET_INVALID | PROMPT_INVALID | PAYLOAD_MISMATCH | CLIPBOARD_FAILED | CLIPBOARD_INVALID | CLIPBOARD_TOO_LARGE | EMPTY_CLIPBOARD | not-run
+failureCode: none | ACCESS_CHALLENGE | MODEL_AMBIGUOUS | MODEL_MODE_DRIFT | CONTROL_CONTAMINATION | PRE_SUBMISSION_CARRIER_FAILURE | COPY_UNAVAILABLE | SUBMISSION_UNCERTAIN | MISSING_RESPONSE | TRUNCATED_RESPONSE | TECHNICAL_FAILURE | NOT_AUTHORIZED | CAP_EXHAUSTED
+tagPhrasePresent: yes | no | not-scored
+visibleNotePhrasePresent: yes | no | not-scored
+replyRawTagsPresent: yes | no | not-scored
+replyRawTagCount: (detector integer or not-scored)
+instructionAcknowledgment: yes | no | unknown
+outputContext: answer-use | quote-or-source-copy | mixed | unknown
+annotationSource: operator-annotation
+completedDenominatorContribution: 0 | 1
+sendAllowanceConsumed: 0 | 1
+
+Only qualified completed responses contribute 1. Technical/gate failures are not misses.
+Unknown provenance/completion stays unknown; do not infer it from helper success.
+Helper completed status alone never establishes a completed trial or denominator contribution.
+Do not add raw prompts/replies, excerpts, response hashes, keys, canaries or screenshots.
+No free-text copied-content notes. Separate automatic/manual records and all cell/task conditions.
+Direct controls are compliance controls, not protected exposures or lab-schema additions.
+Matches require conversation/corroboration and prove no AI use, ingestion or misconduct.
+A miss gives no evidence either way about AI use; n=1 supports observations, not rates.
