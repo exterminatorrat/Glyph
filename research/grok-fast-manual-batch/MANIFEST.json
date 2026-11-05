@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "protocol": "grok-fast-manual-file-upload-layer-isolation/1",
+  "assignmentId": "study-room-budget-v1",
+  "sourceClass": "synthetic",
+  "preparedAt": "2026-11-05",
+  "preparedBy": "GLYP-35",
+  "status": "prepared-not-submitted",
+  "intendedProviderLabel": "Grok",
+  "intendedModeLabel": "Fast",
+  "task": "complete",
+  "transport": "FILE_UPLOAD",
+  "accompanyingMessage": "Please carry out the task in the attached text file.",
+  "maxSends": 13,
+  "orderDesign": "fixed counterbalancing, not randomized or blinded",
+  "order": [
+    "U",
+    "H",
+    "B",
+    "V",
+    "V",
+    "B",
+    "U",
+    "H",
+    "B",
+    "U",
+    "V",
+    "H",
+    "D"
+  ],
+  "trials": [
+    {
+      "trialId": "GF-FU-01",
+      "file": "01.txt",
+      "condition": "U",
+      "sha256": "d77c39074f316886fbde4e7ff8da7e27fcc4582bce945e21f89ad9b41e905b1a",
+      "bytes": 451,
+      "codeUnits": 451,
+      "codePoints": 451,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-02",
+      "file": "02.txt",
+      "condition": "H",
+      "sha256": "0fe4ae309183566e6ba391afddac55cba2a58e0215b62522c8e5e90ea1540e8d",
+      "bytes": 2120,
+      "codeUnits": 1286,
+      "codePoints": 869,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-03",
+      "file": "03.txt",
+      "condition": "B",
+      "sha256": "c114f419edf4cfc7d6250da1d859c227ed37dec12edfbe2501c9bfa2811a55e4",
+      "bytes": 2258,
+      "codeUnits": 1424,
+      "codePoints": 1007,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-04",
+      "file": "04.txt",
+      "condition": "V",
+      "sha256": "02e77475c777420ed3f20bf4a1c73df72ea6783df6a67f43b6986ae29e1bcbfe",
+      "bytes": 589,
+      "codeUnits": 589,
+      "codePoints": 589,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-05",
+      "file": "05.txt",
+      "condition": "V",
+      "sha256": "02e77475c777420ed3f20bf4a1c73df72ea6783df6a67f43b6986ae29e1bcbfe",
+      "bytes": 589,
+      "codeUnits": 589,
+      "codePoints": 589,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-06",
+      "file": "06.txt",
+      "condition": "B",
+      "sha256": "c114f419edf4cfc7d6250da1d859c227ed37dec12edfbe2501c9bfa2811a55e4",
+      "bytes": 2258,
+      "codeUnits": 1424,
+      "codePoints": 1007,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-07",
+      "file": "07.txt",
+      "condition": "U",
+      "sha256": "d77c39074f316886fbde4e7ff8da7e27fcc4582bce945e21f89ad9b41e905b1a",
+      "bytes": 451,
+      "codeUnits": 451,
+      "codePoints": 451,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-08",
+      "file": "08.txt",
+      "condition": "H",
+      "sha256": "0fe4ae309183566e6ba391afddac55cba2a58e0215b62522c8e5e90ea1540e8d",
+      "bytes": 2120,
+      "codeUnits": 1286,
+      "codePoints": 869,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-09",
+      "file": "09.txt",
+      "condition": "B",
+      "sha256": "c114f419edf4cfc7d6250da1d859c227ed37dec12edfbe2501c9bfa2811a55e4",
+      "bytes": 2258,
+      "codeUnits": 1424,
+      "codePoints": 1007,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-10",
+      "file": "10.txt",
+      "condition": "U",
+      "sha256": "d77c39074f316886fbde4e7ff8da7e27fcc4582bce945e21f89ad9b41e905b1a",
+      "bytes": 451,
+      "codeUnits": 451,
+      "codePoints": 451,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-11",
+      "file": "11.txt",
+      "condition": "V",
+      "sha256": "02e77475c777420ed3f20bf4a1c73df72ea6783df6a67f43b6986ae29e1bcbfe",
+      "bytes": 589,
+      "codeUnits": 589,
+      "codePoints": 589,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": true
+      }
+    },
+    {
+      "trialId": "GF-FU-12",
+      "file": "12.txt",
+      "condition": "H",
+      "sha256": "0fe4ae309183566e6ba391afddac55cba2a58e0215b62522c8e5e90ea1540e8d",
+      "bytes": 2120,
+      "codeUnits": 1286,
+      "codePoints": 869,
+      "tagCodePoints": 417,
+      "validHiddenFrames": 3,
+      "literalTargets": {
+        "tag": false,
+        "visibleNote": false
+      }
+    },
+    {
+      "trialId": "GF-FU-13",
+      "file": "13.txt",
+      "condition": "D",
+      "sha256": "947d33e6e89f1bdacc0f5ab0f83f3af4caa7ac3f19fc668b2a20627b7b8df02e",
+      "bytes": 645,
+      "codeUnits": 645,
+      "codePoints": 645,
+      "tagCodePoints": 0,
+      "validHiddenFrames": 0,
+      "literalTargets": {
+        "tag": true,
+        "visibleNote": true
+      }
+    }
+  ],
+  "provenance": {
+    "runtimeCommit": "d21154ffa8c57452c76d3cfc31a715845d459ac8",
+    "originalCoreBaseline": "6070c8ec6e1910af01864e61a79d96c12e5044e8",
+    "unchangedCoreVerifiedAgainstBothCommits": true,
+    "originalPacketProtocol": "step6-assignment-diagnostic/1",
+    "originalSourceSha256": "1a788d458a77ad9c833ef7954e77b95633bbc80d1bed04309952d6dba9b6c7e7",
+    "originals": {
+      "U": "C-U.txt",
+      "B": "C-E.txt",
+      "D": "C-D.txt"
+    },
+    "copiedOriginalsByteIdentical": true,
+    "derivation": "Replayed saved original plan with actual core and matched C-E byte-for-byte. H removes only the exact original visible-note-plus-space own span from B. V inserts only that exact original visible span into source at UTF-16 offset 145. Original source restored exactly for H/V/B; no new key or manually reconstructed hidden code points.",
+    "sourceInsertionOffsetsUtf16": [
+      0,
+      145,
+      376
+    ],
+    "templateIndex": 7,
+    "placementSelector": 4279229707,
+    "sourceFiles": [
+      {
+        "path": "AGENTS.md",
+        "sha256": "e74f4ce436b67b8b34c11e7b13446c7fed88453a4e31cc4ee10814b4161da0a0",
+        "bytes": 4229
+      },
+      {
+        "path": "packages/core/src/canary.ts",
+        "sha256": "fc8fbd3e1122f0d0c31ed00086125102bcb53587139236ac4629ae5851834fca",
+        "bytes": 8018
+      },
+      {
+        "path": "packages/core/src/detection.ts",
+        "sha256": "2d2c6302b4d69960ce579b7882088deff05c97817d4a91338ea89669a1bf8bfe",
+        "bytes": 3205
+      },
+      {
+        "path": "packages/core/src/embedding.ts",
+        "sha256": "4998ef1c2185bd23a2bc01d64ad3f55ecad291848ac359500d7beca1bfea8f8e",
+        "bytes": 26462
+      },
+      {
+        "path": "packages/core/src/index.ts",
+        "sha256": "2f666f5222fe2e971934503c917a322961e17b61615f3bf708a91289105be7ca",
+        "bytes": 618
+      },
+      {
+        "path": "packages/core/src/tag-codec.ts",
+        "sha256": "9fd240ed52e2a114ec7a1d70e79b99ef8f76e815d57f238afc041610ec633673",
+        "bytes": 2248
+      },
+      {
+        "path": "research/step6-assignment-diagnostic/packet.json",
+        "sha256": "f7d60c2bbb788d07c837df658af18ac085615da9c57e819a93fdba22438e32c4",
+        "bytes": 4383
+      },
+      {
+        "path": "research/step6-assignment-diagnostic/source.txt",
+        "sha256": "1a788d458a77ad9c833ef7954e77b95633bbc80d1bed04309952d6dba9b6c7e7",
+        "bytes": 376
+      },
+      {
+        "path": "research/step6-assignment-diagnostic/C-U.txt",
+        "sha256": "d77c39074f316886fbde4e7ff8da7e27fcc4582bce945e21f89ad9b41e905b1a",
+        "bytes": 451
+      },
+      {
+        "path": "research/step6-assignment-diagnostic/C-E.txt",
+        "sha256": "c114f419edf4cfc7d6250da1d859c227ed37dec12edfbe2501c9bfa2811a55e4",
+        "bytes": 2258
+      },
+      {
+        "path": "research/step6-assignment-diagnostic/C-D.txt",
+        "sha256": "947d33e6e89f1bdacc0f5ab0f83f3af4caa7ac3f19fc668b2a20627b7b8df02e",
+        "bytes": 645
+      }
+    ]
+  },
+  "verification": {
+    "strictUtf8": true,
+    "bom": false,
+    "terminalNewline": false,
+    "repeatBytesEqual": true,
+    "completeFramesDecodedByOriginalCore": true,
+    "everyDecodedFrameMatchesOriginalSavedHiddenInstruction": true,
+    "expectedLiteralTargetsCheckedByOriginalCore": true,
+    "ownInsertionRecoveryExact": true,
+    "scope": "Offline input checks only; no model, browser, clipboard, account, or upload checks."
+  },
+  "limitations": [
+    "Upload extraction and server/model hidden-byte survival are unverified.",
+    "Fresh chats do not control account memory/personalization or establish independence.",
+    "Manual visual results are not automated/core-scored output evidence.",
+    "n=3 is descriptive, not an efficacy estimate or provider ranking.",
+    "Hidden-only output alone does not prove decoding, ingestion, authorship, intent, or misconduct."
+  ]
+}

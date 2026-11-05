@@ -4,7 +4,7 @@ The lab is a local Node.js command-line tool for manually imported web-UI observ
 
 The lab does not create canaries, embed assignments, or determine what reached a model. Prepare the two-layer manifest and the prompt or manual observations separately. A match is an observation that warrants conversation and corroboration, not proof of AI use, direct ingestion, authorship, intent, or misconduct. A miss is evidence neither for nor against AI use.
 
-The [Step 6 browser pilot](../research/step6-pilot/README.md) has a stricter collection boundary: no raw-reply files or CSV exports. Its research-only clipboard adapter calls core detection in memory and emits only sanitized observations; do not use the CSV-import instructions below for those trials. Its exact-copy packet, composer re-copy requirement, manual-only Claude/Gemini 4 Argon handoff, and no-submission preparation boundary are separate from the lab's general capabilities.
+See [HANDOFF.md](HANDOFF.md) for current research status and holds; this tool guide is not live authorization. The [Step 6 browser pilot](../research/step6-pilot/README.md) and later bounded studies have a stricter collection boundary: no raw-reply files or CSV exports. The research-only clipboard adapter calls core detection in memory and emits only sanitized observations; do not use the CSV-import instructions below for those trials. Historical preparation-time wording does not override later holds, and the implemented Anthropic API adapter does not waive human-only Claude provider testing.
 
 ## Import web-UI observations
 

@@ -2,10 +2,14 @@
 
 Glyph is an experimental research project for assignment-specific canary prompt injection: teachers place two distinct canaries in an assignment and test whether a chatbot includes them in its response. Glyph is not a general AI-writing detector and cannot establish authorship, direct ingestion, intent, cheating, or misconduct.
 
+## New owner: read the handoff first
+
+Read [`docs/HANDOFF.md`](docs/HANDOFF.md) before proposing or changing work. It is the single current-state record, including evidence, pending options and execution holds. Reassess and recommend: a successor is invited to critique, reprioritize, revise or stop the inherited plan, not automatically execute Step 6 or the old roadmap. Planning does not authorize experiments or other held actions. Update the handoff when a milestone, evidence item or decision changes; keep this file focused on standing constraints.
+
 ## Authoritative documentation
 
 - Product purpose and evidence language: `docs/PRODUCT.md`
-- Adopted requirements and ordered roadmap: `docs/MVP_SPEC.md`
+- Implemented v1 contracts and inherited, revisable roadmap: `docs/MVP_SPEC.md`
 - Planned architecture and current repository state: `docs/ARCHITECTURE.md`
 - Privacy and research-data boundaries: `docs/SECURITY.md`
 - Verification policy: `docs/TESTING.md`
@@ -21,11 +25,11 @@ Glyph is an experimental research project for assignment-specific canary prompt 
 - Keep carriers behind a small swappable interface; do not build a plugin framework. Step 3 uses a caller-supplied keyed plan and an ephemeral exact-insertion receipt; neither authenticates arbitrary edits, and neither adds key or source text to the manifest.
 - Keep prior research records and outcomes unchanged. Prior DOCX-carrier evidence does not qualify the new tag or visible-note carriers.
 
-## Milestones and gates
+## Execution boundaries
 
-The two-layer canary briefing was adopted as a documentation-only direction on 2026-10-17. Steps 1–5 are merged to `main` in PRs #4–#8. Harry authorized Step 6 planning, packet preparation, and five-site Vivaldi access/model preflight on 2026-10-18. The bounded preparation pass permits no test-prompt pasting or submissions; see `research/step6-pilot/README.md`. Claude is always human-only, and Gemini 4 Argon is human-only. The larger repeated campaign and Step 7 remain unauthorized without separate approval.
+Current milestone status, manual observations, pending studies and holds are maintained only in [`docs/HANDOFF.md`](docs/HANDOFF.md). Dated protocols retain their preparation-time wording, not continuing execution consent. No live collection resumes automatically on a new owner or tool reconnection. Claude provider testing is always human-only through Harry; Gemini 4 Argon is also human-only. This does not restrict Harry's choice of Claude/Claude Code as an engineering assistant.
 
-Milestones 0–2E remain historical evidence only for their named DOCX profiles. The M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. Do not relabel or generalize those outcomes or use them to qualify the new carriers. The recorded M2E accessibility status remains unchanged; that former gate is no longer active.
+Milestones 0–2E remain historical evidence only for their named DOCX profiles. Do not relabel or generalize those outcomes or use them to qualify the new carriers. The recorded M2E accessibility status remains unchanged; that former gate is no longer active.
 
 ## Verification commands
 

@@ -1,6 +1,6 @@
 # Glyph testing and verification strategy
 
-Status: current verification policy adopted 2026-10-17; Steps 1 and 2 are merged to `main` in PRs #4 and #5, Step 3 is merged in PR #6, Step 4 is merged in PR #7, and Step 5 implements the local research lab in this change.
+Verification policy adopted 2026-10-17. See [HANDOFF.md](HANDOFF.md) for current milestone status and holds; the sections below describe software verification, not live research authorization.
 
 ## Current commands and isolation
 

@@ -1,5 +1,7 @@
 # Carrier survival observations
 
+Historical record: these early observations are distinct from the later manual assignment matrix. See [HANDOFF.md](HANDOFF.md) for current evidence and decisions; the original observations below remain unchanged.
+
 Status: user-reported manual observations; not independently verified or replicated.
 
 The report describes manual consumer web-UI trials with the same water-cycle prompt and one run per provider/carrier cell (`n=1` per cell). Dates, provider/model versions, the exact prompt, and output artifacts were not supplied and remain unknown. These observations are not hit rates, do not establish cause, and must not be described as validated evidence.

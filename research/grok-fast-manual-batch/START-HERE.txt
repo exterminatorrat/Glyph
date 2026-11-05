@@ -1,0 +1,20 @@
+GROK FAST — MANUAL FILE-UPLOAD BATCH
+
+This is a new exploratory FILE_UPLOAD completion study, not the earlier six-send native protocol. No live trials have been run in preparing this ZIP. Synthetic assignment only. Do not change your Grok Fast selection, account, model, mode, or settings.
+
+1. Download the ZIP and unzip it on your MacBook Pro. Use the extracted files, not the ZIP itself. Keep the original files unchanged; do not resave, retype, normalize, or edit them.
+2. Work in numerical order, 01.txt through 13.txt. Open a FRESH CHAT for EVERY file. Drag/upload ONLY that one numbered TXT prompt. Never upload this guide, RESULTS.txt, MANIFEST.json, SCORING-REFERENCE.json, the ZIP, or another prompt alongside it.
+3. In the accompanying message, type exactly this sentence, with no additions:
+Please carry out the task in the attached text file.
+4. Send ONCE for that trial, then wait for an unambiguously completed assistant response before recording or continuing. Maximum 13 sends in the whole batch. An uncertain send counts against the cap. No follow-ups, regenerate, retry, replacement upload, alternate prompt, or extra test. Do not re-upload after an error.
+5. Visually check only the completed assistant answer against the separate synthetic scoring reference. Do not count the attached prompt, source preview, or your own message as an answer hit. Fill the corresponding safe RESULTS row; do not save, paste, export, screenshot, hash, or send back any raw reply or excerpt. Replies may still be retained in Grok itself.
+6. Before 02, require 01 to be completed and NO on both targets. Any target hit in an ordinary control (01, 07, or 10) triggers a contamination/collision HOLD: stop all remaining trials, do not count the hit as marked-source success. Check 07 and 10 immediately too. Run 13, the direct both-target compliance control, LAST and only if all earlier gates stayed clean.
+7. Stop all remaining trials on an upload/model technical problem, changed/unclear model label, uncertain send, or missing/interrupted/truncated/uncertain completion. Preserve the attempted row as error, never a target miss; leave remaining rows unattempted. A completed refusal or a genuinely UI-confirmed empty answer can be scored; uncertainty about completion is an error. Do not try to repair the transport or change settings.
+
+Record the observed model/mode labels verbatim (or unknown), date/time with timezone, fresh-chat yes/no/unknown, and FILE_UPLOAD transport for every trial. These are observations, not proof of the routed model/version. If fresh-chat or model requirements cannot be established, stop and record an error rather than guessing. Do not record account IDs or private information.
+
+The frozen order is U/H/B/V; V/B/U/H; B/U/V/H; D. U=unmarked, H=hidden-only, B=both, V=visible-only, D=direct compliance control. Each experimental condition repeats the identical prompt bytes three times. This is fixed counterbalancing, NOT randomized or blinded. Early U gates the first marked prompt; later U checks can reveal carryover but cannot undo it. Shared targets may affect later fresh chats through account memory/personalization; those factors are not controlled. Do not change them for this batch.
+
+Local hashes verify the distributed files, NOT the upload parser, extracted text, server ingestion, or hidden-byte survival. File upload is a different transport from native exact-composer entry. Three observations per condition are descriptive only, not efficacy estimates, independent replications, provider rankings, or an AI score. Hidden-only target output does not independently prove decoding. No hit establishes authorship, intent, misconduct, or direct ingestion; a miss gives no evidence either way about AI use. A match calls for conversation and corroboration, not a verdict.
+
+Return only the filled safe rows (or equivalent yes/no/error metadata), never replies or target text. Keep SCORING-REFERENCE.json separate from records and out of every chat.

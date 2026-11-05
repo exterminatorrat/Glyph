@@ -1,5 +1,7 @@
 # Step 6 assignment-completion diagnostic plan
 
+> Historical planning-time record (2026-10-19). Later preparation, authorization, closure and manual observations are recorded in [the canonical handoff](../../docs/HANDOFF.md). The original plan below remains provenance, not a current task queue or send budget.
+
 Status: planning deliverable, 2026-10-19. Preparing this plan is approved; packet/helper implementation, access preflight, clipboard operations and submissions are not part of this pass. Execution and the budgets below are proposals, not authorization. No effectiveness evidence is produced here.
 
 Baseline: merged PR #9, `c11b11c811abcd876f375d14fc3a834da2150f1c` (parents `92b61f387d7a8f31b2fc6508ba811fb81b932833` and `c562e7c460be9ec0e129a01738222e32c7938ad7`). Preserve the [original pilot packet and protocol](../step6-pilot/README.md) byte-for-byte, including its historical preparation-time status. This plan neither updates that record nor authorizes filling its incomplete cells.
