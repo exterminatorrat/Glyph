@@ -1,6 +1,6 @@
 # Glyph experimental framework
 
-Status: current research direction adopted 2026-10-17; Steps 1–5 are merged. Step 6 planning, exact-packet preparation, and five-site Vivaldi access/model preflight were authorized on 2026-10-18. This preparation includes no test-prompt pasting or chatbot submissions, and no new research campaign or live model API run is claimed.
+Research framing adopted 2026-10-17. Start with [HANDOFF.md](HANDOFF.md) for the canonical current-state record, including later user-reported manual observations, completed/closed phases, pending options and holds. This framework is not execution authorization.
 
 ## Current research question
 
@@ -12,11 +12,11 @@ The supplied manual web-UI carrier-survival observations are recorded separately
 
 ## Research sequence
 
-The [assignment-completion diagnostic plan](../research/step6-assignment-diagnostic/PLAN.md) proposes a new synthetic case comparing completion and summarization with ordinary and direct-inclusion controls. Its [exact packet and local checking guide](../research/step6-assignment-diagnostic/README.md) are prepared offline: six cells per site, with the initial two-site cap of twelve sends still proposed, not authorized. No submissions or automatic authorization for later phases are part of preparation. The original pilot and v1 contracts are preserved.
+The [assignment-completion diagnostic plan](../research/step6-assignment-diagnostic/PLAN.md) and [exact packet/local checking guide](../research/step6-assignment-diagnostic/README.md) preserve the 2026-10-19 six-cell completion-versus-summary design. Their preparation-time authorization wording is historical; later phase status and manual observations live in [HANDOFF.md](HANDOFF.md). Do not resume those commands from this framework.
 
-The [Step 6 browser pilot protocol and exact synthetic packet](../research/step6-pilot/README.md) freeze only an initial summary pilot: up to ten submissions, one fresh unmarked control followed by one fresh both-layer exposure per allowed site, `n=1` per cell, no retries. Preparation stops before submissions and reports actual model/access preflight facts first. Claude is always manual-only through Harry; Gemini 4 Argon is also manual-only. Full composer re-copy verification is required before any later send, and a mismatch is a pre-submission carrier failure, not a model miss. Replies are scored only transiently; no raw-response CSV export is part of this pilot. The larger repeated campaign below is later work, not already fixed, approved, or completed.
+The [Step 6 browser pilot protocol and exact synthetic packet](../research/step6-pilot/README.md) preserve the distinct 2026-10-18 water-cycle summary design. Keep its frozen protocol and outcomes separate from the assignment case and later file-upload follow-up. Claude is always manual-only through Harry; Gemini 4 Argon is also manual-only. Native composer mismatch is a pre-submission carrier failure, not a model miss. Raw-response CSV export is not permitted for these bounded studies.
 
-Follow the ordered plan in [`MVP_SPEC.md`](MVP_SPEC.md): types/tag codec; deterministic canaries; reversible visible embedding; exact per-layer detection; a local lab with model-API JSON matrix/mock dry-run and first-class manual web-UI CSV import; repeated controlled campaigns; then local teacher workflow, red-team tests, and a consenting pilot. Model API calls belong only to the local research lab and only use synthetic or explicitly consented research inputs, with credentials in environment variables.
+The inherited sequence in [`MVP_SPEC.md`](MVP_SPEC.md) is open to reassessment, not a command to run a campaign or build a teacher workflow. Propose the smallest useful next question or an alternative direction, and obtain its scoped authorization before execution. Model APIs, where separately permitted, use only synthetic or explicitly consented research inputs and environment credentials; implemented adapters do not waive human-only provider holds.
 
 The later campaign should compare hidden-only, visible-only, both, and controls; include the planned paraphrase and summarization variants, noticeability and acknowledgement, template/placement variation, and ChatGPT/Claude web-versus-API conditions. Report per-model and per-layer sample counts and hit rates only when measured. A model's failure to emit a canary cannot identify whether a provider stripped it or the model ignored it without separate evidence.
 

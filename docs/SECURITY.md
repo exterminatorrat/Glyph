@@ -1,12 +1,12 @@
 # Glyph security and privacy model
 
-Status: current privacy direction adopted 2026-10-17; core Steps 1–4 and the local Step 5 research lab are implemented, but teacher workflow and pilot use are not authorized.
+Privacy direction adopted 2026-10-17. See [HANDOFF.md](HANDOFF.md) for current status and scoped holds; research-provider trials are distinct from any later teacher pilot.
 
 ## Current boundaries
 
 Assignment prompts and student responses remain in the browser: do not upload, log, or persist either. No real student work may appear in Git, test fixtures, research fixtures, logs, or documentation. The MVP has no accounts or database, and its embedding/checking path has no teacher-submission backend. Do not commit key material or secrets.
 
-The local research lab is a separate tool. Its default mock mode uses no network and does not read credentials. Explicit live mode may send only researcher-prepared synthetic or explicitly consented research prompts to the fixed OpenAI Chat Completions or Anthropic Messages HTTPS endpoints; it reads only the provider's named API key from the process environment. The lab is not a route for teacher or student submissions. Consent declarations are user assertions, not a verification registry.
+The local research lab is a separate tool. Its default mock mode uses no network and does not read credentials. When separately authorized, explicit live mode can send only researcher-prepared synthetic or explicitly consented research prompts to the fixed OpenAI Chat Completions or Anthropic Messages HTTPS endpoints; it reads only the provider's named API key from the process environment. Implemented capability is not permission: Claude provider testing remains human-only through Harry, including the API route. The lab is not a route for teacher or student submissions. Consent declarations are user assertions, not a verification registry.
 
 The lab processes prompts and imported responses in memory and never copies them, canaries, keys, provider error bodies, or exception messages into output, logs, progress, or telemetry. It writes only safe metadata, detector booleans, raw-tag counts, fixed caveats, and bounded error codes into a new user-chosen directory. Existing output directories are rejected. API requests are sequential, budget-checked before network use, bounded by timeout and output tokens, and never retried. Fixed endpoints and redirect refusal prevent matrix-controlled destinations and credential forwarding.
 

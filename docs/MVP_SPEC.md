@@ -1,6 +1,6 @@
 # Glyph MVP specification
 
-Status: adopted research direction, 2026-10-17; Steps 1–5 are merged to `main` in PRs #4–#8. Harry authorized Step 6 planning, exact-packet preparation, and five-site Vivaldi access/model preflight on 2026-10-18, with no test-prompt pasting or submissions in the preparation pass. The larger repeated campaign and Step 7 remain proposed and unauthorized. See the [bounded pilot protocol](../research/step6-pilot/README.md).
+Research direction adopted 2026-10-17. This document freezes v1 contracts and records the inherited roadmap; [HANDOFF.md](HANDOFF.md) is the canonical current-state/evidence/authorization record. A successor may critique or revise proposed priorities rather than automatically execute this sequence. Recommendations do not authorize implementation or live research.
 
 ## Current authority
 
@@ -142,7 +142,9 @@ Each JSONL record has `schemaVersion: 1` and contains only safe metadata, the de
 
 Embedding and checking are client-first; assignment prompts and student submissions never leave the browser and are not uploaded, logged, or persisted. Do not put real student data in Git, fixtures, documentation, or logs, and do not commit keys or secrets. A local research CLI may call model APIs only on synthetic or explicitly consented research inputs, using credentials from environment variables; it is not a teacher-submission backend. Do not use white-text tricks. Any later teacher-facing use requires disclosure in the teacher AI policy and fresh accessibility and international-text testing for these carriers.
 
-## Ordered roadmap
+## Inherited ordered roadmap
+
+This records the original staged direction, not a current task queue. The Step 6 preparation description below is historical; consult [HANDOFF.md](HANDOFF.md) before interpreting any pending step or budget.
 
 1. **Core types and tag codec (implemented on `main`):** manifest/layer types, tag encode/decode/strip, flag-emoji tests, and the explicit malformed/control-character policy.
 2. **Canary derivation (merged to `main` in PR #5):** deterministic, versioned HMAC-SHA256 derivation from frozen curated word lists, with the raw-key lifecycle and canonical input contract above.
@@ -152,7 +154,7 @@ Embedding and checking are client-first; assignment prompts and student submissi
 6. **Research preparation (bounded scope authorized 2026-10-18):** freeze the [initial browser pilot](../research/step6-pilot/README.md) and manual-only packet, then preflight five allowed Vivaldi sites without pasting or submitting test text. The proposed initial pilot has at most ten submissions, one unmarked control then one both-layer summary exposure per site, `n=1` per cell, no retries. Claude and Gemini 4 Argon are manual-only through Harry. A later repeated four-condition campaign with at least five repeats and summary/own-words variants remains separately scoped, not frozen or run by this preparation.
 7. **Minimal teacher web flow and red team:** local embed/verify/copy check, then test cleaners, OCR, retyping, LLM discovery of hidden instructions, and canary-group sharing before a consenting teacher pilot. Consider Docs/LTI integrations only for measured carrier-surviving platforms and account for LMS sanitization.
 
-The 2026-10-17 documentation adoption itself stopped before implementation. Steps 1–5 were separately authorized and are merged in PRs #4–#8. Step 6 preparation is bounded as above; no actual campaign or provider submission is claimed by the packet, preflight, lab mock, or software checks. The larger repeated campaign and Step 7 remain proposed and unauthorized. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results are preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), which is not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
+The 2026-10-17 documentation adoption itself stopped before implementation; later authorization and evidence are recorded in [HANDOFF.md](HANDOFF.md). Packet preparation, preflight, mock and software checks do not themselves establish model outcomes. The earlier Milestone 0 requirements below are retained for provenance only. Prior M0–M2E DOCX records remain historical for their named profiles and do not qualify the new carriers; the M2E design, protocol, ledger, fixtures, and results were preserved on [draft PR #1](https://github.com/exterminatorrat/Glyph/pull/1), not merged to `main` as of 2026-10-17. See [`EXPERIMENTS.md`](EXPERIMENTS.md) for the research boundary.
 
 <details>
 <summary>Archived Milestone 0 specification (superseded)</summary>

@@ -1,5 +1,7 @@
 # Step 6 pilot protocol v1 — prepared, not run
 
+> Historical preparation-time record (2026-10-18), retained below without rewriting its frozen design/status. Later execution, closure and holds are recorded in [the canonical handoff](../../docs/HANDOFF.md). Do not treat this document's old status or commands as current authorization.
+
 Frozen design: 2026-10-18. Preparation and five-site Vivaldi preflight are authorized; this packet does not authorize a submission. No trial has been run for this packet. Core baseline: `92b61f387d7a8f31b2fc6508ba811fb81b932833` (Steps 1–5 merged, PRs #4–#8). Canary derivation, embedding plan/receipt, tag codec, and detection use their merged v1 contracts without production changes.
 
 ## Plan before implementation

@@ -1,6 +1,6 @@
 # Glyph architecture
 
-Status: partial workspace implemented through Roadmap Step 5; Steps 1 and 2 are merged to `main`, Step 3 is merged in PR #6, Step 4 is merged in PR #7, and Step 5 adds the local research lab. Steps 6–7 remain planned and unauthorized.
+This document describes implemented contracts and planned architecture. Current milestone status, research evidence and authorization are maintained in [HANDOFF.md](HANDOFF.md), not inferred from roadmap numbers.
 
 ## Current repository and target
 

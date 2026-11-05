@@ -1,6 +1,6 @@
 # Glyph product definition
 
-Status: current direction adopted 2026-10-17; Steps 1–5 are implemented, including a local research CLI, but no teacher workflow is implemented.
+Direction adopted 2026-10-17. For current implementation, evidence, decisions and holds, start with [HANDOFF.md](HANDOFF.md); this document defines product purpose and evidence language.
 
 Glyph researches assignment-specific canary prompt injection. A teacher adds two distinct canary layers to assignment text: hidden Unicode tag instructions and a visible, camouflaged note addressed to an AI system. The research question is whether a model follows either instruction and includes its exact canary in generated text.
 

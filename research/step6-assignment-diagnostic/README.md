@@ -1,5 +1,7 @@
 # Assignment diagnostic packet — offline preparation only
 
+> Historical preparation-time record (2026-10-19). The initial phase was subsequently authorized and its automated attempts closed before any paste/send; later human observations are separate. See [the canonical handoff](../../docs/HANDOFF.md) for current state and holds. Original preparation wording below is preserved, not current execution consent.
+
 This packet implements the approved [plan](PLAN.md), not a submission phase. Protocol `step6-assignment-diagnostic/1`, case/assignment `study-room-budget-v1`, frozen 2026-10-19. No prompts have been submitted for this packet. The initial ChatGPT/Grok phase with at most 12 sends is **still proposed and unauthorized**; later sites and human-only phases need their own scope. Independent review follows preparation before any first sends.
 
 ## Frozen contents and provenance
